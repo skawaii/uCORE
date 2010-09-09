@@ -328,7 +328,8 @@ Ext.ux.GEarthPanel = Ext.extend(Ext.Panel, {
         var subNode = subNodes.item(i);
           
         switch(subNode.getType()) {
-        case 'KmlFolder' :
+        case 'KmlFolder':
+        case 'KmlDocument':
           var node = this.treeNodeFromKml(subNode); // Recursion
           break;
         default:
