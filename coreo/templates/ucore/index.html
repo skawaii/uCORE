@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>uCORE - Home</title>
+  </head>
+
+  <body>
+    <center><h2>Welcome to uCORE!</h2></center>
+    <p>
+      <h3>{{ user.name }}'s Information</h3>
+      <table>
+        <tr><td align="right"><strong>SID:</strong></td><td>{{ user.sid }}</td></tr>
+        <tr><td align="right"><strong>Name:</strong></td><td>{{ user.name }}</td></tr>
+        <tr><td align="right"><strong>Phone Number:</strong></td><td>{{ user.phone_number }}</td></tr>
+        <tr><td align="right"><strong>Email:</strong></td><td>{{ user.email }}</td></tr>
+        <tr><td align="right"><strong>Skin:</strong></td><td>{{ user.skin }}</td></tr>
+      </table>
+    </p>
+    <p>
+      <span><h3>{{ user.name }}'s Links</h3></span>
+      {% for link in user.links.all %}
+        <a href="{{ link.url }}">{{ link.name }}</a><br />
+      {% endfor %}
+    </p>
+  </body>
+</html>
