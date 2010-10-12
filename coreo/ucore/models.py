@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.contrib import auth
 
 
 class Skin(models.Model):
@@ -38,11 +39,10 @@ class Link(models.Model):
     return self.name
 
 
-class User(models.Model):
+class CoreUser(auth.models.User):
+
   sid = models.CharField(max_length=20)
-  name = models.CharField(max_length=50)
   phone_number = models.PositiveSmallIntegerField()
-  email = models.EmailField()
   skin = models.ForeignKey(Skin)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
   links = models.ManyToManyField(Link, through='LinkLibrary')
@@ -50,9 +50,8 @@ class User(models.Model):
   def __unicode__(self):
     return self.sid
 
-
 class TrophyCase(models.Model):
-  user = models.ForeignKey(User)
+  user = models.ForeignKey(CoreUser)
   trophy = models.ForeignKey(Trophy)
   date_earned = models.DateField()
 
@@ -61,7 +60,7 @@ class TrophyCase(models.Model):
 
 
 class LinkLibrary(models.Model):
-  user = models.ForeignKey(User)
+  user = models.ForeignKey(CoreUser)
   link = models.ForeignKey(Link)
   tags = models.ManyToManyField(Tag, verbose_name='user-specified tags')
 

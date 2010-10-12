@@ -1,5 +1,5 @@
 from django.contrib import admin
-from coreo.ucore.models import Link, LinkLibrary, Skin, Tag, Trophy, TrophyCase, User
+from coreo.ucore.models import Link, LinkLibrary, Skin, Tag, Trophy, TrophyCase, CoreUser
 
 
 admin.site.register(Link)
@@ -8,5 +8,5 @@ admin.site.register(Skin)
 admin.site.register(Tag)
 admin.site.register(Trophy)
 admin.site.register(TrophyCase)
-admin.site.register(User)
+admin.site.register(CoreUser)
 
