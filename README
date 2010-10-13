@@ -1,0 +1,1 @@
+To get the Django back-end setup, you need to change change the TEMPLATE_DIR setting in settings.py. Then, sync the db: python manage.py syncdb.
