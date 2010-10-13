@@ -8,20 +8,27 @@
   <body>
     <center><h2>Welcome to uCORE!</h2></center>
     <p>
-      <h3>{{ user.name }}'s Information</h3>
+      <h3>{{ user.first_name }}'s Information</h3>
       <table>
         <tr><td align="right"><strong>SID:</strong></td><td>{{ user.sid }}</td></tr>
-        <tr><td align="right"><strong>Name:</strong></td><td>{{ user.name }}</td></tr>
+	<tr><td align="right"><strong>Name:</strong></td><td>{{ user.first_name }} {{ user.last_name}}</td></tr>
         <tr><td align="right"><strong>Phone Number:</strong></td><td>{{ user.phone_number }}</td></tr>
         <tr><td align="right"><strong>Email:</strong></td><td>{{ user.email }}</td></tr>
         <tr><td align="right"><strong>Skin:</strong></td><td>{{ user.skin }}</td></tr>
       </table>
     </p>
     <p>
-      <span><h3>{{ user.name }}'s Links</h3></span>
+      <span><h3>{{ user.first_name }}'s Links</h3></span>
       {% for link in user.links.all %}
         <a href="{{ link.url }}">{{ link.name }}</a><br />
       {% endfor %}
     </p>
+    <p>
+      <form action="/ucore/logout-user/" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Logout" /></td></tr>
+      </form>
+    </p>
+
   </body>
 </html>
