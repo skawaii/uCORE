@@ -22,7 +22,9 @@ def index(request):
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
-    #XXX send them to the register page instead
+    #XXX as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('index.html', {'user': user}, context_instance=RequestContext(request))
@@ -68,9 +70,12 @@ def save_user(request):
 
   # save the new user to the DB with the default skin
   default_skin = Skin.objects.get(name='Default')
-  user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number, skin=default_skin)
+  # XXX make sure the pw is saved still
+  #user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number, skin=default_skin)
+  user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name,
+      email=email, phone_number=phone_number, skin=default_skin)
   user.set_password(password)
-  user.save()
+  #user.save()
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
@@ -87,12 +92,15 @@ def login_user(request):
   username = request.POST['username'].strip()
   password = request.POST['password'].strip()
 
+  if not CoreUser.objects.filter(username__exact=username).exists():
+    return render_to_response('register.html', context_instance=RequestContext(request))
+
   user = auth.authenticate(username=username, password=password)
 
-  if user is not None:
+  if user:
     auth.login(request, user)
     return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
-  
+
   return render_to_response('login.html',
         { 'error_message': 'Invalid Username/Password Combination'
         }, context_instance=RequestContext(request))
