@@ -1,20 +1,20 @@
 #import os
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib import auth
 
-from coreo.ucore.models import Skin, CoreUser
+from coreo.ucore.models import CoreUser, Link, Skin
 
 
 def index(request):
   # XXX the django dev server can't use ssl, so fake getting the sid from the cert
   # XXX pull out the name as well. pass it to register() and keep things DRY
   # sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
-  sid = 'jlcoope'
+  #sid = 'jlcoope'
 
-  if not sid: return render_to_response('install_certs.html')
+  #if not sid: return render_to_response('install_certs.html')
 
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -22,7 +22,7 @@ def index(request):
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
-    #XXX as long as the login_user view forces them to register if they don't already 
+    # as long as the login_user view forces them to register if they don't already 
     # exist in the db, then we should never actually get here. Still, better safe
     # than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -92,6 +92,7 @@ def login_user(request):
   username = request.POST['username'].strip()
   password = request.POST['password'].strip()
 
+  # check if the user already exists
   if not CoreUser.objects.filter(username__exact=username).exists():
     return render_to_response('register.html', context_instance=RequestContext(request))
 
@@ -113,4 +114,13 @@ def logout_user(request):
     auth.logout(request)
 
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
+
+
+def search_links(request, keywords):
+  # tags will be in the form 'tag/tag/tag/...'
+  tags = keywords.split('/')
+  links = Link.objects.filter(tags__name__in=tags).distinct()
+
+  # XXX format the links into a dict and render to a template (doesn't exist yet)
+  #return HttpResponse('%s' % links) # for testing -- view source in browser to see what links are there
 
