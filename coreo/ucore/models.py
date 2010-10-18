@@ -40,7 +40,6 @@ class Link(models.Model):
 
 
 class CoreUser(auth.models.User):
-
   sid = models.CharField(max_length=20)
   phone_number = models.PositiveSmallIntegerField()
   skin = models.ForeignKey(Skin)
@@ -48,7 +47,9 @@ class CoreUser(auth.models.User):
   links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
-    return self.sid
+    #return self.sid
+    return ' '.join((self.username, self.sid))
+
 
 class TrophyCase(models.Model):
   user = models.ForeignKey(CoreUser)

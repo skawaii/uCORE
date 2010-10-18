@@ -12,7 +12,7 @@ def index(request):
   # XXX the django dev server can't use ssl, so fake getting the sid from the cert
   # XXX pull out the name as well. pass it to register() and keep things DRY
   # sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
-  sid = 'acreel'
+  sid = 'jlcoope'
 
   if not sid: return render_to_response('install_certs.html')
 
@@ -22,12 +22,10 @@ def index(request):
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
+    #XXX send them to the register page instead
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('index.html', {'user': user}, context_instance=RequestContext(request))
-
-def login(request):
-  return render_to_response('login.html', context_instance=RequestContext(request))
 
 
 def register(request, sid):
@@ -78,6 +76,11 @@ def save_user(request):
   # hits the back button
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
+
+def login(request):
+  return render_to_response('login.html', context_instance=RequestContext(request))
+
+
 def login_user(request):
   ''' Authenticate a user via Username/Password
   '''
@@ -92,7 +95,8 @@ def login_user(request):
   
   return render_to_response('login.html',
         { 'error_message': 'Invalid Username/Password Combination'
-        })
+        }, context_instance=RequestContext(request))
+
 
 def logout_user(request):
   '''Log the user out, terminating the session
@@ -101,5 +105,4 @@ def logout_user(request):
     auth.logout(request)
 
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
-
 
