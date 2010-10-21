@@ -1,11 +1,13 @@
 #import os
+import csv
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib import auth
+from django.core import serializers
 
-from coreo.ucore.models import CoreUser, Link, Skin
+from coreo.ucore.models import CoreUser, Link, Skin, Tag
 
 
 def index(request):
@@ -75,7 +77,7 @@ def save_user(request):
   user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name,
       email=email, phone_number=phone_number, skin=default_skin)
   user.set_password(password)
-  #user.save()
+  user.save()
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
@@ -122,5 +124,35 @@ def search_links(request, keywords):
   links = Link.objects.filter(tags__name__in=tags).distinct()
 
   # XXX format the links into a dict and render to a template (doesn't exist yet)
-  #return HttpResponse('%s' % links) # for testing -- view source in browser to see what links are there
+  return HttpResponse(serializers.serialize('json', links)) # for testing -- view source in browser to see what links are there
 
+
+def upload_csv(request):
+  if request.method == 'POST':
+    insertLinksFromCSV(request.FILES['file'])
+      
+  return render_to_response('upload_csv.html', context_instance=RequestContext(request))
+
+def insertLinksFromCSV(linkfile):
+  linkFile = csv.reader(linkfile)
+  headers = linkFile.next()
+  for row in linkFile:
+    fields = zip(headers, row)
+    link = {}
+    for(field, value) in fields:
+      link[field] = value.strip()
+
+    link['tags']=link['tags'].strip('"')
+    dblink = Link(name=link['name'], url=link['url'])
+    dblink.save()
+
+    for tag in link['tags'].split(','):
+      tag = tag.strip()
+      try:
+        storedTag=Tag.objects.get(name__exact=tag)
+      except Tag.DoesNotExist:
+        storedTag=Tag(name=tag)
+      storedTag.save()
+      dblink.tags.add(storedTag)
+
+    dblink.save()

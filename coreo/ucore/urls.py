@@ -8,5 +8,6 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^login-user/$', 'login_user'),
     (r'^logout-user/$', 'logout_user'),
     (r'^search-links/(?P<keywords>.+)/$', 'search_links'),
+    (r'^upload-csv/$', 'upload_csv'),
 )
 
