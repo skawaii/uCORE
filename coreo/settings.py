@@ -82,6 +82,10 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     '/Users/skawaii/sandbox/work/ucore/coreo/templates/ucore/',
+	'/Users/jashot7/Code/uCORE/coreo/templates/ucore/',
+	'/Users/jashot7/Code/andy/uCORE/coreo/templates/ucore/',
+
+
 )
 
 INSTALLED_APPS = (

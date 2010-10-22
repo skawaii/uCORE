@@ -1,1 +1,3 @@
-To get the Django back-end setup, you need to change the TEMPLATE_DIR setting in settings.py. Then, sync the db: python manage.py syncdb.
+To get the Django back-end setup, you need to change the TEMPLATE_DIRS setting in settings.py. Then, sync the db: python manage.py syncdb.
+
+The KMZ file referenced is hard coded in core.js. You will need to point our google earth ext plugin to the KML you plan on using.
