@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>uCORE - Profile</title>
+  </head>
+
+	<!-- CSS -->
+	<link rel="stylesheet" type="text/css" href="/site_media/css/corefoundation.css" />
+   	<link rel="stylesheet" type="text/css" href="/site_media/css/core.css" />
+
+
+  <body>
+   	<div id='geheader'>
+  		<a href='/ucore/'>
+			<img id='core-logo' height='28px' width='100px' align='bottom' src='/site_media/images/corelogobluecog2-100x28.png'' alt='C()RE' />
+		</a>
+
+		<div id='user-info'><a href="/ucore/ge/"><span id='signuptext'>Back to the Visualizer</span></a> | <a href='FutureFeature'>Help</a> | <a href='FutureFeature'>About</a> | <a href='/ucore/logout-user/'>Sign Out</a> </div>
+  	</div>
+	<div id='userprofile_div'>
+		<form>
+			<h1>{{ user.first_name }}'s Profile</h1>
+			<ol>
+  				<li>
+  					<label>SID</label>
+  					<input name="id" readonly="readonly" type="text" value="{{ user.sid }}">
+  				</li>
+  				<li>
+  					<label>Name</label>
+  					<input name="name" type="text" readonly="readonly" value="{{ user.first_name}} {{ user.last_name}}">
+  				</li>
+				<li>
+  					<label>Phone</label>
+  					<input name="phone" type="text" readonly="readonly" value="{{ user.phone_number}}">
+  				</li>
+
+				<li>
+  					<label>Email</label>
+  					<input name="email" type="text" readonly="readonly" value="{{ user.email}}">
+  				</li>
+
+				<li>
+  					<label>Skin</label>
+  					<input name="skin" type="text" readonly="readonly" value="{{ user.skin}}>
+  				</li>
+
+			
+			</ol>
+			
+			</form>
+			<form>
+			<div id='userprofile_back'
+				<a href='/ucore/ge/'><input type='button' value='Back'></a>
+			</div>
+			<div id='userprofile_links'
+				<span><h2>{{ user.first_name }}'s Links</h2></span>
+     			{% for link in user.links.all %}
+       			<a href="{{ link.url }}">{{ link.name }}</a><br />
+     			{% endfor %}
+			</div>
+
+	</div> <!-- End user_profile_div -->
+
+
+  </body>
+</html>
