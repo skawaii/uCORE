@@ -13,7 +13,8 @@ from coreo.ucore.models import CoreUser, Link, Skin, Tag
 def geindex(request):
   #This is a quick hack at getting our Google Earth app integrated with Django.
   if not request.user.is_authenticated():
-	return render_to_response('login.html', context_instance=RequestContext(request))
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
@@ -28,11 +29,10 @@ def geindex(request):
 def index(request):
 	# If the user is authenticated, send them to the application.
 	if request.user.is_authenticated():
-		return HttpResponseRedirect('ucore/ge/')
+		return HttpResponseRedirect(reverse('coreo.ucore.views.geindex'))
 
 	# If the user is not authenticated, show them the main page.
-	return render_to_response('index.html', context_instance=RequestContext(request))
-
+	return render_to_response('login.html', context_instance=RequestContext(request))
 
 
 def userprofile(request):
@@ -97,8 +97,6 @@ def save_user(request):
 
   # save the new user to the DB with the default skin
   default_skin = Skin.objects.get(name='Default')
-  # XXX make sure the pw is saved still
-  #user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number, skin=default_skin)
   user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name,
       email=email, phone_number=phone_number, skin=default_skin)
   user.set_password(password)
@@ -106,7 +104,7 @@ def save_user(request):
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
-  return HttpResponseRedirect('/ucore/login/')
+  return HttpResponseRedirect('coreo.ucore.views.login')
 
 
 def login(request):
@@ -128,8 +126,7 @@ def login_user(request):
   # The user has been succesfully authenticated. Send them to the GE app.
   if user:
     auth.login(request, user)
-    return HttpResponseRedirect('/ucore/ge/')
-
+    return HttpResponseRedirect(reverse('coreo.ucore.views.geindex'))
 
   return render_to_response('login.html',
         { 'error_message': 'Invalid Username/Password Combination'
@@ -163,10 +160,12 @@ def upload_csv(request):
 def insertLinksFromCSV(linkfile):
   linkFile = csv.reader(linkfile)
   headers = linkFile.next()
+
   for row in linkFile:
     fields = zip(headers, row)
     link = {}
-    for(field, value) in fields:
+
+    for (field, value) in fields:
       link[field] = value.strip()
 
     link['tags']=link['tags'].strip('"')
@@ -175,11 +174,14 @@ def insertLinksFromCSV(linkfile):
 
     for tag in link['tags'].split(','):
       tag = tag.strip()
+
       try:
         storedTag=Tag.objects.get(name__exact=tag)
       except Tag.DoesNotExist:
         storedTag=Tag(name=tag)
+
       storedTag.save()
       dblink.tags.add(storedTag)
 
     dblink.save()
+

@@ -106,9 +106,9 @@ new Ext.Viewport({
       earthPanel.on('earthLoaded', function(){
         // Display KMLs
         //earthPanel.fetchKml('http://earthatlas.info/kml/statistics/infant_mortality_rate_2005_prism.kmz');
-       // earthPanel.fetchKml('http://basementmonkeys.com/kml/core.kmz');
-		//earthPanel.fetchKml('/site_media/kml/top_eleven.kmz');
-		earthPanel.fetchKml('http://localhost:8080/site_media/kml/top_eleven.kmz');
+        // earthPanel.fetchKml('http://basementmonkeys.com/kml/core.kmz');
+        //earthPanel.fetchKml('/site_media/kml/top_eleven.kmz');
+        earthPanel.fetchKml('http://localhost:8080/site_media/kml/top_eleven.kmz');
 
         // Add panels
         controlPanel.add(earthPanel.getLocationPanel());
