@@ -270,15 +270,39 @@ Ext.ux.GEarthPanel = Ext.extend(Ext.Panel, {
   // Returns FormPanel for KML documents
   getKmlPanel: function() {
     var kmlUrlField = new Ext.form.TriggerField({
-      fieldLabel: 'Add KML/KMZ',
+      fieldLabel: 'Search',
       triggerClass: 'x-form-search-trigger',
       anchor: '100%',
       name: 'url',
-      value: 'http://',
+      value: '',
       selectOnFocus: true,
       scope: this,
       onTriggerClick: function() {
-        google.earth.fetchKml(this.scope.earth, this.getValue(), this.scope.addKml.createDelegate(this.scope));
+        var value = this.getValue();
+
+        if (value.match('^http')) {
+            google.earth.fetchKml(this.scope.earth, value, this.scope.addKml.createDelegate(this.scope));
+        } else if (value.match('show')) {
+
+        } else {
+            Ext.Ajax.request({
+                url: 'http://localhost:8080/ucore/ajax/',
+                params: 'q=' + value,
+                method: 'GET',
+                disableCaching: false,
+                success: function(response) {
+                    alert('success: ' + response.responseText);
+                },
+                failure: function(response) {
+                    if (!response) {
+                      alert('response obj is null');
+                    } else {
+                      alert('failure: ' + response.status + ' ' + response.statusText);
+                    }
+                }
+            });
+        }
+
         this.reset();
       },
       listeners: {specialkey: {fn: function(f, e) {

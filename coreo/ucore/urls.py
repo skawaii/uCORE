@@ -13,5 +13,6 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^logout-user/$', 'logout_user'),
     (r'^search-links/(?P<keywords>.+)/$', 'search_links'),
     (r'^upload-csv/$', 'upload_csv'),
+    (r'^ajax/$', 'ajax_me'),
 )
 

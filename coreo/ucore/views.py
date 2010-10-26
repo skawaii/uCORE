@@ -1,5 +1,5 @@
 #import os
-import csv
+import csv, urllib2
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -184,4 +184,11 @@ def insertLinksFromCSV(linkfile):
       dblink.tags.add(storedTag)
 
     dblink.save()
+
+
+def ajax_me(request):
+  url = 'http://ec2-50-16-14-118.compute-1.amazonaws.com/hello/?' + request.META['QUERY_STRING']
+  result = urllib2.urlopen(url)
+
+  return HttpResponse('\n'.join(result.readlines()))
 
