@@ -8,6 +8,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    (r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  '/Users/jashot7/Code/uCORE/coreo/media/', 'show_indexes':True}), 
     # Example:
     # (r'^coreo/', include('coreo.foo.urls')),
     (r'^ucore/', include('coreo.ucore.urls')),

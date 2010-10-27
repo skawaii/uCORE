@@ -3,26 +3,64 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>uCORE - Register</title>
+
+	<!-- CSS -->
+	<link rel="stylesheet" type="text/css" href="/site_media/css/corefoundation.css" />
+   	<link rel="stylesheet" type="text/css" href="/site_media/css/core.css" />
+
   </head>
 
-  <body>
-    <center><h2>Register for uCORE!</h2></center>
-    <p>Before we get going, let's take just a minute to verify some basic information.</p>
-    {% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}
-    <p>* Indicates a required field</p>
+  <body id="signup_page">
+	<div id='geheader'>
+  		<a href='/ucore/'><img id='core-logo' height='28px' width='100px' align='bottom' src='/site_media/images/corelogobluecog2-100x28.png'' alt='C()RE' />
+		</a>
 
-    <form action="/ucore/save-user/" method="post">
-      {% csrf_token %}
-      <table>
-        <tr><td align="right"><strong>SID</strong></td><td><input type="text" name="sid" readonly="readonly" value="{{ sid }}" /></td></tr>
-	<tr><td align="right"><strong>Username*</strong></td><td><input type="text" name="username" /></td></tr>      
-	<tr><td align="right"><strong>First Name*</strong></td><td><input type="text" name="first_name" /></td></tr>
-	<tr><td align="right"><strong>Last Name*</strong></td><td><input type="text" name="last_name" /></td></tr>
-        <tr><td align="right"><strong>Password*</strong></td><td><input type="password" name="password" /></td></tr>
-        <tr><td align="right"><strong>Phone Number*</strong></td><td><input type="text" name="phone_number" /></td></tr>
-        <tr><td align="right"><strong>Email*</strong></td><td><input type="text" name="email" /></td></tr>
-        <tr><td></td><td align="right"><input type="submit" value="Save" /></td></tr>
-      </table>
-    </form>
+		<div id='user-info'><a href='/ucore/login/'>Sign In</a> | <a href='FutureFeature'>Help</a> | <a href='FutureFeature'>About</a></div>
+  	</div>
+
+	<div class="main_div">
+ 		<div id="core_signup_div" class="center_div">
+			<div><h1> Sign Up </h1></div>
+			<div>{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
+			<form action="/ucore/save-user/" method="post">
+            <div>{% csrf_token %}</div>
+			<ol>
+  				<li>
+  					<label>SID</label>
+  					<input name="sid" type="text" readonly="readonly" value="{{ sid }}">
+  				</li>
+				<li>
+  					<label>Username</label>
+  					<input name="username" type="text">
+  				</li>
+				<li>
+  					<label>First Name</label>
+  					<input name="first_name" type="text">
+  				</li>
+				<li>
+  					<label>Last Name</label>
+  					<input name="last_name" type="text">
+  				</li>
+  				<li>
+  					<label>Phone</label>
+  					<input name="phone_number" type="text">
+  				</li>
+				<li>
+  					<label>Email</label>
+  					<input name="email" type="text">
+  				</li>
+				<li>
+  					<label>Password</label>
+  					<input name="password" type="password">
+  				</li>
+
+
+  				<li class="submit">
+  				<a href="#" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"><input type="submit" value="Sign Up" /></a>
+  				</li>
+			</ol>
+			</form>
+  		</div> <!-- End center_div -->
+	</div> <!-- End main_div -->
   </body>
 </html>

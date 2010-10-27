@@ -6,11 +6,37 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib import auth
 from django.core import serializers
+from django.db.models import Q
 
 from coreo.ucore.models import CoreUser, Link, Skin, Tag
 
 
+def geindex(request):
+  #This is a quick hack at getting our Google Earth app integrated with Django.
+  if not request.user.is_authenticated():
+	return render_to_response('login.html', context_instance=RequestContext(request))
+  try:
+    user = CoreUser.objects.get(username=request.user.username)
+  except CoreUser.DoesNotExist:
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  
+  return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
+
+ 
 def index(request):
+	# If the user is authenticated, send them to the application.
+	if request.user.is_authenticated():
+		return HttpResponseRedirect('ucore/ge/')
+
+	# If the user is not authenticated, show them the main page.
+	return render_to_response('index.html', context_instance=RequestContext(request))
+
+
+
+def userprofile(request):
   # XXX the django dev server can't use ssl, so fake getting the sid from the cert
   # XXX pull out the name as well. pass it to register() and keep things DRY
   # sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
@@ -29,7 +55,7 @@ def index(request):
     # than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
   
-  return render_to_response('index.html', {'user': user}, context_instance=RequestContext(request))
+  return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
 
 def register(request, sid):
@@ -81,7 +107,7 @@ def save_user(request):
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
-  return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
+  return HttpResponseRedirect('/ucore/login/')
 
 
 def login(request):
@@ -100,9 +126,11 @@ def login_user(request):
 
   user = auth.authenticate(username=username, password=password)
 
+  # The user has been succesfully authenticated. Send them to the GE app.
   if user:
     auth.login(request, user)
-    return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
+    return HttpResponseRedirect('/ucore/ge/')
+
 
   return render_to_response('login.html',
         { 'error_message': 'Invalid Username/Password Combination'
@@ -118,13 +146,16 @@ def logout_user(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
-def search_links(request, keywords):
-  # tags will be in the form 'tag/tag/tag/...'
-  tags = keywords.split('/')
-  links = Link.objects.filter(tags__name__in=tags).distinct()
+def search_links(request):
+  terms = request.GET.getlist('q')
+  links = list(Link.objects.filter(tags__name__in=terms).distinct())
+  links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(description__icontains="' + x + '")', terms))+')').distinct())
+  links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(name__icontains="' + x + '")', terms))+')').distinct())
+
+  unique_links = set(links)
 
   # XXX format the links into a dict and render to a template (doesn't exist yet)
-  return HttpResponse(serializers.serialize('json', links)) # for testing -- view source in browser to see what links are there
+  return HttpResponse(serializers.serialize('json', unique_links)) # for testing -- view source in browser to see what links are there
 
 
 def upload_csv(request):
@@ -143,7 +174,7 @@ def insertLinksFromCSV(linkfile):
       link[field] = value.strip()
 
     link['tags']=link['tags'].strip('"')
-    dblink = Link(name=link['name'], url=link['url'])
+    dblink = Link(name=link['name'], url=link['url'], description=link['description'])
     dblink.save()
 
     for tag in link['tags'].split(','):
