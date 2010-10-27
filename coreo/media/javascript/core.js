@@ -3,11 +3,11 @@
 var initcore = function(username){
 
   // Save the username for later.
-/*  var welcomeString = "<span id='signuptext'>" + username + " | <a href="">Settings</a> | <a href="">Help</a> | <a href="/ucore/logout-user/">Sign Out</a>";
+/*  var welcomeString = "<span id='signuptext'>" + username + " | <a href="">Settings</a> | <a href="">Help</a> | <a href="/ucore/logout/">Sign Out</a>";
 */
 
 
-  var welcomeString = "<a href='/ucore/userprofile/'><span id='signuptext'>" + username + "</span></a> | <a href='FutureFeature'>Settings</a> | <a href='FutureFeature'>Help</a> | <a href='/ucore/logout-user'>Sign Out</a>";
+  var welcomeString = "<a href='/ucore/userprofile/'><span id='signuptext'>" + username + "</span></a> | <a href='FutureFeature'>Settings</a> | <a href='FutureFeature'>Help</a> | <a href='/ucore/logout/'>Sign Out</a>";
   
   google.load("earth", "1");
     //google.load("maps", "2.xx");
@@ -110,7 +110,7 @@ var initcore = function(username){
       //earthPanel.fetchKml('http://localhost:8080/site_media/kml/top_eleven.kmz');
 
       // Add panels
-      controlPanel.add(earthPanel.getLocationPanel());
+      //controlPanel.add(earthPanel.getLocationPanel()); // doesn't work currently
       controlPanel.add(earthPanel.getKmlPanel());
       controlPanel.add(earthPanel.getLayersPanel());
       controlPanel.add(earthPanel.getOptionsPanel());
@@ -118,7 +118,7 @@ var initcore = function(username){
 
       // expand the KML panel
       // hard-coded crappiness
-      controlPanel.get(1).expand(false);
+      controlPanel.get(0).expand(false);
 
       /*
       optionsPanel.add(earthPanel.getOptionsPanel());
