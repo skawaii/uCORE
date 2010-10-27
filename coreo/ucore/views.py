@@ -11,8 +11,8 @@ from django.db.models import Q
 from coreo.ucore.models import CoreUser, Link, Skin, Tag
 
 
-def geindex(request):
-  #This is a quick hack at getting our Google Earth app integrated with Django.
+def ge_index(request):
+  # This is a quick hack at getting our Google Earth app integrated with Django.
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
@@ -30,13 +30,13 @@ def geindex(request):
 def index(request):
 	# If the user is authenticated, send them to the application.
 	if request.user.is_authenticated():
-		return HttpResponseRedirect(reverse('coreo.ucore.views.geindex'))
+		return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
 
 	# If the user is not authenticated, show them the main page.
 	return render_to_response('index.html', context_instance=RequestContext(request))
 
 
-def userprofile(request):
+def user_profile(request):
   # XXX the django dev server can't use ssl, so fake getting the sid from the cert
   # XXX pull out the name as well. pass it to register() and keep things DRY
   # sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
@@ -105,36 +105,55 @@ def save_user(request):
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
-  return HttpResponseRedirect('coreo.ucore.views.login')
+  return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
 
 
 def login(request):
-  return render_to_response('login.html', context_instance=RequestContext(request))
+  if request.method == 'GET':
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  else:
+    # authenticate the user viw username/password
+    username = request.POST['username'].strip()
+    password = request.POST['password'].strip()
+
+    # check if the user already exists
+    if not CoreUser.objects.filter(username__exact=username).exists():
+      return render_to_response('register.html', context_instance=RequestContext(request))
+
+    user = auth.authenticate(username=username, password=password)
+
+    # The user has been succesfully authenticated. Send them to the GE app.
+    if user:
+      auth.login(request, user)
+      return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+
+    return render_to_response('login.html',
+          {'error_message': 'Invalid Username/Password Combination'},
+          context_instance=RequestContext(request))
+
+#def login_user(request):
+#  ''' Authenticate a user via Username/Password
+#  '''
+#  username = request.POST['username'].strip()
+#  password = request.POST['password'].strip()
+#
+#  # check if the user already exists
+#  if not CoreUser.objects.filter(username__exact=username).exists():
+#    return render_to_response('register.html', context_instance=RequestContext(request))
+#
+#  user = auth.authenticate(username=username, password=password)
+#
+#  # The user has been succesfully authenticated. Send them to the GE app.
+#  if user:
+#    auth.login(request, user)
+#    return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+#
+#  return render_to_response('login.html',
+#        {'error_message': 'Invalid Username/Password Combination'
+#        }, context_instance=RequestContext(request))
 
 
-def login_user(request):
-  ''' Authenticate a user via Username/Password
-  '''
-  username = request.POST['username'].strip()
-  password = request.POST['password'].strip()
-
-  # check if the user already exists
-  if not CoreUser.objects.filter(username__exact=username).exists():
-    return render_to_response('register.html', context_instance=RequestContext(request))
-
-  user = auth.authenticate(username=username, password=password)
-
-  # The user has been succesfully authenticated. Send them to the GE app.
-  if user:
-    auth.login(request, user)
-    return HttpResponseRedirect(reverse('coreo.ucore.views.geindex'))
-
-  return render_to_response('login.html',
-        { 'error_message': 'Invalid Username/Password Combination'
-        }, context_instance=RequestContext(request))
-
-
-def logout_user(request):
+def logout(request):
   '''Log the user out, terminating the session
   '''
   if request.user.is_authenticated():
@@ -154,24 +173,25 @@ def search_links(request):
 
 
 def search_mongo(request):
-    url = 'http://ec2-50-16-14-118.compute-1.amazonaws.com/hello/?' + request.GET['q']
-    result = urllib2.urlopen(url)
+  url = 'http://ec2-50-16-14-118.compute-1.amazonaws.com/hello/?' + request.GET['q']
+  result = urllib2.urlopen(url)
 
-    return HttpResponse('\n'.join(result.readlines()))
+  return HttpResponse('\n'.join(result.readlines()))
 
 
 def upload_csv(request):
   if request.method == 'POST':
-    insertLinksFromCSV(request.FILES['file'])
+    insert_links_from_csv(request.FILES['file'])
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
-# XXX this should be moved out of views.py
-def insertLinksFromCSV(linkfile):
-  linkFile = csv.reader(linkfile)
-  headers = linkFile.next()
 
-  for row in linkFile:
+# XXX this should be moved out of views.py
+def insert_links_from_csv(csv_file):
+  link_file = csv.reader(csv_file)
+  headers = link_file.next()
+
+  for row in link_file:
     fields = zip(headers, row)
     link = {}
 
@@ -179,19 +199,19 @@ def insertLinksFromCSV(linkfile):
       link[field] = value.strip()
 
     link['tags']=link['tags'].strip('"')
-    dblink = Link(name=link['name'], url=link['url'])
-    dblink.save()
+    db_link = Link(name=link['name'], url=link['url'])
+    db_link.save()
 
     for tag in link['tags'].split(','):
       tag = tag.strip()
 
       try:
-        storedTag=Tag.objects.get(name__exact=tag)
+        stored_tag=Tag.objects.get(name__exact=tag)
       except Tag.DoesNotExist:
-        storedTag=Tag(name=tag)
+        stored_tag=Tag(name=tag)
 
-      storedTag.save()
-      dblink.tags.add(storedTag)
+      stored_tag.save()
+      db_link.tags.add(stored_tag)
 
-    dblink.save()
+    db_link.save()
 

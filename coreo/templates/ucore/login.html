@@ -22,7 +22,7 @@
  		<div class="center_div">
 			<h1>Sign In</h1>
 			<div class="core_error_text">{% if error_message %}*** {{ error_message }} ***{% endif %}</div>
-			<form action="/ucore/login-user/" method="post">
+			<form action="/ucore/login/" method="post">
             <div>{% csrf_token %}</div>
 			<ol>
   				<li>
