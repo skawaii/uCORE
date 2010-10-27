@@ -6,6 +6,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib import auth
 from django.core import serializers
+from django.db.models import Q
 
 from coreo.ucore.models import CoreUser, Link, Skin, Tag
 
@@ -142,10 +143,11 @@ def logout_user(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
-def search_links(request, keywords):
-  # tags will be in the form 'tag/tag/tag/...'
-  tags = keywords.split('/')
-  links = Link.objects.filter(tags__name__in=tags).distinct()
+def search_links(request):
+  terms = request.GET.getlist('q')
+  links = list(Link.objects.filter(tags__name__in=terms).distinct())
+  links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(description__icontains="' + x + '")', terms))+')').distinct())
+  links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(name__icontains="' + x + '")', terms))+')').distinct())
 
   # XXX format the links into a dict and render to a template (doesn't exist yet)
   return HttpResponse(serializers.serialize('json', links)) # for testing -- view source in browser to see what links are there
