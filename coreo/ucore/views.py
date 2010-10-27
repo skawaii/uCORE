@@ -32,7 +32,7 @@ def index(request):
 		return HttpResponseRedirect(reverse('coreo.ucore.views.geindex'))
 
 	# If the user is not authenticated, show them the main page.
-	return render_to_response('login.html', context_instance=RequestContext(request))
+	return render_to_response('index.html', context_instance=RequestContext(request))
 
 
 def userprofile(request):
@@ -151,12 +151,20 @@ def search_links(request, keywords):
   return HttpResponse(serializers.serialize('json', links)) # for testing -- view source in browser to see what links are there
 
 
+def search_mongo(request):
+    url = 'http://ec2-50-16-14-118.compute-1.amazonaws.com/hello/?' + request.GET['q']
+    result = urllib2.urlopen(url)
+
+    return HttpResponse('\n'.join(result.readlines()))
+
+
 def upload_csv(request):
   if request.method == 'POST':
     insertLinksFromCSV(request.FILES['file'])
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
+# XXX this should be moved out of views.py
 def insertLinksFromCSV(linkfile):
   linkFile = csv.reader(linkfile)
   headers = linkFile.next()
@@ -184,11 +192,4 @@ def insertLinksFromCSV(linkfile):
       dblink.tags.add(storedTag)
 
     dblink.save()
-
-
-def ajax_me(request):
-  url = 'http://ec2-50-16-14-118.compute-1.amazonaws.com/hello/?' + request.META['QUERY_STRING']
-  result = urllib2.urlopen(url)
-
-  return HttpResponse('\n'.join(result.readlines()))
 

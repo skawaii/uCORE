@@ -282,23 +282,33 @@ Ext.ux.GEarthPanel = Ext.extend(Ext.Panel, {
 
         if (value.match('^http')) {
             google.earth.fetchKml(this.scope.earth, value, this.scope.addKml.createDelegate(this.scope));
-        } else if (value.match('show')) {
-
-        } else {
+        } else if (value.match('^show')) {
+            // XXX duplicate code here. need to refactor
             Ext.Ajax.request({
-                url: 'http://localhost:8080/ucore/ajax/',
+                url: '../search-mongo/',
                 params: 'q=' + value,
                 method: 'GET',
-                disableCaching: false,
+                //disableCaching: false,
                 success: function(response) {
+                    // XXX Nehal's response will be a url to a KMZ. call google.earth.fetchKml()
                     alert('success: ' + response.responseText);
                 },
                 failure: function(response) {
-                    if (!response) {
-                      alert('response obj is null');
-                    } else {
-                      alert('failure: ' + response.status + ' ' + response.statusText);
-                    }
+                    alert('failure: ' + response.status + ' ' + response.statusText);
+                }
+            });
+        } else {
+            Ext.Ajax.request({
+                url: '../search-links/',
+                params: 'q=' + value,
+                method: 'GET',
+                //disableCaching: false,
+                success: function(response) {
+                    // XXX here, the response is a HTML doc. how do we display that?
+                    alert('success: ' + response.responseText);
+                },
+                failure: function(response) {
+                    alert('failure: ' + response.status + ' ' + response.statusText);
                 }
             });
         }
