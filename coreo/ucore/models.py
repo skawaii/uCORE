@@ -32,8 +32,8 @@ class Tag(models.Model):
 
 class Link(models.Model):
   name = models.CharField(max_length=50)
-  description = models.CharField(max_length=256)#completely arbitrary max_length
-  url = models.URLField() # do we want verify_exists=True?
+  desc = models.CharField(max_length=256) # completely arbitrary max_length
+  url = models.URLField(unique=True) # do we want verify_exists=True?
   tags = models.ManyToManyField(Tag, verbose_name='default tags')
 
   def __unicode__(self):
