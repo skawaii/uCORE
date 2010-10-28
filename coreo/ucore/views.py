@@ -131,30 +131,9 @@ def login(request):
           {'error_message': 'Invalid Username/Password Combination'},
           context_instance=RequestContext(request))
 
-#def login_user(request):
-#  ''' Authenticate a user via Username/Password
-#  '''
-#  username = request.POST['username'].strip()
-#  password = request.POST['password'].strip()
-#
-#  # check if the user already exists
-#  if not CoreUser.objects.filter(username__exact=username).exists():
-#    return render_to_response('register.html', context_instance=RequestContext(request))
-#
-#  user = auth.authenticate(username=username, password=password)
-#
-#  # The user has been succesfully authenticated. Send them to the GE app.
-#  if user:
-#    auth.login(request, user)
-#    return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
-#
-#  return render_to_response('login.html',
-#        {'error_message': 'Invalid Username/Password Combination'
-#        }, context_instance=RequestContext(request))
-
 
 def logout(request):
-  '''Log the user out, terminating the session
+  ''' Log the user out, terminating the session
   '''
   if request.user.is_authenticated():
     auth.logout(request)
@@ -165,7 +144,7 @@ def logout(request):
 def search_links(request):
   terms = request.GET.getlist('q')
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
-  links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(description__icontains="' + x + '")', terms))+')').distinct())
+  links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(desc__icontains="' + x + '")', terms))+')').distinct())
   links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(name__icontains="' + x + '")', terms))+')').distinct())
 
   # XXX format the links into a dict and render to a template (doesn't exist yet)
