@@ -143,7 +143,7 @@ def logout(request):
 
 
 def search_links(request):
-  terms = request.GET.getlist('q')
+  terms = request.GET.get('q').split(' ')
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
   links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(desc__icontains="' + x + '")', terms))+')').distinct())
   links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(name__icontains="' + x + '")', terms))+')').distinct())
