@@ -153,7 +153,7 @@ def search_links(request):
 
 
 def search_mongo(request):
-  url = 'http://ec2-50-16-14-118.compute-1.amazonaws.com/hello/?' + request.GET['q']
+  url = 'http://174.129.206.221/hello//?' + request.GET['q']
   result = urllib2.urlopen(url)
 
   return HttpResponse('\n'.join(result.readlines()))
