@@ -144,8 +144,8 @@ def logout(request):
 def search_links(request):
   terms = request.GET.getlist('q')
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
-  links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(desc__icontains="' + x + '")', terms))+')').distinct())
-  links += list(eval('Link.objects.filter('+' | '.join(map(lambda x: 'Q(name__icontains="' + x + '")', terms))+')').distinct())
+  links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
   # XXX format the links into a dict and render to a template (doesn't exist yet)
   return HttpResponse(serializers.serialize('json', links)) # for testing -- view source in browser to see what links are there
