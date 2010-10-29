@@ -45,7 +45,7 @@ class CoreUser(auth.models.User):
   phone_number = models.PositiveSmallIntegerField()
   skin = models.ForeignKey(Skin)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
-  links = models.ManyToManyField(Link, through='LinkLibrary')
+#  links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
     #return self.sid
@@ -63,11 +63,12 @@ class TrophyCase(models.Model):
 
 class LinkLibrary(models.Model):
   user = models.ForeignKey(CoreUser)
-  link = models.ForeignKey(Link)
+  links = models.ManyToManyField(Link)
   tags = models.ManyToManyField(Tag, verbose_name='user-specified tags')
+  name = models.CharField(max_length=128)
 
   def __unicode__(self):
-    return ' '.join((self.user.sid, self.link.name))
+    return ' '.join((self.user.sid))
 
   class Meta:
     verbose_name_plural = 'link libraries'

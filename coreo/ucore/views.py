@@ -1,5 +1,5 @@
 #import os
-import csv, urllib2
+import urllib2
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -9,6 +9,7 @@ from django.core import serializers
 from django.db.models import Q
 
 from coreo.ucore.models import CoreUser, Link, Skin, Tag
+from coreo.ucore.utils import insert_links_from_csv
 
 
 def ge_index(request):
@@ -163,34 +164,4 @@ def upload_csv(request):
     insert_links_from_csv(request.FILES['file'])
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
-
-
-# XXX this should be moved out of views.py
-def insert_links_from_csv(csv_file):
-  link_file = csv.reader(csv_file)
-  headers = link_file.next()
-
-  for row in link_file:
-    fields = zip(headers, row)
-    link = {}
-
-    for (field, value) in fields:
-      link[field] = value.strip()
-
-    link['tags']=link['tags'].strip('"')
-    db_link = Link(name=link['name'], url=link['url'])
-    db_link.save()
-
-    for tag in link['tags'].split(','):
-      tag = tag.strip()
-
-      try:
-        stored_tag=Tag.objects.get(name__exact=tag)
-      except Tag.DoesNotExist:
-        stored_tag=Tag(name=tag)
-
-      stored_tag.save()
-      db_link.tags.add(stored_tag)
-
-    db_link.save()
 
