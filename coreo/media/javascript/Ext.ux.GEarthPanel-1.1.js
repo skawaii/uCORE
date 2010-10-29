@@ -288,10 +288,13 @@ Ext.ux.GEarthPanel = Ext.extend(Ext.Panel, {
                 url: '../search-mongo/',
                 params: 'q=' + value,
                 method: 'GET',
+                scope: this,
                 //disableCaching: false,
                 success: function(response) {
                     // XXX Nehal's response will be a url to a KMZ. call google.earth.fetchKml()
-                    alert('success: ' + response.responseText);
+                    //alert('success: ' + response.responseText);
+                    //this.scope.addKml.createDelegate(this.scope, [this.scope.earth.parseKml(response.responseText)]);
+                    this.scope.addKml(this.scope.earth.parseKml(response.responseText));
                 },
                 failure: function(response) {
                     alert('failure: ' + response.status + ' ' + response.statusText);
