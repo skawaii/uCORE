@@ -100,3 +100,5 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'coreo.ucore',
 )
+
+SITE_ROOT = 'http://localhost:8000/'

@@ -43,15 +43,29 @@ def build_kml_from_library(link_library):
   doc.appendChild(kml)
 
   folder = doc.createElement('Folder')
-  folder.setAttribute('name', link_library.name)
-
+  foldername = doc.createElement('Name')
+  foldername.appendChild(doc.createTextNode(link_library.name))
+  folder.appendChild(foldername)
+  
   kml.appendChild(folder)
 
   for link in link_library.links.all():
     net_link = doc.createElement('NetworkLink')
-    net_link.setAttribute('name', link.name)
-    net_link.setAttribute('description', link.desc)
-    net_link.setAttribute('Url', '<href>'+link.url+'<href>')
+    
+    name_element = doc.createElement('name')
+    name_element.appendChild(doc.createTextNode(link.name))
+    net_link.appendChild(name_element)
+
+    desc_element = doc.createElement('description')
+    desc_element.appendChild(doc.createTextNode(link.desc))
+    net_link.appendChild(desc_element)
+
+    link_element = doc.createElement('Link')
+    href_element = doc.createElement('href')
+    href_element.appendChild(doc.createTextNode(link.url))
+    link_element.appendChild(href_element)
+    net_link.appendChild(link_element)
+    
     folder.appendChild(net_link)
 
   return doc

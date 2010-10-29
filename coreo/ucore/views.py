@@ -1,5 +1,6 @@
 #import os
 import urllib2
+import xml.dom.ext
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -9,7 +10,7 @@ from django.core import serializers
 from django.db.models import Q
 
 from coreo.ucore.models import CoreUser, Link, Skin, Tag
-from coreo.ucore.utils import insert_links_from_csv
+from coreo.ucore.utils import *
 
 
 def ge_index(request):
@@ -164,4 +165,16 @@ def upload_csv(request):
     insert_links_from_csv(request.FILES['file'])
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
+
+def get_library(request, username, libname):
+  library = LinkLibrary.objects.get(user__username=username,
+  name=libname)
+
+  doc = build_kml_from_library(library)
+  file_path = 'C:/Dev/Django-1.2.3/uCORE/coreo/media/kml/'+username+'-'+libname+'.kml'
+  xml.dom.ext.PrettyPrint(doc, open(file_path, "w"))
+
+  uri = 'http://localhost:8000'+'/site_media/kml/'+username+'-'+libname+'.kml'
+
+  return HttpResponse(uri)
 

@@ -17,5 +17,7 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^search-links/$', 'search_links'),
     (r'^search-mongo/$', 'search_mongo'),
     (r'^upload-csv/$', 'upload_csv'),
+    (r'^libraries/(?P<username>\w*)/(?P<libname>\w*)/',
+    'get_library'),
 )
 
