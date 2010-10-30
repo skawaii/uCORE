@@ -101,4 +101,5 @@ INSTALLED_APPS = (
     'coreo.ucore',
 )
 
-SITE_ROOT = 'http://localhost:8000/'
+SITE_ROOT = 'http://localhost:8080/'
+

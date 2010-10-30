@@ -1,16 +1,18 @@
 #import os
 import urllib2
-import xml.dom.ext
+#import xml.dom.ext
+import xml.dom.minidom
+from django.conf import settings
+from django.contrib import auth
+from django.core import serializers
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.contrib import auth
-from django.core import serializers
-from django.db.models import Q
 
 from coreo.ucore.models import CoreUser, Link, Skin, Tag
-from coreo.ucore.utils import *
+from coreo.ucore import utils
 
 
 def ge_index(request):
@@ -162,18 +164,21 @@ def search_mongo(request):
 
 def upload_csv(request):
   if request.method == 'POST':
-    insert_links_from_csv(request.FILES['file'])
+    utils.insert_links_from_csv(request.FILES['file'])
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
 
-  doc = build_kml_from_library(library)
-  file_path = 'C:/Dev/Django-1.2.3/uCORE/coreo/media/kml/' + username + '-' + lib_name + '.kml'
-  xml.dom.ext.PrettyPrint(doc, open(file_path, "w"))
+  doc = utils.build_kml_from_library(library)
+  file_path = 'media/kml/' + username + '-' + lib_name + '.kml'
+  #xml.dom.ext.PrettyPrint(doc, open(file_path, "w"))
 
-  uri = 'http://localhost:8000' + '/site_media/kml/' + username + '-' + lib_name + '.kml'
+  with open(file_path, 'w') as f:
+    f.write(doc.toprettyxml(indent='  ', encoding='UTF-8'))
+
+  uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
 
   return HttpResponse(uri)
 
