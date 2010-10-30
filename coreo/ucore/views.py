@@ -166,15 +166,14 @@ def upload_csv(request):
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
-def get_library(request, username, libname):
-  library = LinkLibrary.objects.get(user__username=username,
-  name=libname)
+def get_library(request, username, lib_name):
+  library = LinkLibrary.objects.get(user__username=username, name=lib_name)
 
   doc = build_kml_from_library(library)
-  file_path = 'C:/Dev/Django-1.2.3/uCORE/coreo/media/kml/'+username+'-'+libname+'.kml'
+  file_path = 'C:/Dev/Django-1.2.3/uCORE/coreo/media/kml/' + username + '-' + lib_name + '.kml'
   xml.dom.ext.PrettyPrint(doc, open(file_path, "w"))
 
-  uri = 'http://localhost:8000'+'/site_media/kml/'+username+'-'+libname+'.kml'
+  uri = 'http://localhost:8000' + '/site_media/kml/' + username + '-' + lib_name + '.kml'
 
   return HttpResponse(uri)
 

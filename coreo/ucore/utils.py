@@ -70,4 +70,3 @@ def build_kml_from_library(link_library):
 
   return doc
 
-
