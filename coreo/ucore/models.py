@@ -68,7 +68,7 @@ class LinkLibrary(models.Model):
   name = models.CharField(max_length=128)
 
   def __unicode__(self):
-    return ' '.join((self.user.sid))
+    return ' '.join((self.user.username, self.name))
 
   class Meta:
     verbose_name_plural = 'link libraries'
