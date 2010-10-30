@@ -43,9 +43,13 @@ def build_kml_from_library(link_library):
   doc.appendChild(kml)
 
   folder = doc.createElement('Folder')
-  foldername = doc.createElement('Name')
-  foldername.appendChild(doc.createTextNode(link_library.name))
-  folder.appendChild(foldername)
+  folder_name = doc.createElement('name')
+  folder_name.appendChild(doc.createTextNode(link_library.name))
+  folder.appendChild(folder_name)
+
+  vis_element = doc.createElement('visibility')
+  vis_element.appendChild(doc.createTextNode('0'))
+  folder.appendChild(vis_element)
   
   kml.appendChild(folder)
 
@@ -55,6 +59,8 @@ def build_kml_from_library(link_library):
     name_element = doc.createElement('name')
     name_element.appendChild(doc.createTextNode(link.name))
     net_link.appendChild(name_element)
+
+    net_link.appendChild(vis_element.cloneNode(True))
 
     desc_element = doc.createElement('description')
     desc_element.appendChild(doc.createTextNode(link.desc))
