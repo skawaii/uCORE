@@ -11,7 +11,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from coreo.ucore.models import CoreUser, Link, Skin, Tag
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Skin, Tag
 from coreo.ucore import utils
 
 
@@ -152,7 +152,7 @@ def search_links(request):
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
   # XXX format the links into a dict and render to a template (doesn't exist yet)
-  return HttpResponse(serializers.serialize('json', links)) # for testing -- view source in browser to see what links are there
+  return HttpResponse(serializers.serialize('json', links))
 
 
 def search_mongo(request):
