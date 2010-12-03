@@ -8,73 +8,72 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 
 /*The user welcome message in the page header!*/
 #user-info {
-	position:relative;
-	float:right;
-	padding-right: 5px;
-	
+  position:relative;
+  float:right;
+  padding-right: 5px;
+  
 }
 #core-logo {
-	margin: 3px 3px 3px 3px;
+  margin: 3px 3px 3px 3px;
 }
 #geheader {
-	background-color: /*#176bb4*/ /*#D9E7F8*/ #1E3A7C;
-	padding:0px;
-	margin:0px;
+  background-color: /*#176bb4*/ /*#D9E7F8*/ #1E3A7C;
+  padding:0px;
+  margin:0px;
 }
 
 #header-mainpage {
-	float:right;
-	padding:10px;
-	font-famil: sans-serif;
-	color:#B3B3B3
+  float:right;
+  padding:10px;
+  font-famil: sans-serif;
+  color:#B3B3B3
 }
 
 .core_error_text {
-color:#FF0000;
+  color:#FF0000;
 }
 #signuptext {
-color:#FFB932;
+  color:#FFB932;
 }
 
 #userprofile_div {
-	margin:10px;
+  margin:10px;
 }
 
 #userprofile_links {
-	margin:10px;
+  margin:10px;
 }
 
 #userprofile_back {
-margin:10px;
+  margin:10px;
 }
 body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 
-.main_div
-{
-position: absolute;
-top: 50%;
-left: 0px;
-width: 100%;
-height: 1px;
-overflow: visible;
+.main_div {
+  position: absolute;
+  top: 50%;
+  left: 0px;
+  width: 100%;
+  height: 1px;
+  overflow: visible;
 }
-.center_div
-{
-width: 450px;
-min-height: 250px;
-margin-left: -225px; /*** width / 2 ***/
-position: absolute;
-top: -125px; /*** height / 2 ***/
-left: 50%;
+
+.center_div {
+  width: 450px;
+  min-height: 250px;
+  margin-left: -225px; /*** width / 2 ***/
+  position: absolute;
+  top: -125px; /*** height / 2 ***/
+  left: 50%;
 }
 
 #core_signup_div {
-	background-color:#EFEFEF;
+  background-color:#EFEFEF;
 }
 
-#signup_page ol{width:320px;float:left;list-style-type:none;margin-top:20px}
-#signup_page li{padding-bottom:10px}#signup_page input{width:200px}
-#signup_page label{float:left;width:80px;font-weight:bold;color:#525252;padding-top:5px;padding-right:15px;text-align:right}
-#signup_page .terms input{float:left;width:28px;margin:4px 0 0 110px}
-#signup_page .about_gowalla{float:left;width:250px;padding:0;margin:0;margin-left:40px;padding-left:30px;margin-top:20px;border-left:2px s
+#signup_page ol{ width:320px;float:left;list-style-type:none;margin-top:20px }
+#signup_page li{ padding-bottom:10px}#signup_page input{width:200px }
+#signup_page label{ float:left;width:80px;font-weight:bold;color:#525252;padding-top:5px;padding-right:15px;text-align:right }
+#signup_page .terms input{ float:left;width:28px;margin:4px 0 0 110px }
+#signup_page .about_gowalla{ float:left;width:250px;padding:0;margin:0;margin-left:40px;padding-left:30px;margin-top:20px;border-left:2px }
 

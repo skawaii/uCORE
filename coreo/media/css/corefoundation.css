@@ -1,4 +1,4 @@
-<!-- Core Foundation CSS -->
+/* Core Foundation CSS */
 
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td
 { margin:0;
@@ -582,8 +582,9 @@ hr
 div.selector,div.selector span,div.checker span,div.radio span,div.uploader,div.uploader span.action,div.button,div.button span
 { background-image:url(/images/uniform-sprite2.png);
   background-repeat:no-repeat;
-  -webkit-font-smoothing:antialiased;
-  .selector,.radio,.checker,.uploader,.button,.selector *,.radio *,.checker *,.uploader *,.button *
+  -webkit-font-smoothing:antialiased; }
+
+.selector,.radio,.checker,.uploader,.button,.selector *,.radio *,.checker *,.uploader *,.button *
 { margin:0;
   padding:0; }
 
@@ -678,5 +679,4 @@ input.text:focus,input.password:focus,textarea.uniform:focus
   width:50px;
   height:50px;
   margin-right:15px; }
-
 
