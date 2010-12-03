@@ -12,7 +12,8 @@ urlpatterns = patterns('',
     (r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  '/Users/skawaii/sandbox/work/ucore/coreo/media/', 'show_indexes':True}), 
     # Example:
     # (r'^coreo/', include('coreo.foo.urls')),
-    (r'^ucore/', include('coreo.ucore.urls')),
+    # (r'^ucore/', include('coreo.ucore.urls')),
+    (r'^', include('coreo.ucore.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
