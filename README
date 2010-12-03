@@ -1,4 +1,4 @@
-To get the Django back-end setup, you may need to add your template directory to the TEMPLATE_DIRS setting in settings.py. Then, sync the db: python manage.py syncdb. Also, change the site_media URL config in ucore/coreo/urls.py to match the path to the media dir on your computer.
+To get the Django back-end setup, you may need to add your template directory to the TEMPLATE_DIRS setting in settings.py. Then, create the db directory (mkdir db) and sync the db: python manage.py syncdb. Also, change the site_media URL config in ucore/coreo/urls.py to match the path to the media dir on your computer.
 
 The KMZ file referenced is hard coded in core.js. You will need to point our google earth ext plugin to the KML you plan on using.
 
