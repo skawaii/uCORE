@@ -4,41 +4,41 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>uCORE - Login</title>
 
-	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="/site_media/css/corefoundation.css" />
-   	<link rel="stylesheet" type="text/css" href="/site_media/css/core.css" />
+  <!-- CSS -->
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
 
 
   </head>
 
   <body id="signup_page">
-  	<div id='geheader'>
-  		<a href='/ucore/'><img id='core-logo' height='28px' width='100px' align='bottom' src='/site_media/images/corelogobluecog2-100x28.png'' alt='C()RE' />
-		</a>
+    <div id="geheader">
+      <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
+    </a>
 
-		<div id='user-info'><a href="/ucore/register/fillThisIn"><span id="signuptext">Sign Up</span></a> | <a href='FutureFeature'>Help</a> | <a href='FutureFeature'>About</a></div>
-  	</div>
-	<div class="main_div">
- 		<div class="center_div">
-			<h1>Sign In</h1>
-			<div class="core_error_text">{% if error_message %}*** {{ error_message }} ***{% endif %}</div>
-			<form action="/ucore/login/" method="post">
+    <div id="user-info"><a href="/register/fillThisIn"><span id="signuptext">Sign Up</span></a> | <a href="FutureFeature">Help</a> | <a href="FutureFeature">About</a></div>
+    </div>
+  <div class="main_div">
+    <div class="center_div">
+      <h1>Sign In</h1>
+      <div class="core_error_text">{% if error_message %}*** {{ error_message }} ***{% endif %}</div>
+      <form action="/login/" method="post">
             <div>{% csrf_token %}</div>
-			<ol>
-  				<li>
-  					<label>Username</label>
-  					<input name="username" type="text">
-  				</li>
-  				<li>
-  					<label>Password</label>
-  					<input name="password" type="password">
-  				</li>
-  				<li class="submit">
-  				<a href="#" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"><input type="submit" value="Sign In" /></a>
-  				</li>
-			</ol>
-  		</div> <!-- End center_div -->
-	</div> <!-- End main_div -->
+      <ol>
+          <li>
+            <label>Username</label>
+            <input name="username" type="text">
+          </li>
+          <li>
+            <label>Password</label>
+            <input name="password" type="password">
+          </li>
+          <li class="submit">
+          <a href="#" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"><input type="submit" value="Sign In" /></a>
+          </li>
+      </ol>
+      </div> <!-- End center_div -->
+  </div> <!-- End main_div -->
 
-	</body>
+  </body>
 </html>

@@ -3,11 +3,11 @@
 var initcore = function(username){
 
   // Save the username for later.
-/*  var welcomeString = "<span id='signuptext'>" + username + " | <a href="">Settings</a> | <a href="">Help</a> | <a href="/ucore/logout/">Sign Out</a>";
+/*  var welcomeString = "<span id='signuptext'>" + username + " | <a href="">Settings</a> | <a href="">Help</a> | <a href="/logout/">Sign Out</a>";
 */
 
 
-  var welcomeString = "<a href='/ucore/userprofile/'><span id='signuptext'>" + username + "</span></a> | <a href='FutureFeature'>Settings</a> | <a href='FutureFeature'>Help</a> | <a href='/ucore/logout/'>Sign Out</a>";
+  var welcomeString = "<a href='/userprofile/'><span id='signuptext'>" + username + "</span></a> | <a href='FutureFeature'>Settings</a> | <a href='FutureFeature'>Help</a> | <a href='/logout/'>Sign Out</a>";
   
   google.load("earth", "1");
     //google.load("maps", "2.xx");
