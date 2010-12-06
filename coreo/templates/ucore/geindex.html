@@ -3,33 +3,61 @@
 	<title>uCORE</title>
  	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   	
-    <!-- CSS -->
-    <link rel="stylesheet" type="text/css" href="http://skawaii.net/extjs/latest/resources/css/ext-all.css"/>
+	<!-- CSS -->
+	<link rel="stylesheet" type="text/css" href="/site_media/javascript/ext-3.3.0/resources/css/ext-all.css"/>
 	<link rel="stylesheet" type="text/css" href="/site_media/css/corefoundation.css" />
-    <link rel="stylesheet" type="text/css" href="/site_media/css/core.css" />
+	<link rel="stylesheet" type="text/css" href="/site_media/css/core.css" />
 	<link rel="stylesheet" type="text/css" href="/site_media/css/Ext.ux.GEarthPanel-1.1.css" />
+	<link rel="stylesheet" type="text/css" href="/site_media/javascript/kmltree-0.9.3/kmltree.css" media="screen" />
 
-    <!-- Javascript -->
-    <script type="text/javascript" src="http://skawaii.net/extjs/latest/adapter/ext/ext-base.js"></script>
-    <script type="text/javascript" src="http://skawaii.net/extjs/latest/ext-all-debug.js"></script>
-    <script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
-    <script type="text/javascript" src="/site_media/javascript/Ext.ux.GEarthPanel-1.1.js"></script>
-    <script type="text/javascript" src="/site_media/javascript/core.js"></script>
+	<!-- Javascript -->
+	<script type="text/javascript" src="/site_media/javascript/ext-3.3.0/adapter/ext/ext-base.js"></script>
+	<script type="text/javascript" src="/site_media/javascript/ext-3.3.0/ext-all-debug.js"></script>
+	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
+	<script type="text/javascript" src="/site_media/javascript/Ext.ux.GEarthPanel-1.1.js"></script>
+	<script type="text/javascript" src="/site_media/javascript/core.js"></script>
 
+	<script type="text/javascript" src="/site_media/javascript/jQuery/jquery-1.4.2.js"></script>
+	<script type="text/javascript" src="/site_media/javascript/geo-0.2.pack.js"></script>
+	<script type="text/javascript" src="/site_media/javascript/extensions-0.2.1.pack.js"></script>
+	<script type="text/javascript" src="/site_media/javascript/kmltree-0.9.3/kmltree.min.js"></script>
+	
 	<!-- Call the Core JS -->
-    <script type="text/javascript">
+	<!-- 
+	<script type="text/javascript">
 		initcore('{{ user.first_name }}');
-    </script>
+	</script>
+	-->
+	<script type="text/javascript">
+	  google.load("earth", "1");
+	</script>
  </head>
 
 <body>
-  <div id="eastPanel"></div>
-  <div id="westPanel"></div>
-  <div id="northPanel"></div>
-  <div id="centerPanel"></div>
-  <div id="bottomPanel"></div>
-  <!-- <div id="eastPanel"></div> -->
+<div id='geheader'>
+	<img id="core-logo" height="28px" width="100px" align="bottom" src="/site_media/images/corelogobluecog2-100x28.png" alt="C()RE" />
+	<div id="user-info">
+		<a href="/ucore/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="FutureFeature">Settings</a> | <a href="FutureFeature">Help</a> | <a href="/ucore/logout/">Sign Out</a>
+	</div>
+</div>
+<div id="ge" style="width: 100%;"></div>
+<div id="gefooter" style="background-color: #1E3A7C; height: 28px; padding: 0; margin: 0; width: 100%;">
+</div>
 </body>
-
+<script type="text/javascript"><!--
+// set height of GE div to total viewable area - header height
+var headerHt = Ext.get("geheader").getHeight();
+new core.GEarthWidget({
+	el: 'ge', 
+	fluidHeightOffset: headerHt,
+	primaryKmlTree: [
+	           {
+	        	   url: "http://www.etseo.org/google/kmz/USGSEarthQuakes.kmz"
+	        	}
+	],
+	layersKmlTree:{url: "http://localhost:8080/site_media/kml/layers.kml"},
+	optionsKmlTree: "/site_media/kml/options.kml"
+}).init();
+--></script>
 </html>
 
