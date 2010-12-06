@@ -30,6 +30,27 @@ class Tag(models.Model):
     return self.name
 
 
+class Rank(models.Model):
+  RANK_CHOICES = (
+      (1, '1 - Utter Junk'),
+      (2, '2 - Junk'),
+      (3, '3 - Ok'),
+      (4, '4 - Good'),
+      (5, '5 - Very Good')
+  )
+
+  user = models.ForeignKey('CoreUser')
+  link = models.ForeignKey('Link')
+  rank = models.IntegerField(choices=RANK_CHOICES)
+  comment = models.TextField()
+
+  def __unicode__(self):
+    return ' '.join((self.user.username, self.link.name))
+
+  class Meta:
+    verbose_name_plural = 'rankings'
+
+
 class Link(models.Model):
   name = models.CharField(max_length=50)
   desc = models.CharField(max_length=256) # completely arbitrary max_length
@@ -45,7 +66,7 @@ class CoreUser(auth.models.User):
   phone_number = models.PositiveSmallIntegerField()
   skin = models.ForeignKey(Skin)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
-#  links = models.ManyToManyField(Link, through='LinkLibrary')
+  # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
     #return self.sid
