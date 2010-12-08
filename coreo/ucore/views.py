@@ -189,25 +189,28 @@ def rate(request, link_id):
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
+  try:
+    link = Link.objects.get(id=link_id)
+  except Link.DoesNotExist:
+    return HttpResponse('Link with id %s does not exist' % link_id)
+
+  # XXX change the code so that if the user has previously rated or left a comment, it's shown
   if request.method == 'GET':
-    return render_to_response('rate.html', {'link_id': link_id}, context_instance=RequestContext(request))
-  else:
-    rating = request.POST['rating')
-    comment = request.POST['comment').strip() #XXX does this need to be HTML escaped or does Django do that for us?
-    user = CoreUser.objects.get(username=request.user.username)
+    return render_to_response('rate.html', {'link': link}, context_instance=RequestContext(request))
 
-    try:
-      link = Link.objects.get(id=link_id)
-    except Link.DoesNotExist:
-      return HttpResponse('Link with id %s does not exist' % link_id)
+  rating = request.POST['rating']
+  comment = request.POST['comment'].strip() #XXX does this need to be HTML escaped or does Django do that for us?
+  user = CoreUser.objects.get(username=request.user.username)
 
-    rating = Rating(user=user, link=link, rating=rating, comment=comment)
-    rating.save()
+  # XXX change so that it updates if there is an existing rating
+  rating = Rating(user=user, link=link, rating=rating, comment=comment)
+  rating.save()
 
-    # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
-    return HttpResponseRedirect(reverse('coreo.ucore.views.success', args='Rating successfully saved.'))
+  # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
+  #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
+  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
 
 
-def success(request, message):
-  return HttpResponse(message)
+def success(request, message=''):
+  return HttpResponse('you did it!')
 

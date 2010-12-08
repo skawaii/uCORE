@@ -19,5 +19,7 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^upload-csv/$', 'upload_csv'),
     (r'^libraries/(?P<username>\w*)/(?P<lib_name>\w*)/', 'get_library'),
     (r'^rate/(?P<link_id>\d+)/$', 'rate'),
+    #(r'^success/(?P<message>\w+)/$', 'success'),
+    (r'^success/$', 'success'),
 )
 
