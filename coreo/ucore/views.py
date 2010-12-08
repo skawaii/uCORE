@@ -11,7 +11,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Skin, Tag
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag
 from coreo.ucore import utils
 
 
@@ -146,7 +146,7 @@ def logout(request):
 
 
 def search_links(request):
-  terms = request.GET.get('q').split(' ')
+  terms = request.GET['q'].split(' ')
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
@@ -168,6 +168,7 @@ def upload_csv(request):
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
+
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
 
@@ -181,4 +182,32 @@ def get_library(request, username, lib_name):
   uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
 
   return HttpResponse(uri)
+
+
+def rate(request, link_id):
+  # XXX assuming we can get PKI certs working with WebFaction, we could pull the sid out here
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  if request.method == 'GET':
+    return render_to_response('rate.html', {'link_id': link_id}, context_instance=RequestContext(request))
+  else:
+    rating = request.POST['rating')
+    comment = request.POST['comment').strip() #XXX does this need to be HTML escaped or does Django do that for us?
+    user = CoreUser.objects.get(username=request.user.username)
+
+    try:
+      link = Link.objects.get(id=link_id)
+    except Link.DoesNotExist:
+      return HttpResponse('Link with id %s does not exist' % link_id)
+
+    rating = Rating(user=user, link=link, rating=rating, comment=comment)
+    rating.save()
+
+    # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
+    return HttpResponseRedirect(reverse('coreo.ucore.views.success', args='Rating successfully saved.'))
+
+
+def success(request, message):
+  return HttpResponse(message)
 
