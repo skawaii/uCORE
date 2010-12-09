@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>uCORE - Trophy Room</title>
+  </head>
+
+  <!-- CSS --> 
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+ <!-- 
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+  --> 
+
+  <body>
+    <div id='geheader'>
+      <a href='/'>
+        <img id='core-logo' height='28px' width='100px' align='bottom' src='{{ MEDIA_URL }}images/corelogobluecog2-100x28.png'' alt='C()RE' />
+    </a>
+
+    <div id='user-info'><a href="/ge/"><span id='signuptext'>Back to the Visualizer</span></a> | <a href='FutureFeature'>Help</a> | <a href='FutureFeature'>About</a> | <a href='/logout/'>Sign Out</a> </div>
+    </div>
+  <div>
+    <table>
+      <tr>
+        <td><h1 align='center'> Trophy Room </h1></td>
+        <td>
+    <img id='trophypic' height='200px' width='100px' src='{{ MEDIA_URL }}images/dart_trophy.JPG''/>
+      </td>
+    </tr>
+       {% if trophy_list %}
+       <td>
+         <table border='2'>
+           <tr>
+             <th>Image</th><th>Trophy Name</th><th>Trophy Description</th>
+           </tr>
+      
+      {% for trophy in trophy_list %}
+        <tr>
+        <td><img src='{{ MEDIA_URL }}{{ trophy.file_path }}' height='10%' width='10%'/></td>
+        <td>{{ trophy.name }}</td>
+        <td>{{ trophy.desc }}</td>
+      </tr>
+        {% endfor %}
+    </table>
+     </td>
+     {% else %}
+       <td>
+         <H2>        No Trophies to display</H2>
+       </td>
+       {% endif %}
+     </tr>
+   </table>
+</div>
+</body>
+</html>
