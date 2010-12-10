@@ -191,20 +191,33 @@ def rate(request, link_id):
 
   try:
     link = Link.objects.get(id=link_id)
-  except Link.DoesNotExist:
-    return HttpResponse('Link with id %s does not exist' % link_id)
+    user = CoreUser.objects.get(username=request.user.username)
+  except (Link.DoesNotExist, CoreUser.DoesNotExist) as e:
+    #return HttpResponse('Link with id %s does not exist' % link_id)
+    return HttpResponse(e.message)
 
-  # XXX change the code so that if the user has previously rated or left a comment, it's shown
-  if request.method == 'GET':
-    return render_to_response('rate.html', {'link': link}, context_instance=RequestContext(request))
+  # check to see if a Rating already exists for this (CoreUser, Link) combo. If the combo already exists:
+  #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
+  #   2. and this is a POST, update the Rating
+  rating = Rating.objects.filter(user=user, link=link)
 
-  rating = request.POST['rating']
-  comment = request.POST['comment'].strip() #XXX does this need to be HTML escaped or does Django do that for us?
-  user = CoreUser.objects.get(username=request.user.username)
+  if rating:
+    rating = rating[0]
 
-  # XXX change so that it updates if there is an existing rating
-  rating = Rating(user=user, link=link, rating=rating, comment=comment)
-  rating.save()
+    if request.method == 'GET':
+      return render_to_response('rate.html', {'rating': rating, 'link': link}, context_instance=RequestContext(request))
+
+    rating.score = request.POST['score']
+    rating.comment = request.POST['comment'].strip() #XXX does this need to be HTML escaped or does Django do that for us?
+    rating.save()
+  else:
+    if request.method == 'GET':
+      return render_to_response('rate.html', {'link': link}, context_instance=RequestContext(request))
+
+    score = request.POST['score']
+    comment = request.POST['comment'].strip() #XXX does this need to be HTML escaped or does Django do that for us?
+
+    Rating.objects.create(user=user, link=link, score=score, comment=comment)
 
   # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
   #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))

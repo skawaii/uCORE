@@ -22,16 +22,16 @@
                     <li>
                         <label>Rating</label>
                         <select name="score">
-                            <option value=1>1 - Utter Junk</option>
-                            <option value=2>2 - Junk</option>
-                            <option value=3>3 - OK</option>
-                            <option value=4>4 - Good</option>
-                            <option value=5>5 - Very Good</option>
+                            <option value=1 {% if rating %}{% if rating.score == 1 %}selected="selected"{% endif %}{% endif %}>1 - Utter Junk</option>
+                            <option value=2 {% if rating %}{% if rating.score == 2 %}selected="selected"{% endif %}{% endif %}>2 - Junk</option>
+                            <option value=3 {% if rating %}{% if rating.score == 3 %}selected="selected"{% endif %}{% endif %}>3 - OK</option>
+                            <option value=4 {% if rating %}{% if rating.score == 4 %}selected="selected"{% endif %}{% endif %}>4 - Good</option>
+                            <option value=5 {% if rating %}{% if rating.score == 5 %}selected="selected"{% endif %}{% endif %}>5 - Very Good</option>
                         </select>
                     </li>
                     <li>
                         <label>Comment</label>
-                        <textarea name="comment" rows="5" cols="20"></textarea>
+                        <textarea name="comment" rows="5" cols="20">{%if rating %}{{rating.comment}}{% endif %}</textarea>
                     </li>
                     <li class="submit">
                         <input type="submit" value="Rate!" />
