@@ -53,7 +53,7 @@ class CoreUser(auth.models.User):
 
 
 class Rating(models.Model):
-  RATING_CHOICES = (
+  SCORE_CHOICES = (
       (1, '1 - Utter Junk'),
       (2, '2 - Junk'),
       (3, '3 - Ok'),
@@ -63,11 +63,14 @@ class Rating(models.Model):
 
   user = models.ForeignKey(CoreUser)
   link = models.ForeignKey(Link)
-  rating = models.IntegerField(choices=RATING_CHOICES)
+  score = models.IntegerField(choices=SCORE_CHOICES)
   comment = models.TextField()
 
   def __unicode__(self):
     return ' '.join((self.user.username, self.link.name))
+
+  class Meta:
+    unique_together = ('user', 'link')
 
 
 class TrophyCase(models.Model):
