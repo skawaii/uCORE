@@ -64,7 +64,7 @@ class Rating(models.Model):
   user = models.ForeignKey(CoreUser)
   link = models.ForeignKey(Link)
   score = models.IntegerField(choices=SCORE_CHOICES)
-  comment = models.TextField()
+  comment = models.TextField(blank=True)
 
   def __unicode__(self):
     return ' '.join((self.user.username, self.link.name))
