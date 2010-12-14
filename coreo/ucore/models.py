@@ -83,10 +83,11 @@ class TrophyCase(models.Model):
 
 
 class LinkLibrary(models.Model):
+  name = models.CharField(max_length=128)
+  desc = models.CharField(max_length=256) # completely arbitrary max_length
+  tags = models.ManyToManyField(Tag, verbose_name='user-specified tags')
   user = models.ForeignKey(CoreUser)
   links = models.ManyToManyField(Link)
-  tags = models.ManyToManyField(Tag, verbose_name='user-specified tags')
-  name = models.CharField(max_length=128)
 
   def __unicode__(self):
     return ' '.join((self.user.username, self.name))
