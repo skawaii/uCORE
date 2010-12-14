@@ -151,7 +151,6 @@ def search_links(request):
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
-  # XXX format the links into a dict and render to a template (doesn't exist yet)
   return HttpResponse(serializers.serialize('json', links))
 
 
@@ -199,25 +198,19 @@ def rate(request, link_id):
   # check to see if a Rating already exists for this (CoreUser, Link) combo. If the combo already exists:
   #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
   #   2. and this is a POST, update the Rating
-  rating = Rating.objects.filter(user=user, link=link)
+  rating = Rating.objects.filter(user=user, link=link) # guaranteed only 1 result b/c of DB unique_together
 
-  if rating:
-    rating = rating[0]
+  if request.method == 'GET':
+    if rating: context = {'rating': rating[0], 'link': link}
+    else: context = {'link': link}
 
-    if request.method == 'GET':
-      return render_to_response('rate.html', {'rating': rating, 'link': link}, context_instance=RequestContext(request))
-
-    rating.score = request.POST['score']
-    rating.comment = request.POST['comment'].strip() #XXX does this need to be HTML escaped or does Django do that for us?
-    rating.save()
+    return render_to_response('rate.html', context, context_instance=RequestContext(request))
   else:
-    if request.method == 'GET':
-      return render_to_response('rate.html', {'link': link}, context_instance=RequestContext(request))
-
-    score = request.POST['score']
-    comment = request.POST['comment'].strip() #XXX does this need to be HTML escaped or does Django do that for us?
-
-    Rating.objects.create(user=user, link=link, score=score, comment=comment)
+    if rating:
+      (rating[0].score, rating[0].comment) = (request.POST['score'], request.POST['comment'].strip()) #XXX does this need to be HTML escaped or does Django do that for us?
+      rating[0].save()
+    else:
+      Rating.objects.create(user=user, link=link, score=request.POST['score'], comment=request.POST['comment'].strip())
 
   # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
   #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))

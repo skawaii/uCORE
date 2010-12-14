@@ -10,8 +10,6 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^user-profile/$', 'user_profile'), 
     (r'^userprofile/$', 'user_profile'), # for backwards compatibility
     (r'^login/$', 'login'),
-    #(r'^login-user/$', 'login_user'),
-    #(r'^logout-user/$', 'logout_user'),
     (r'^logout/$', 'logout'),
     #(r'^search-links/(?P<keywords>.+)/$', 'search_links'),
     (r'^search-links/$', 'search_links'),
