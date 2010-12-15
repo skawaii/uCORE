@@ -17,7 +17,8 @@ class Trophy(models.Model):
   file_path = models.FilePathField('path to image file', path=settings.MEDIA_ROOT + 'trophies')
 
   def __unicode__(self):
-    return self.name
+    #  return self.name
+    return '%s %s %s' % (self.name, self.desc, self.file_path)
 
   class Meta:
     verbose_name_plural = 'trophies'
