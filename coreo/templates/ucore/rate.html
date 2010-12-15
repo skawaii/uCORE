@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>uCORE - Rate a Link</title>
+    </head>
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+
+    <body>
+        <div id="geheader">
+            <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" /></a>
+            <div id="user-info"><a href="/ge/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="FutureFeature">Help</a> | <a href="FutureFeature">About</a> | <a href="/logout/">Sign Out</a></div>
+        </div>
+        <div id="userprofile_div">
+            <form action="/rate/{{ link.id }}/" method=post>
+                {% csrf_token %}
+                <h1>{{ link.name }}</h1>
+                <ol>
+                    <li>
+                        <label>Rating</label>
+                        <select name="score">
+                            <option value=1 {% if rating %}{% if rating.score == 1 %}selected="selected"{% endif %}{% endif %}>1 - Utter Junk</option>
+                            <option value=2 {% if rating %}{% if rating.score == 2 %}selected="selected"{% endif %}{% endif %}>2 - Junk</option>
+                            <option value=3 {% if rating %}{% if rating.score == 3 %}selected="selected"{% endif %}{% endif %}>3 - OK</option>
+                            <option value=4 {% if rating %}{% if rating.score == 4 %}selected="selected"{% endif %}{% endif %}>4 - Good</option>
+                            <option value=5 {% if rating %}{% if rating.score == 5 %}selected="selected"{% endif %}{% endif %}>5 - Very Good</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label>Comment</label>
+                        <textarea name="comment" rows="5" cols="20">{%if rating %}{{rating.comment}}{% endif %}</textarea>
+                    </li>
+                    <li class="submit">
+                        <input type="submit" value="Rate!" />
+                    </li>
+                </ol>
+            </form>
+        </div> <!-- End user_profile_div -->
+    </body>
+</html>

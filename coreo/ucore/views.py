@@ -14,6 +14,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
 from coreo.ucore.models import CoreUser, Link, LinkLibrary, Skin, Tag, Trophy, TrophyCase
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag
 from coreo.ucore import utils
 
 
@@ -164,12 +165,11 @@ def trophy_notify(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 def search_links(request):
-  terms = request.GET.get('q').split(' ')
+  terms = request.GET['q'].split(' ')
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
-  # XXX format the links into a dict and render to a template (doesn't exist yet)
   return HttpResponse(serializers.serialize('json', links))
 
 def trophyroom(request):
@@ -191,6 +191,7 @@ def upload_csv(request):
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
+
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
 
@@ -204,4 +205,42 @@ def get_library(request, username, lib_name):
   uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
 
   return HttpResponse(uri)
+
+
+def rate(request, link_id):
+  # XXX assuming we can get PKI certs working with WebFaction, we could pull the sid out here
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  try:
+    link = Link.objects.get(id=link_id)
+    user = CoreUser.objects.get(username=request.user.username)
+  except (Link.DoesNotExist, CoreUser.DoesNotExist) as e:
+    #return HttpResponse('Link with id %s does not exist' % link_id)
+    return HttpResponse(e.message)
+
+  # check to see if a Rating already exists for this (CoreUser, Link) combo. If the combo already exists:
+  #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
+  #   2. and this is a POST, update the Rating
+  rating = Rating.objects.filter(user=user, link=link) # guaranteed only 1 result b/c of DB unique_together
+
+  if request.method == 'GET':
+    if rating: context = {'rating': rating[0], 'link': link}
+    else: context = {'link': link}
+
+    return render_to_response('rate.html', context, context_instance=RequestContext(request))
+  else:
+    if rating:
+      (rating[0].score, rating[0].comment) = (request.POST['score'], request.POST['comment'].strip()) #XXX does this need to be HTML escaped or does Django do that for us?
+      rating[0].save()
+    else:
+      Rating.objects.create(user=user, link=link, score=request.POST['score'], comment=request.POST['comment'].strip())
+
+  # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
+  #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
+  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+
+
+def success(request, message=''):
+  return HttpResponse('you did it!')
 
