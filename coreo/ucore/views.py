@@ -207,7 +207,7 @@ def rate(request, link_id):
     return render_to_response('rate.html', context, context_instance=RequestContext(request))
   else:
     if rating:
-      (rating[0].score, rating[0].comment) = (request.POST['score'], request.POST['comment'].strip()) #XXX does this need to be HTML escaped or does Django do that for us?
+      (rating[0].score, rating[0].comment) = (request.POST['score'], request.POST['comment'].strip())
       rating[0].save()
     else:
       Rating.objects.create(user=user, link=link, score=request.POST['score'], comment=request.POST['comment'].strip())
