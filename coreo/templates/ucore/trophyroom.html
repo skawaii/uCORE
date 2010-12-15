@@ -7,9 +7,8 @@
 
   <!-- CSS --> 
   <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
- <!-- 
   <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
-  --> 
+   
 
   <body>
     <div id='geheader'>
@@ -20,36 +19,45 @@
     <div id='user-info'><a href="/ge/"><span id='signuptext'>Back to the Visualizer</span></a> | <a href='FutureFeature'>Help</a> | <a href='FutureFeature'>About</a> | <a href='/logout/'>Sign Out</a> </div>
     </div>
   <div>
-    <table>
+    <table style="border-style: solid;border-width:2px; border-collapse: separate; border-color:black;  margin: 1; padding: 2px;">
+      <tbody>
       <tr>
-        <td><h1 align='center'> Trophy Room </h1></td>
+        <td>
+          <img id='trophypic' height='200px' width='100px' src='{{ MEDIA_URL }}images/dart_trophy.JPG''/></td>
+        <td><h1 align='center'>Trophy Room </h1></td>
         <td>
     <img id='trophypic' height='200px' width='100px' src='{{ MEDIA_URL }}images/dart_trophy.JPG''/>
       </td>
     </tr>
+  </tbody>
+  </table>
        {% if trophy_list %}
-       <td>
-         <table border='2'>
+       <table style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">
+           <thead>
            <tr>
-             <th>Image</th><th>Trophy Name</th><th>Trophy Description</th>
+             <th style="border-style:solid; border-color: black; border-width: 2px">Image</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Name</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Description</th>
            </tr>
-      
+         </thead>
+       <tbody> 
       {% for trophy in trophy_list %}
         <tr>
-        <td><img src='{{ MEDIA_URL }}{{ trophy.file_path }}' height='10%' width='10%'/></td>
-        <td>{{ trophy.name }}</td>
-        <td>{{ trophy.desc }}</td>
+        <td style="border-style:solid; border-color: black; border-width: 2px"><img src='{{ MEDIA_URL }}{{ trophy.file_path }}' height='100px' width='200px'/></td>
+     <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2p    x">{{ trophy.name }}</td>
+     <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2p    x">{{ trophy.desc }}</td>
+     <td><button value="/earntrophy" onclick="alert('still have to implement this - but you should now earn this trophy')">Earn This Trophy</button></td> 
       </tr>
-        {% endfor %}
+      {% endfor %}
+    </tbody>
     </table>
-     </td>
-     {% else %}
+    {% else %}
+    <table>
+      <tr>
        <td>
          <H2>        No Trophies to display</H2>
        </td>
-       {% endif %}
-     </tr>
-   </table>
+      </tr>
+     </table>
+     {% endif %}
 </div>
 </body>
 </html>
