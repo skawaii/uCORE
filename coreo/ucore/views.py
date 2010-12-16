@@ -183,7 +183,7 @@ def get_library(request, username, lib_name):
   return HttpResponse(uri)
 
 
-def rate(request, link_id):
+def rate_link(request, link_id):
   # XXX assuming we can get PKI certs working with WebFaction, we could pull the sid out here
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -198,7 +198,7 @@ def rate(request, link_id):
   # check to see if a Rating already exists for this (CoreUser, Link) combo. If the combo already exists:
   #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
   #   2. and this is a POST, update the Rating
-  rating = Rating.objects.filter(user=user, link=link) # guaranteed only 1 result b/c of DB unique_together
+  rating = Rating.objects.filter(user=user, link=link) # guaranteed at most 1 result b/c of DB unique_together
 
   if request.method == 'GET':
     if rating: context = {'rating': rating[0], 'link': link}
@@ -214,6 +214,11 @@ def rate(request, link_id):
 
   # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
   #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
+  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+
+
+def rate_library(request, library_id):
+
   return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
 
 
