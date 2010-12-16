@@ -33,7 +33,9 @@ def ge_index(request):
   
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
-def getcsv(request):
+def get_csv(request):
+
+
   response = HttpResponse(mimetype='text/csv')
   response['Content-Disposition'] = 'attachment; filename=sample.csv'
   # This will eventually handle a json object rather than static data.
@@ -48,12 +50,12 @@ def getcsv(request):
   return response
  
 def index(request):
-	# If the user is authenticated, send them to the application.
-	if request.user.is_authenticated():
-		return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+  # If the user is authenticated, send them to the application.
+  if request.user.is_authenticated():
+    return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
 
-	# If the user is not authenticated, show them the main page.
-   	return render_to_response('index.html', context_instance=RequestContext(request))
+  # If the user is not authenticated, show them the main page.
+    return render_to_response('index.html', context_instance=RequestContext(request))
   #  return HttpResponseRedirect('https://www.google.com') 
 
 def user_profile(request):
@@ -161,8 +163,12 @@ def logout(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 def trophy_notify(request):
-  send_mail('This is only a test', 'Testing e-mails', 'trophy@layeredintel.com', ['prcoleman2@gmail.com'], fail_silently=False)
-  return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
+
+
+   user = request.user
+   email = request.email
+   send_mail('You have won a trophy. Congratulations.', 'Testing e-mails', 'trophy@layeredintel.com', ['prcoleman2@gmail.com'], fail_silently=False)
+   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 def search_links(request):
   terms = request.GET['q'].split(' ')
@@ -172,11 +178,13 @@ def search_links(request):
 
   return HttpResponse(serializers.serialize('json', links))
 
-def trophyroom(request):
+def trophy_room(request):
+  
+  
   user = request.user
   trophy_list = Trophy.objects.all()
   trophy_case_list = TrophyCase.objects.all() 
-  return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list }, context_instance=RequestContext(request))
+  return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : user }, context_instance=RequestContext(request))
 
 def search_mongo(request):
   url = 'http://174.129.206.221/hello//?' + request.GET['q']
