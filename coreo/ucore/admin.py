@@ -11,3 +11,4 @@ admin.site.register(Tag)
 admin.site.register(Trophy)
 admin.site.register(TrophyCase)
 
+
