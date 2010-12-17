@@ -1,0 +1,38 @@
+[
+  {
+    "model": "ucore.Trophy",
+    "pk": 1,
+    "fields": {
+        "name": "Life is a beach trophy",
+        "desc": "For 10 tropical searches",
+        "file_path": "images/beach.jpg"
+    }
+  },
+  {
+    "model": "ucore.Trophy",
+    "pk": 2,
+    "fields": {
+      "name": "Artic King Trophy",
+      "desc": "For 10 searches in the artic.",
+      "file_path": "images/snowmountain.jpg"
+    }
+  },
+  {
+    "model": "ucore.Trophy",
+    "pk": 3,
+    "fields": {
+      "name": "Forrest Ranger Trophy",
+      "desc": "For 10 searches over forrests.",
+      "file_path": "images/forrest.jpg"
+    }
+  },
+  {
+    "model": "ucore.Trophy",
+    "pk": 4,
+    "fields": {
+      "name": "Captain Blackbeard Trophy",
+      "desc": "For 10 searches over oceans.",
+      "file_path": "images/ocean.jpg"
+     }
+  }  
+]
