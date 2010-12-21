@@ -4,35 +4,94 @@
  	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   	
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/ext-3.3.0/resources/css/ext-all.css"/>
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
-	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/Ext.ux.GEarthPanel-1.1.css" />
-	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
 
+	<style type="text/css">
+	.ui-kmlaccordion {
+	}
+	
+	.ui-kmlaccordion-kmltreecontainer {
+	}
+	
+	.ui-kmlaccordion-kmltreecontainer div {
+		margin-bottom: 15px;
+	}
+	
+	.gearthapp {
+		display: block;
+		position: relative;
+		border: 1px solid #000000;
+	}
+	
+	.gearthapp .gearthapp-controlpanel {
+		display: block;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 33%;
+		margin: 0;
+		padding: 0;
+		height: 100%;
+	}
+	
+	.gearthapp .gearthapp-earthpanel {
+		display: block;
+		position: absolute;
+		top: 0;
+		left: 33%;
+		width: 67%;
+		padding: 0;
+		margin: 0;
+	}
+	
+	.kmlaccordion-searchform {
+		overflow: hidden;
+		width: 100%;
+		margin-bottom: 20px;
+		white-space: nowrap;
+	}
+	
+	.kmlaccordion-searchform button, 
+	.kmlaccordion-searchform input {
+		vertical-align: middle;
+	}
+	
+	.kmlaccordion-searchform input {
+		padding: 0 2px !important;
+		font-size: 12pt !important;
+		height: 24px !important;
+	}
+	
+	.kmlaccordion-searchbutton {
+		background-image: url("{{ MEDIA_URL }}images/search.png") !important;
+		background-position: -5px -3px !important;
+	}
+	
+	.ui-emptytext {
+		font-weight: bold;
+		color: #ccc;
+		letter-spacing: 1.1;
+	}
+	</style>
+	
 	<!-- Javascript -->
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/ext-3.3.0/adapter/ext/ext-base.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/ext-3.3.0/ext-all-debug.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
 	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/Ext.ux.GEarthPanel-1.1.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
 
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.2.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/geo-0.2.pack.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/extensions-0.2.1.pack.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.min.js"></script>
-	
-	<!-- Call the Core JS -->
-	<!-- 
-	<script type="text/javascript">
-		initcore('{{ user.first_name }}');
-	</script>
-	-->
+
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
+
 	<script type="text/javascript">
 	  google.load("earth", "1");
 	</script>
  </head>
-
 <body>
 <div id='geheader'>
 	<img id="core-logo" height="28px" width="100px" align="bottom" src="/site_media/images/corelogobluecog2-100x28.png" alt="C()RE" />
@@ -40,24 +99,86 @@
 		<a href="/ucore/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="FutureFeature">Settings</a> | <a href="FutureFeature">Help</a> | <a href="/ucore/logout/">Sign Out</a>
 	</div>
 </div>
-<div id="ge" style="width: 100%;"></div>
+<div id="ge"></div>
+<script type="text/javascript"><!--
+$(document).ready(function() {
+//	$("#ge").bind("earthLoaded", function(event, ui) {
+//		alert("earthLoaded");
+//		
+//		alert("event:\n" + core.describe(event));
+//		alert("ui:\n" + core.describe(ui));
+//	});
+	/*
+	$("#ge").gearth({
+		earthLoaded: function(event, data) {
+			$("#kml").kmlaccordion({
+				gex: new GEarthExtensions(data.earth),
+				mapElement: event.target,
+				kmlDocs: "http://www.etseo.org/google/kmz/USGSEarthQuakes.kmz",
+				layersKml: "{{ MEDIA_URL }}kml/layers.kml",
+				optionsKml: "{{ MEDIA_URL }}kml/options.kml"
+			});
+		}
+	});
+	*/
+	$("#ge").gearthapp({
+		kmlDocs: "http://www.etseo.org/google/kmz/USGSEarthQuakes.kmz",
+		layersKml: "{{ MEDIA_URL }}kml/layers.kml",
+		optionsKml: "{{ MEDIA_URL }}kml/options.kml"
+	});
+	$("#ge").fitwindow({
+		heightOffset: $("#geheader").outerHeight(true) + 2,
+		widthOffset: 2
+	});
+});
+/*
+$("#gearthpanel").bind(core.GEarthPanel.EARTH_LOADED_EVENT, function(event) {
+	$("#kmltree").kmlTree({
+		kml: "http://www.etseo.org/google/kmz/USGSEarthQuakes.kmz",
+		gex: new GEarthExtensions(event.earth),
+		earthEl: event.target
+	});
+	
+	var kmltree = $("#kmltree").kmlTree(core.KmlTreePanel.GET_KMLTREE);
+	var str = "";
+	for (var p in kmltree) {
+		str += typeof kmltree[p] + " " + p + " = ";
+		if (typeof kmltree[p] !== "function") {
+			str += kmltree[p];
+		}
+		str += "\n";
+	}
+	alert(str);
+});
+$("#gearthpanel").gEarthPanel();
+*/
+
+--></script>
+<!-- 
+<div id='geheader'>
+	<img id="core-logo" height="28px" width="100px" align="bottom" src="/site_media/images/corelogobluecog2-100x28.png" alt="C()RE" />
+	<div id="user-info">
+		<a href="/ucore/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="FutureFeature">Settings</a> | <a href="FutureFeature">Help</a> | <a href="/ucore/logout/">Sign Out</a>
+	</div>
+</div>
+<div id="ge"></div>
 <div id="gefooter" style="background-color: #1E3A7C; height: 28px; padding: 0; margin: 0; width: 100%;">
 </div>
 </body>
-<script type="text/javascript"><!--
-// set height of GE div to total viewable area - header height
-var headerHt = Ext.get("geheader").getHeight();
-new core.GEarthWidget({
-	el: 'ge', 
-	fluidHeightOffset: headerHt,
-	primaryKmlTree: [
-	           {
-	        	   url: "http://www.etseo.org/google/kmz/USGSEarthQuakes.kmz"
-	        	}
-	],
-	layersKmlTree:{url: "http://localhost:8080/site_media/kml/layers.kml"},
-	optionsKmlTree: "/site_media/kml/options.kml"
-}).init();
---></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#ge").fitWindow({heightOffset: $("#geheader").height()});
+	// set height of GE div to total viewable area - header height
+	var headerHt = $("#geheader").height();
+	new core.GEarthWidget({
+		el: $("#ge").get(),
+		kmlDocuments: "http://www.etseo.org/google/kmz/USGSEarthQuakes.kmz",
+		layersKml: "{{ MEDIA_URL }}kml/layers.kml",
+		optionsKml: "{{ MEDIA_URL }}kml/options.kml"
+	});
+});
+</script>
+-->
+</body>
 </html>
 
