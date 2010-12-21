@@ -17,7 +17,8 @@ class Trophy(models.Model):
   file_path = models.FilePathField('path to image file', path=settings.MEDIA_ROOT + 'trophies')
 
   def __unicode__(self):
-    return self.name
+    #  return self.name
+    return '%s %s %s' % (self.name, self.desc, self.file_path)
 
   class Meta:
     verbose_name_plural = 'trophies'
@@ -45,11 +46,32 @@ class CoreUser(auth.models.User):
   phone_number = models.PositiveSmallIntegerField()
   skin = models.ForeignKey(Skin)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
-#  links = models.ManyToManyField(Link, through='LinkLibrary')
+  # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
     #return self.sid
     return ' '.join((self.username, self.sid))
+
+
+class Rating(models.Model):
+  SCORE_CHOICES = (
+      (1, '1 - Utter Junk'),
+      (2, '2 - Junk'),
+      (3, '3 - Ok'),
+      (4, '4 - Good'),
+      (5, '5 - Very Good')
+  )
+
+  user = models.ForeignKey(CoreUser)
+  link = models.ForeignKey(Link)
+  score = models.IntegerField(choices=SCORE_CHOICES)
+  comment = models.TextField(blank=True)
+
+  def __unicode__(self):
+    return ' '.join((self.user.username, self.link.name))
+
+  class Meta:
+    unique_together = ('user', 'link')
 
 
 class TrophyCase(models.Model):
@@ -62,10 +84,11 @@ class TrophyCase(models.Model):
 
 
 class LinkLibrary(models.Model):
+  name = models.CharField(max_length=128)
+  desc = models.CharField(max_length=256) # completely arbitrary max_length
+  tags = models.ManyToManyField(Tag, verbose_name='user-specified tags')
   user = models.ForeignKey(CoreUser)
   links = models.ManyToManyField(Link)
-  tags = models.ManyToManyField(Tag, verbose_name='user-specified tags')
-  name = models.CharField(max_length=128)
 
   def __unicode__(self):
     return ' '.join((self.user.username, self.name))

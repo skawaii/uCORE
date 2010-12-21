@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import *
 from django.contrib import databrowse
 
-from coreo.ucore.models import Link, LinkLibrary, Skin, Tag, Trophy, TrophyCase, CoreUser
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -11,6 +11,7 @@ urlpatterns = patterns('',
     #(r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  'C:/dev/django-1.2.3/ucore/coreo/media/', 'show_indexes':True}),
     (r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  '/Users/pboone/code/ucore/coreo/media/', 'show_indexes':True}),
     #(r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  '/Users/skawaii/sandbox/work/ucore/coreo/media/', 'show_indexes':True}), 
+    #(r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  '/Users/pcoleman/uCORE/coreo/media', 'show_indexes':True}), 
     # Example:
     # (r'^coreo/', include('coreo.foo.urls')),
     # (r'^ucore/', include('coreo.ucore.urls')),
@@ -24,11 +25,12 @@ urlpatterns = patterns('',
     (r'^databrowse/(.*)', databrowse.site.root),
 )
 
+databrowse.site.register(CoreUser)
 databrowse.site.register(Link)
 databrowse.site.register(LinkLibrary)
+databrowse.site.register(Rating)
 databrowse.site.register(Skin)
 databrowse.site.register(Tag)
 databrowse.site.register(Trophy)
 databrowse.site.register(TrophyCase)
-databrowse.site.register(CoreUser)
 

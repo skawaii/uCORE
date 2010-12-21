@@ -2,6 +2,8 @@
 import urllib2
 #import xml.dom.ext
 import xml.dom.minidom
+import csv
+from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
 from django.core import serializers
@@ -10,8 +12,9 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Skin, Tag
+from django.utils import simplejson as json
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Skin, Tag, Trophy, TrophyCase
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag
 from coreo.ucore import utils
 
 
@@ -30,15 +33,30 @@ def ge_index(request):
   
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
+def get_csv(request):
+
+
+  response = HttpResponse(mimetype='text/csv')
+  response['Content-Disposition'] = 'attachment; filename=sample.csv'
+  # This will eventually handle a json object rather than static data.
+  # jsonObj = request.POST['gejson'].strip()
+  #  if not (jsonObj)
+  #  jsonObj = '{["latitude":1.0, "longitude":2.0]}'
+  jsonObj = '["baz":"booz", "tic":"tock", "altitude": 1.0, "altitude":2]'
+  obj = json.loads(jsonObj)
+  writer = csv.writer(response)
+  writer.writerow(obj)
+
+  return response
  
 def index(request):
-	# If the user is authenticated, send them to the application.
-	if request.user.is_authenticated():
-		return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+  # If the user is authenticated, send them to the application.
+  if request.user.is_authenticated():
+    return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
 
-	# If the user is not authenticated, show them the main page.
-	return render_to_response('index.html', context_instance=RequestContext(request))
-
+  # If the user is not authenticated, show them the main page.
+    return render_to_response('index.html', context_instance=RequestContext(request))
+  #  return HttpResponseRedirect('https://www.google.com') 
 
 def user_profile(request):
   # XXX the django dev server can't use ssl, so fake getting the sid from the cert
@@ -63,7 +81,7 @@ def user_profile(request):
 
 
 def register(request, sid):
-  ''' Pull out the user's sid, name, email, and phone number from the user's certs.
+   ''' Pull out the user's sid, name, email, and phone number from the user's certs.
       Return a pre-filled registration form with this info so the user can create an account.
   '''
   # get the sid and name from the cert
@@ -74,7 +92,7 @@ def register(request, sid):
   # XXX in the future we'll be returning more info (sid, name, email, phone number).
   # The user will basically just need to verify the info and put in some basic additional
   # info (main areas of interest, skin, etc).
-  return render_to_response('register.html', {'sid': sid}, context_instance=RequestContext(request))
+   return render_to_response('register.html', {'sid': sid}, context_instance=RequestContext(request))
 
 
 def save_user(request):
@@ -109,7 +127,7 @@ def save_user(request):
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
-  return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
+  return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
 
 def login(request):
@@ -133,7 +151,7 @@ def login(request):
 
     return render_to_response('login.html',
           {'error_message': 'Invalid Username/Password Combination'},
-          context_instance=RequestContext(request))
+           context_instance=RequestContext(request))
 
 
 def logout(request):
@@ -144,16 +162,29 @@ def logout(request):
 
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
+def trophy_notify(request):
+
+
+   user = request.user
+   email = request.email
+   send_mail('You have won a trophy. Congratulations.', 'Testing e-mails', 'trophy@layeredintel.com', ['prcoleman2@gmail.com'], fail_silently=False)
+   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 def search_links(request):
-  terms = request.GET.get('q').split(' ')
+  terms = request.GET['q'].split(' ')
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
-  # XXX format the links into a dict and render to a template (doesn't exist yet)
   return HttpResponse(serializers.serialize('json', links))
 
+def trophy_room(request):
+  
+  
+  user = request.user
+  trophy_list = Trophy.objects.all()
+  trophy_case_list = TrophyCase.objects.all() 
+  return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : user }, context_instance=RequestContext(request))
 
 def search_mongo(request):
   url = 'http://174.129.206.221/hello//?' + request.GET['q']
@@ -168,6 +199,7 @@ def upload_csv(request):
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
+
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
 
@@ -181,4 +213,42 @@ def get_library(request, username, lib_name):
   uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
 
   return HttpResponse(uri)
+
+
+def rate(request, link_id):
+  # XXX assuming we can get PKI certs working with WebFaction, we could pull the sid out here
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  try:
+    link = Link.objects.get(id=link_id)
+    user = CoreUser.objects.get(username=request.user.username)
+  except (Link.DoesNotExist, CoreUser.DoesNotExist) as e:
+    #return HttpResponse('Link with id %s does not exist' % link_id)
+    return HttpResponse(e.message)
+
+  # check to see if a Rating already exists for this (CoreUser, Link) combo. If the combo already exists:
+  #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
+  #   2. and this is a POST, update the Rating
+  rating = Rating.objects.filter(user=user, link=link) # guaranteed only 1 result b/c of DB unique_together
+
+  if request.method == 'GET':
+    if rating: context = {'rating': rating[0], 'link': link}
+    else: context = {'link': link}
+
+    return render_to_response('rate.html', context, context_instance=RequestContext(request))
+  else:
+    if rating:
+      (rating[0].score, rating[0].comment) = (request.POST['score'], request.POST['comment'].strip()) #XXX does this need to be HTML escaped or does Django do that for us?
+      rating[0].save()
+    else:
+      Rating.objects.create(user=user, link=link, score=request.POST['score'], comment=request.POST['comment'].strip())
+
+  # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
+  #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
+  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+
+
+def success(request, message=''):
+  return HttpResponse('you did it!')
 
