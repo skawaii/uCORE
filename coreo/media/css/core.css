@@ -22,6 +22,14 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
   margin:0px;
 }
 
+#gefooter {
+  background-color: #1E3A7C;
+  padding:0px;
+  margin:0px;
+  height: 28px;
+  width: 100%;
+}
+
 #header-mainpage {
   float:right;
   padding:10px;
@@ -76,4 +84,69 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 #signup_page label{ float:left;width:80px;font-weight:bold;color:#525252;padding-top:5px;padding-right:15px;text-align:right }
 #signup_page .terms input{ float:left;width:28px;margin:4px 0 0 110px }
 #signup_page .about_gowalla{ float:left;width:250px;padding:0;margin:0;margin-left:40px;padding-left:30px;margin-top:20px;border-left:2px }
+
+.ui-kmlaccordion {
+}
+
+.ui-kmlaccordion-kmltreecontainer {
+}
+
+.ui-kmlaccordion-kmltreecontainer div {
+	margin-bottom: 15px;
+}
+
+.gearthapp {
+	display: block;
+	position: relative;
+	border: 1px solid #000000;
+}
+
+.gearthapp .gearthapp-controlpanel {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 33%;
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+
+.gearthapp .gearthapp-earthpanel {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 33%;
+	width: 67%;
+	padding: 0;
+	margin: 0;
+}
+
+.kmlaccordion-searchform {
+	width: 100%;
+	margin-bottom: 20px;
+	white-space: nowrap;
+}
+
+.kmlaccordion-searchform button {
+	vertical-align: middle;
+}
+
+.kmlaccordion-searchform input {
+	vertical-align: middle;
+	padding: 0 2px !important;
+	font-size: 12pt !important;
+	height: 24px !important;
+}
+
+.kmlaccordion-searchbutton {
+	background-image: url("../images/search.png") !important;
+	background-position: -5px -3px !important;
+}
+
+.ui-emptytext {
+	font-weight: bold;
+	color: #ccc;
+	letter-spacing: 1.1;
+}
 
