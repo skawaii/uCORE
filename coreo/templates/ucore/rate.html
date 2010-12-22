@@ -31,7 +31,7 @@
                     </li>
                     <li>
                         <label>Comment</label>
-                        <textarea name="comment" rows="5" cols="20">{%if rating %}{{rating.comment}}{% endif %}</textarea>
+                        <textarea name="comment" rows="5" cols="20">{%if rating %}{{rating.comment|escape}}{% endif %}</textarea>
                     </li>
                     <li class="submit">
                         <input type="submit" value="Rate!" />
