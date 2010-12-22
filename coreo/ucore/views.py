@@ -69,9 +69,8 @@ def index(request):
   # If the user is authenticated, send them to the application.
   if request.user.is_authenticated():
     return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
-
   # If the user is not authenticated, show them the main page.
-    return render_to_response('index.html', context_instance=RequestContext(request))
+  return render_to_response('index.html', context_instance=RequestContext(request))
 
 
 def login(request):
