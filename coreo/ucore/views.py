@@ -13,8 +13,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Skin, Tag, Trophy, TrophyCase
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase
 from coreo.ucore import utils
 
 
@@ -164,7 +163,6 @@ def logout(request):
 
 def trophy_notify(request):
 
-
    user = request.user
    email = request.email
    send_mail('You have won a trophy. Congratulations.', 'Testing e-mails', 'trophy@layeredintel.com', ['prcoleman2@gmail.com'], fail_silently=False)
@@ -180,11 +178,10 @@ def search_links(request):
 
 def trophy_room(request):
   
-  
   user = request.user
   trophy_list = Trophy.objects.all()
   trophy_case_list = TrophyCase.objects.all() 
-  return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : user }, context_instance=RequestContext(request))
+   return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : user }, context_instance=RequestContext(request))
 
 def search_mongo(request):
   url = 'http://174.129.206.221/hello//?' + request.GET['q']
@@ -213,6 +210,10 @@ def get_library(request, username, lib_name):
   uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
 
   return HttpResponse(uri)
+
+def earn_trophy(request):
+  # username = request.POST['username'].strip()
+  print 'earn trophy was called successfully.'
 
 
 def rate(request, link_id):
