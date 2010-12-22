@@ -1,6 +1,9 @@
+import datetime
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db import models
 from django.contrib import auth
+from django.db.models.signals import post_save
 
 
 class Skin(models.Model):
@@ -95,4 +98,28 @@ class LinkLibrary(models.Model):
 
   class Meta:
     verbose_name_plural = 'link libraries'
+
+class SearchLog(models.Model):
+   user = models.CharField(max_length=100)
+   date_queried = models.DateField()
+   search_terms = models.CharField(max_length=200)
+   search_tags = models.CharField(max_length=300)
+
+   def __unicode__(self):
+     return ' '.join((self.user, self.search_terms))
+
+def check_for_trophy(sender, instance, **kwargs):
+    user1 = instance.user
+    if (SearchLog.objects.filter(user=user1).count() >= 2):
+      user_object = CoreUser.objects.get(username=user1)
+      custom_message = 'Congratulations %s, you have won a trophy' % user_object.first_name
+      email1 = user_object.email
+      send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
+      # I need to make the trophy type conditional eventually.
+      # for now I will hard-code the trophy-type.
+      trophy1 = Trophy.objects.get(pk=2)
+      t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
+      t.save()
+
+post_save.connect(check_for_trophy, sender=SearchLog)
 
