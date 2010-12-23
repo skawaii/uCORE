@@ -10,12 +10,7 @@
   <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
   
   <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
-  <script type="text/javascript">
-     function earn_trophy(trophy)
-     {
-        alert('you clicked on the ' + trophy + ' trophy.');
-     } 
-  </script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/tscript.js"/>
 
   <body>
     <div id='geheader'>
@@ -54,7 +49,7 @@
         <td style="border-style:solid; border-color: black; border-width: 2px; padding: 2px"><img src='{{ MEDIA_URL }}{{ trophy.file_path }}' height='100px' width='200px'/></td>
      <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.name }}</td>
      <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.desc }}</td>
-     <td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><button value="earntrophy" onclick="earn_trophy('{{ trophy.name }}'); return false;">Earn This Trophy</button></td> 
+     <td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><button value="earntrophy" onclick="earn_trophy('{{ trophy.pk }}', '{{ user }}'); return false;">Earn This Trophy</button></td> 
       </tr>
       {% endfor %}
     </tbody>

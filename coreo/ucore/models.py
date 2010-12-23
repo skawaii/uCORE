@@ -100,17 +100,18 @@ class LinkLibrary(models.Model):
     verbose_name_plural = 'link libraries'
 
 class SearchLog(models.Model):
-   user = models.CharField(max_length=100)
+  # user = models.CharField(max_length=100)
+   user = models.ForeignKey(CoreUser)
    date_queried = models.DateField()
    search_terms = models.CharField(max_length=200)
-   search_tags = models.CharField(max_length=300)
+   search_tags = models.ManyToManyField(Tag)
 
    def __unicode__(self):
-     return ' '.join((self.user, self.search_terms))
+     return ' '.join((self.user.username, self.search_terms))
 
 def check_for_trophy(sender, instance, **kwargs):
-    user1 = instance.user
-    if (SearchLog.objects.filter(user=user1).count() >= 2):
+    user1 = instance.user.username
+    if (SearchLog.objects.filter(user=instance.user).count() >= 2):
       user_object = CoreUser.objects.get(username=user1)
       custom_message = 'Congratulations %s, you have won a trophy' % user_object.first_name
       email1 = user_object.email

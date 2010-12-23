@@ -1,8 +1,7 @@
-#import os
 import urllib2
-#import xml.dom.ext
 import xml.dom.minidom
 import csv
+import datetime
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -34,7 +33,6 @@ def ge_index(request):
 
 def get_csv(request):
 
-
   response = HttpResponse(mimetype='text/csv')
   response['Content-Disposition'] = 'attachment; filename=sample.csv'
   # This will eventually handle a json object rather than static data.
@@ -45,7 +43,6 @@ def get_csv(request):
   obj = json.loads(jsonObj)
   writer = csv.writer(response)
   writer.writerow(obj)
-
   return response
  
 def index(request):
@@ -181,7 +178,7 @@ def trophy_room(request):
   user = request.user
   trophy_list = Trophy.objects.all()
   trophy_case_list = TrophyCase.objects.all() 
-   return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : user }, context_instance=RequestContext(request))
+  return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : user }, context_instance=RequestContext(request))
 
 def search_mongo(request):
   url = 'http://174.129.206.221/hello//?' + request.GET['q']
@@ -212,8 +209,18 @@ def get_library(request, username, lib_name):
   return HttpResponse(uri)
 
 def earn_trophy(request):
-  # username = request.POST['username'].strip()
-  print 'earn trophy was called successfully.'
+ 
+  if request.method == 'POST':
+    user2 = request.POST['user'].strip()
+    trophy2 = request.POST['trophy'].strip()
+    trophyc = Trophy.objects.get(pk=trophy2)
+    userc = CoreUser.objects.get(username=user2)
+    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
+    tc.save()
+    custom_msg = "You have won a trophy, %s.  Congratulations" % userc.first_name
+    user_email = userc.email
+    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
+
 
 
 def rate(request, link_id):

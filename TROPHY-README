@@ -1,0 +1,20 @@
+Documentation for using the Trophy features of the webapp.
+
+In order to use the Trophy features to the fullest extent, the following configuration changes need to be made:
+1. You should create a local_settings.py file in the same directory as your settings.py file. The only thing that needs to be in the local_settings.py file are the following fields:
+
+EMAIL_HOST='your_value_here'
+EMAIL_HOST_USER='your_value_here'
+EMAIL_HOST_PASSWORD='your_value_here'
+EMAIL_PORT = your_port_here
+EMAIL_USE_TLS = True
+
+Once this is set up it will enable the trophy code to send an appropriate email to the user.
+
+2. Next you will want to make sure you have created a valid core user via the admin app. The core user needs to have a first name, and a valid e-mail address.  If you want to sample load some test data to test the signals in this webapp, the username of one of your test users needs to be 'sampleman'.
+
+3. Lastly before you start testing you need to run 'python manage.py syncdb' from your project directory.  This will load in the sample trophies that have been pre-created for you.  If you desire you can also run 'python manage.py loaddata search_data.json' which will load some test data and call the signal to show you what will occur when trophy conditions are met after our search log has been used. NOTE : in order for the loaddata command to work YOU MUST CREATE A TEST USER with a username of 'sampleman'.
+
+4. Now you are ready to test the webapp.  Start up the web server and log in to the webapp. After you have logged in successfully, try typing /trophyroom/ in the URL after your port number you have used.
+ If this works -  you should see 4 trophies with appropriate pictures.
+ Assuming that you are logged in with an appropriate user that has a valid e-mail address, you can click the button "EARN THIS TROPHY" next to any appropriate trophy you wish to earn.  This will give you a Javascript alert that you have earned a trophy,  an e-mail to the user's e-mail that you are logged in with, and should add a TrophyCase row to the table on the bottom of the webpage.

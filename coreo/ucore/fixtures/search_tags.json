@@ -1,0 +1,30 @@
+[
+ {
+        "model": "ucore.Tag",
+        "pk": 1,
+        "fields": {
+          "name": "Ocean"
+       }
+ },
+ {
+      "model": "ucore.Tag",
+      "pk": 2,
+      "fields": {
+         "name": "Forrest"
+       }
+ },
+ {
+       "model": "ucore.Tag",
+       "pk": 3,
+       "fields": {
+         "name": "Artic"
+        }
+ },
+ {
+    "model": "ucore.Tag",
+    "pk": 4,
+    "fields": {
+       "name": "Desert"
+     }
+ }
+]
