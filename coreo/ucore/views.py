@@ -174,18 +174,28 @@ def search_links(request):
   return HttpResponse(serializers.serialize('json', links))
 
 def trophy_room(request):
-  
-  user = request.user
-  trophy_list = Trophy.objects.all()
-  trophy_case_list = TrophyCase.objects.all() 
-  return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : user }, context_instance=RequestContext(request))
+
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  try: 
+      user = CoreUser.objects.get(username=request.user.username)
+      userCore = user.username 
+      trophy_list = Trophy.objects.all()
+      trophy_case_list = TrophyCase.objects.all() 
+      return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : userCore }, context_instance=RequestContext(request))
+
+
+  except CoreUser.DoesNotExist: 
+      # as long as the login_user view forces them to register if they don't already 
+      # exist in the db, then we should never actually get here. Still, better safe
+      # than sorry.
+      return render_to_response('login.html', context_instance=RequestContext(request))
 
 def search_mongo(request):
-  url = 'http://174.129.206.221/hello//?' + request.GET['q']
-  result = urllib2.urlopen(url)
-
-  return HttpResponse('\n'.join(result.readlines()))
-
+    
+    url = 'http://174.129.206.221/hello//?' + request.GET['q']
+    result = urllib2.urlopen(url)
+    return HttpResponse('\n'.join(result.readlines()))
 
 def upload_csv(request):
   if request.method == 'POST':
