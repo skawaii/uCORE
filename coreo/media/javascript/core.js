@@ -478,9 +478,9 @@
 					$(optionsKmlTree).unbind("kmlLoaded");
 					enableGoogleLayersControl(optionsKmlTree, self.options.gex.pluginInstance);
 					// create kmltree objects for the KML Documents panel
-					var kmlDocs = core.asArray(this.options.kmlDocs);
+					var kmlDocs = core.asArray(self.options.kmlDocs);
 					for (var i = 0; i < kmlDocs.length; i++) {
-						addKml(kmlDocs[i]);
+						self.addKml(kmlDocs[i]);
 					}
 				});
 				optionsKmlTree.load();
