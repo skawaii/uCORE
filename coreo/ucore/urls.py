@@ -9,6 +9,8 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^save-user/$', 'save_user'),
     (r'^export-csv/$', 'get_csv'),
     (r'^test-email/$', 'trophy_notify'),
+    (r'^getshp/$', 'get_shapefile'),
+    (r'^getkmz/$', 'get_kmz'),
     (r'^user-profile/$', 'user_profile'), 
     (r'^userprofile/$', 'user_profile'), # for backwards compatibility
     (r'^login/$', 'login'),

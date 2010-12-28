@@ -1,6 +1,6 @@
 import urllib2
 import xml.dom.minidom
-import csv
+import csv, zipfile, time, os
 import datetime
 from django.core.mail import send_mail
 from django.conf import settings
@@ -14,7 +14,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
 from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase
-from coreo.ucore import utils
+from coreo.ucore import utils, shapefile
 
 
 def ge_index(request):
@@ -46,6 +46,28 @@ def get_csv(request):
   writer.writerow(obj)
   return response
 
+def get_kmz(request):
+  
+  kmz_file = "test.kmz" 
+  kml_file = "doc.kml"
+
+  fileObj = open(kml_file, "w")
+  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>")
+  fileObj.write("<kml xmlns=\"http://www.opengis.net/kml/2.2\">")
+  fileObj.write("<Placemark>")
+  fileObj.write("<name>Simple placemark</name>")
+  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>")
+  fileObj.write("<Point>")
+  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>")
+  fileObj.write("</Point>")
+  fileObj.write("</Placemark>")
+  fileObj.write("</kml>")
+  fileObj.close()
+ 
+  fileObj = zipfile.ZipFile(kmz_file, "w")
+  fileObj.write(kml_file, os.path.basename(kml_file), zipfile.ZIP_DEFLATED)
+  fileObj.close()
+
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
 
@@ -60,6 +82,23 @@ def get_library(request, username, lib_name):
 
   return HttpResponse(uri)
 
+def get_shapefile(request):
+
+  w = shapefile.Writer(shapefile.POINT)
+  w.point(1,1)
+  w.point(3,1)
+  w.point(4,3)
+  w.point(2,2)
+  w.field('FIRST_FLD')
+  w.field('SECOND_FLD', 'C', '40')
+  w.record('First', 'Point')
+  w.record('Second', 'Point')
+  w.record('Third', 'Point')
+  w.record('Fourth', 'Point')
+  w.save('sample')
+  response = HttpResponse(w, mimetype='application/octet-stream')
+  response['Content-Disposition'] = 'attachment; filename=sample.shp'
+  return response
  
 def index(request):
   # If the user is authenticated, send them to the application.
