@@ -38,14 +38,17 @@
 			/**
 			 * Generates a string describing the properties of an object
 			 */
-			describe: function(obj) {
+			describe: function(obj, includeFunctions) {
 				var str = "";
 				for (var p in obj) {
-					str += typeof obj[p] + " " + p + " = ";
-					if (typeof obj[p] !== "function") {
-						str += obj[p];
+					var t = typeof obj[p];
+					if (t !== "function" || includeFunctions === true) {
+						str += t + " " + p;
+						if (t !== "function") {
+							str += " = " + obj[p];
+						}
+						str += "\n";
 					}
-					str += "\n";
 				}
 				return str;
 			}
@@ -205,10 +208,12 @@
 				var myHeight = windowHeight - heightOffset;
 				var myWidth = windowWidth - widthOffset;
 				self.element.width(myWidth);
-				self.element.height(myHeight)
+				self.element.height(myHeight);
 				self.element.trigger("resize");
 			};
-			$(window).resize(doResize);
+			$(window).resize(function(event) {
+				doResize();
+			});
 			doResize();
 		}
 	
@@ -445,7 +450,7 @@
 			};
 			resizeSearchForm();
 			
-			this.element.resize(function() {
+			this.element.resize(function(event) {
 				self.element.accordion("resize");
 				resizeSearchForm();
 			});
@@ -580,7 +585,12 @@
 						rightColumn: event.target
 					});
 					self.element.resize(function(event) {
-						$("#" + controlPanelElId).trigger("resize");
+						if (event.target == self.element[0]) {
+							$("#" + controlPanelElId).triggerHandler("resize");
+						}
+						else {
+							event.stopImmediatePropagation();
+						}
 					});
 				}
 			});
