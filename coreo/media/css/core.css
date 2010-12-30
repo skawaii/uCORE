@@ -91,7 +91,7 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 .ui-kmlaccordion-kmltreecontainer {
 }
 
-.ui-kmlaccordion-kmltreecontainer div {
+.ui-kmlaccordion-kmltreecontainer > div {
 	margin-bottom: 15px;
 }
 

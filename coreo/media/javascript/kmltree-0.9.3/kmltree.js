@@ -797,13 +797,13 @@ var kmltree = (function(){
                     	]
 	            	: [
 			                '<div UNSELECTABLE="on" class="kmltree">',
-		                    	'<h4 UNSELECTABLE="on" class="kmltree-title">',
-		                    		options.children[0].name,
-	                    		'</h4>',
+			                	"<h4 UNSELECTABLE=\"on\" class=\"kmltree-title\">",
+			                	options.children[0].name,
+			                	"</h4>",
 	                    		'<ul UNSELECTABLE="on" class="kmltree">',
-		                        	rendered,
-	                        	'</ul>',
-                        	'</div>'
+	                    			rendered,
+	                    		"</ul>",
+	                    	"</div>"
 	            	   ]).join(''));
             ge.getFeatures().appendChild(kmlObject);
             
