@@ -148,20 +148,19 @@
 		
 		_init: function() {
 			var rightColumn = $(this.options.rightColumn);
-			var lastWidth = this.element.width();
 			var self = this;
+			var resizeRightColumn = function() {
+				var leftColWidth = self.element.outerWidth(true);
+				var totalWidth = self.element.parent().width();
+				var newRightColWidth = totalWidth - leftColWidth;
+				rightColumn.css({width: newRightColWidth + "px", left: leftColWidth + "px"});
+			};
 			this.element.resizable({
 				handles: "e",
-				start: function(event, ui) {
-					lastWidth = self.element.width();
-				},
-				resize: function(event, ui) {
-					var currWidth = self.element.width();
-					var widthDiff = lastWidth - currWidth;
-					var newRightColWidth = rightColumn.width() + widthDiff;
-					rightColumn.css({width: newRightColWidth + "px", left: currWidth + "px"});
-					lastWidth = currWidth;
-				}
+				resize: resizeRightColumn
+			});
+			this.element.each(function(index, el) {
+				$(this).resize(resizeRightColumn);
 			});
 		}
 	
