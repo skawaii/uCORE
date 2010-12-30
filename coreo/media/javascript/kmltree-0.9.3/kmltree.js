@@ -503,7 +503,8 @@ var kmltree = (function(){
         supportItemIcon: false,
         loadingMsg: 'Loading data',
         setExtent: false,
-        displayDocumentRoot: 'auto'
+        displayDocumentRoot: 'auto',
+        showTitle: true
     };
         
         
@@ -785,16 +786,25 @@ var kmltree = (function(){
             }
             var rendered = renderOptions(root);
             opts.element.find('div.kmltree').remove();
-            opts.element.find('.kmltree-loading').before([
-                '<div UNSELECTABLE="on" class="kmltree">',
-                    '<h4 UNSELECTABLE="on" class="kmltree-title">',
-                        options.children[0].name,
-                    '</h4>',
-                    '<ul UNSELECTABLE="on" class="kmltree">',
-                        rendered,
-                    '</ul>',
-                '</div>'
-            ].join(''));
+            opts.element.find('.kmltree-loading').before(
+            	(opts.showTitle === false ? 
+            			[
+			                '<div UNSELECTABLE="on" class="kmltree">',
+			                    '<ul UNSELECTABLE="on" class="kmltree no-title">',
+			                        rendered,
+			                    '</ul>',
+			                '</div>'
+                    	]
+	            	: [
+			                '<div UNSELECTABLE="on" class="kmltree">',
+		                    	'<h4 UNSELECTABLE="on" class="kmltree-title">',
+		                    		options.children[0].name,
+	                    		'</h4>',
+	                    		'<ul UNSELECTABLE="on" class="kmltree">',
+		                        	rendered,
+	                        	'</ul>',
+                        	'</div>'
+	            	   ]).join(''));
             ge.getFeatures().appendChild(kmlObject);
             
             if(!that.previousState){

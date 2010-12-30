@@ -464,7 +464,8 @@
 				gex: this.options.gex,
 				mapElement: this.options.mapElement,
 				supportItemIcon: true,
-				restoreState: true
+				restoreState: true,
+				showTitle: false
 			});
 			$(layersKmlTree).bind("kmlLoaded", function(event, kmlObject) {
 				$(layersKmlTree).unbind("kmlLoaded");
@@ -476,7 +477,8 @@
 					gex: self.options.gex,
 					mapElement: self.options.mapElement,
 					supportItemIcon: true,
-					restoreState: true
+					restoreState: true,
+					showTitle: false
 				});
 				$(optionsKmlTree).bind("kmlLoaded", function(event, kmlObject) {
 					$(optionsKmlTree).unbind("kmlLoaded");

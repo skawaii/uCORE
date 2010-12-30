@@ -13,6 +13,9 @@ div.kmltree {
   div.kmltree ul {
     list-style: none;
     padding-left: 18px; }
+  div.kmltree ul.no-title {
+    padding-left: 0;
+  }
   div.kmltree li ul {
     padding-top: 5px;
     display: none; }
