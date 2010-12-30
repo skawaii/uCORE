@@ -11,6 +11,7 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^test-email/$', 'trophy_notify'),
     (r'^getshp/$', 'get_shapefile'),
     (r'^getkmz/$', 'get_kmz'),
+    (r'^getkml/$', 'get_kml'),
     (r'^user-profile/$', 'user_profile'), 
     (r'^userprofile/$', 'user_profile'), # for backwards compatibility
     (r'^login/$', 'login'),

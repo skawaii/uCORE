@@ -2,6 +2,7 @@ import urllib2
 import xml.dom.minidom
 import csv, zipfile, time, os
 import datetime
+from cStringIO import StringIO
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -46,27 +47,56 @@ def get_csv(request):
   writer.writerow(obj)
   return response
 
-def get_kmz(request):
-  
-  kmz_file = "test.kmz" 
-  kml_file = "doc.kml"
+def get_kml(request):
 
-  fileObj = open(kml_file, "w")
-  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>")
-  fileObj.write("<kml xmlns=\"http://www.opengis.net/kml/2.2\">")
-  fileObj.write("<Placemark>")
-  fileObj.write("<name>Simple placemark</name>")
-  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>")
-  fileObj.write("<Point>")
-  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>")
-  fileObj.write("</Point>")
-  fileObj.write("</Placemark>")
-  fileObj.write("</kml>")
-  fileObj.close()
- 
-  fileObj = zipfile.ZipFile(kmz_file, "w")
-  fileObj.write(kml_file, os.path.basename(kml_file), zipfile.ZIP_DEFLATED)
-  fileObj.close()
+  # I know this will be replaced once I have a sample JSON from the client
+  # passed in.  For now I am just using sample data provided by Google.
+  fileObj = StringIO() 
+  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
+  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
+  fileObj.write("<Placemark>\n")
+  fileObj.write("<name>Simple placemark</name>\n")
+  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
+  fileObj.write("<Point>\n")
+  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
+  fileObj.write("</Point>\n")
+  fileObj.write("</Placemark>\n")
+  fileObj.write("</kml>\n")
+
+  response = HttpResponse(fileObj.getvalue(), mimetype='text/xml')
+  response['Content-Disposition'] = 'attachment; filename=doc.kml'
+  return response
+
+def get_kmz(request):
+
+  # I must say I used some of : http://djangosnippets.org/snippets/709/
+  # for this part. - PRC
+  # I know this will be replaced once I have a sample JSON from the client
+  # passed in.  For now I am just using sample data provided by Google.
+  fileObj = StringIO()
+  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
+  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
+  fileObj.write("<Placemark>\n")
+  fileObj.write("<name>Simple placemark</name>\n")
+  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
+  fileObj.write("<Point>\n")
+  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
+  fileObj.write("</Point>\n")
+  fileObj.write("</Placemark>\n")
+  fileObj.write("</kml>\n")
+
+  kmz = StringIO()
+  f = zipfile.ZipFile(kmz, 'w', zipfile.ZIP_DEFLATED)
+  f.writestr("doc.kml", fileObj.getvalue())
+  f.close()
+  response = HttpResponse(mimetype='application/zip')
+  response.content = kmz.getvalue()
+  kmz.close()
+  response['Content-Type'] = 'application/vnd.google-earth.kmz'
+  response['Content-Disposition'] = 'attachment; filename=download.kmz'
+  response['Content-Description'] = 'a sample kmz file.'
+  response['Content-Length'] = str(len(response.content))
+  return response
 
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
