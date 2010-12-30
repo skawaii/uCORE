@@ -4,7 +4,7 @@
     "pk": 1,
     "fields": {
         "name": "Life is a beach trophy",
-        "desc": "For 10 tropical searches",
+        "desc": "For 5 tropical searches",
         "file_path": "images/beach.jpg"
     }
   },
@@ -13,7 +13,7 @@
     "pk": 2,
     "fields": {
       "name": "Artic King Trophy",
-      "desc": "For 10 searches in the artic.",
+      "desc": "For 5 searches in the artic.",
       "file_path": "images/snowmountain.jpg"
     }
   },
@@ -22,7 +22,7 @@
     "pk": 3,
     "fields": {
       "name": "Forrest Ranger Trophy",
-      "desc": "For 10 searches over forrests.",
+      "desc": "For 5 searches over forrests.",
       "file_path": "images/forrest.jpg"
     }
   },
@@ -31,7 +31,7 @@
     "pk": 4,
     "fields": {
       "name": "Captain Blackbeard Trophy",
-      "desc": "For 10 searches over oceans.",
+      "desc": "For 5 searches over oceans.",
       "file_path": "images/ocean.jpg"
      }
   }  
