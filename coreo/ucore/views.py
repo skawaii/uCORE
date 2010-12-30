@@ -114,20 +114,23 @@ def get_library(request, username, lib_name):
 
 def get_shapefile(request):
 
-  w = shapefile.Writer(shapefile.POINT)
-  w.point(1,1)
-  w.point(3,1)
-  w.point(4,3)
-  w.point(2,2)
-  w.field('FIRST_FLD')
+  w = shapefile.Writer(shapefile.POLYLINE)
+  w.line(parts=[[[1,5],[5,5],[5,1],[3,1],[1,1]]])
+  w.poly(parts=[[[1,5],[3,1]]], shapeType=shapefile.POLYLINE)
+  w.field('FIRST_FLD', 'C', '40')
   w.field('SECOND_FLD', 'C', '40')
-  w.record('First', 'Point')
-  w.record('Second', 'Point')
-  w.record('Third', 'Point')
-  w.record('Fourth', 'Point')
+  w.record('First', 'Polygon')
   w.save('sample')
-  response = HttpResponse(w, mimetype='application/octet-stream')
-  response['Content-Disposition'] = 'attachment; filename=sample.shp'
+  shp = StringIO()
+  f = zipfile.ZipFile(shp, 'w', zipfile.ZIP_DEFLATED)
+  f.write('sample.shx')
+  f.write('sample.dbf')
+  f.write('sample.shp')
+  f.close()
+  response = HttpResponse(mimetype='application/zip')
+  response['Content-Disposition'] = 'attachment; filename=sample1.shp'
+  response.content = shp.getvalue()
+  shp.close()
   return response
  
 def index(request):
