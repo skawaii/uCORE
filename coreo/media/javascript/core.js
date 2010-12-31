@@ -501,8 +501,7 @@
 				element: kmlTreeEl,
 				gex: this.options.gex,
 				mapElement: this.options.mapElement,
-				supportItemIcon: true,
-				restoreState: true
+				supportItemIcon: true
 			});
 			if (typeof kmlLoadedCallback == "function") {
 				var self = this;

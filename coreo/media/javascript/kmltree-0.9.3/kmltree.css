@@ -38,6 +38,7 @@ li.kmltree-item {
     cursor: pointer; }
 
 h4.kmltree-title {
+  font-size: 115%;
   color: #6C7C90;
   font-weight: bold;
   margin: 0 0 -5px 0; }

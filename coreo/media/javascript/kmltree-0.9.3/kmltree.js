@@ -764,6 +764,7 @@ var kmltree = (function(){
             errorCount = 0;
             that.kmlObject = kmlObject;
             that.kmlObject.setVisibility(true);
+            var rootId = addLookup(kmlObject, opts.element.attr("id"), original_url, kmlObject.getName());
             var options = buildOptions(kmlObject, original_url);
             var root;
             if(opts.displayDocumentRoot === false){
@@ -797,11 +798,18 @@ var kmltree = (function(){
                     	]
 	            	: [
 			                '<div UNSELECTABLE="on" class="kmltree">',
-			                	"<h4 UNSELECTABLE=\"on\" class=\"kmltree-title\">",
-			                	options.children[0].name,
-			                	"</h4>",
 	                    		'<ul UNSELECTABLE="on" class="kmltree">',
-	                    			rendered,
+	                    			'<li unselectable="on" id="' + rootId + '" class="kmltree-item check KmlNetworkLink loaded visible open">',
+	                    				'<div unselectable="on" class="expander">&nbsp;</div>',
+	                    				'<div unselectable="on" class="toggler">&nbsp;</div>',
+	                    				'<div class="icon"><div class="nlSpinner">&nbsp;</div>&nbsp;</div>',
+	                    				'<h4 unselectable="on" class="kmltree-title">',
+	                    				options.children[0].name,
+	                    				'</h4>',
+	                    				'<ul>',
+	                    				rendered,
+	                    				'</ul>',
+	                    			'</li>',
 	                    		"</ul>",
 	                    	"</div>"
 	            	   ]).join(''));
