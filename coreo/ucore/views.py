@@ -1,9 +1,9 @@
-#import os
 import urllib2
-#import xml.dom.ext
 import xml.dom.minidom
-import csv
-
+import csv, zipfile, time, os
+import datetime
+from cStringIO import StringIO
+from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
 from django.core import serializers
@@ -14,9 +14,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
-
 from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase
-from coreo.ucore import utils
+from coreo.ucore import utils, shapefile
 
 
 def ge_index(request):
@@ -34,8 +33,8 @@ def ge_index(request):
   
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
-
 def get_csv(request):
+
   response = HttpResponse(mimetype='text/csv')
   response['Content-Disposition'] = 'attachment; filename=sample.csv'
   # This will eventually handle a json object rather than static data.
@@ -46,9 +45,58 @@ def get_csv(request):
   obj = json.loads(jsonObj)
   writer = csv.writer(response)
   writer.writerow(obj)
-
   return response
 
+def get_kml(request):
+
+  # I know this will be replaced once I have a sample JSON from the client
+  # passed in.  For now I am just using sample data provided by Google.
+  fileObj = StringIO() 
+  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
+  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
+  fileObj.write("<Placemark>\n")
+  fileObj.write("<name>Simple placemark</name>\n")
+  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
+  fileObj.write("<Point>\n")
+  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
+  fileObj.write("</Point>\n")
+  fileObj.write("</Placemark>\n")
+  fileObj.write("</kml>\n")
+
+  response = HttpResponse(fileObj.getvalue(), mimetype='text/xml')
+  response['Content-Disposition'] = 'attachment; filename=doc.kml'
+  return response
+
+def get_kmz(request):
+
+  # I must say I used some of : http://djangosnippets.org/snippets/709/
+  # for this part. - PRC
+  # I know this will be replaced once I have a sample JSON from the client
+  # passed in.  For now I am just using sample data provided by Google.
+  fileObj = StringIO()
+  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
+  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
+  fileObj.write("<Placemark>\n")
+  fileObj.write("<name>Simple placemark</name>\n")
+  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
+  fileObj.write("<Point>\n")
+  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
+  fileObj.write("</Point>\n")
+  fileObj.write("</Placemark>\n")
+  fileObj.write("</kml>\n")
+
+  kmz = StringIO()
+  f = zipfile.ZipFile(kmz, 'w', zipfile.ZIP_DEFLATED)
+  f.writestr("doc.kml", fileObj.getvalue())
+  f.close()
+  response = HttpResponse(mimetype='application/zip')
+  response.content = kmz.getvalue()
+  kmz.close()
+  response['Content-Type'] = 'application/vnd.google-earth.kmz'
+  response['Content-Disposition'] = 'attachment; filename=download.kmz'
+  response['Content-Description'] = 'a sample kmz file.'
+  response['Content-Length'] = str(len(response.content))
+  return response
 
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
@@ -64,6 +112,26 @@ def get_library(request, username, lib_name):
 
   return HttpResponse(uri)
 
+def get_shapefile(request):
+
+  w = shapefile.Writer(shapefile.POLYLINE)
+  w.line(parts=[[[1,5],[5,5],[5,1],[3,1],[1,1]]])
+  w.poly(parts=[[[1,5],[3,1]]], shapeType=shapefile.POLYLINE)
+  w.field('FIRST_FLD', 'C', '40')
+  w.field('SECOND_FLD', 'C', '40')
+  w.record('First', 'Polygon')
+  w.save('sample')
+  shp = StringIO()
+  f = zipfile.ZipFile(shp, 'w', zipfile.ZIP_DEFLATED)
+  f.write('sample.shx')
+  f.write('sample.dbf')
+  f.write('sample.shp')
+  f.close()
+  response = HttpResponse(mimetype='application/zip')
+  response['Content-Disposition'] = 'attachment; filename=sample1.shp'
+  response.content = shp.getvalue()
+  shp.close()
+  return response
  
 def index(request):
   # If the user is authenticated, send them to the application.
@@ -223,12 +291,22 @@ def trophy_notify(request):
 
 
 def trophy_room(request):
-  user = request.user
-  trophy_list = Trophy.objects.all()
-  trophy_case_list = TrophyCase.objects.all() 
 
-  return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : user }, context_instance=RequestContext(request))
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  try: 
+      user = CoreUser.objects.get(username=request.user.username)
+      userCore = user.username 
+      trophy_list = Trophy.objects.all()
+      trophy_case_list = TrophyCase.objects.all() 
+      return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : userCore }, context_instance=RequestContext(request))
 
+
+  except CoreUser.DoesNotExist: 
+      # as long as the login_user view forces them to register if they don't already 
+      # exist in the db, then we should never actually get here. Still, better safe
+      # than sorry.
+      return render_to_response('login.html', context_instance=RequestContext(request))
 
 def upload_csv(request):
   if request.method == 'POST':
@@ -242,7 +320,6 @@ def user_profile(request):
   # XXX pull out the name as well. pass it to register() and keep things DRY
   # sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
   #sid = 'jlcoope'
-
   #if not sid: return render_to_response('install_certs.html')
 
   if not request.user.is_authenticated():
@@ -257,4 +334,17 @@ def user_profile(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
+
+def earn_trophy(request):
+  
+  if request.method == 'POST':
+    user2 = request.POST['user'].strip()
+    trophy2 = request.POST['trophy'].strip()
+    trophyc = Trophy.objects.get(pk=trophy2)
+    userc = CoreUser.objects.get(username=user2)
+    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
+    tc.save()
+    custom_msg = "You have won a trophy, %s.  Congratulations" % userc.first_name
+    user_email = userc.email
+    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 
