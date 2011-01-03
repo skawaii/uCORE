@@ -797,21 +797,14 @@ var kmltree = (function(){
 			                '</div>'
                     	]
 	            	: [
-			                '<div UNSELECTABLE="on" class="kmltree">',
-	                    		'<ul UNSELECTABLE="on" class="kmltree">',
-	                    			'<li unselectable="on" id="' + rootId + '" class="kmltree-item check KmlNetworkLink loaded visible open">',
-	                    				'<div unselectable="on" class="expander">&nbsp;</div>',
-	                    				'<div unselectable="on" class="toggler">&nbsp;</div>',
-	                    				'<div class="icon"><div class="nlSpinner">&nbsp;</div>&nbsp;</div>',
-	                    				'<h4 unselectable="on" class="kmltree-title">',
-	                    				options.children[0].name,
-	                    				'</h4>',
-	                    				'<ul>',
-	                    				rendered,
-	                    				'</ul>',
-	                    			'</li>',
-	                    		"</ul>",
-	                    	"</div>"
+	            	   		'<div UNSELECTABLE="on" class="kmltree">',
+	            	   			'<h4 UNSELECTABLE="on" class="kmltree-title">',
+	            	   				options.children[0].name,
+	            	   			'</h4>',
+	            	   			'<ul UNSELECTABLE="on" class="kmltree">',
+	            	   				rendered,
+	            	   			'</ul>',
+	            	   		'</div>'
 	            	   ]).join(''));
             ge.getFeatures().appendChild(kmlObject);
             

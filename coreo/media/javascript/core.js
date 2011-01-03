@@ -501,7 +501,13 @@
 				element: kmlTreeEl,
 				gex: this.options.gex,
 				mapElement: this.options.mapElement,
-				supportItemIcon: true
+				supportItemIcon: true,
+				displayDocumentRoot: true,
+				showTitle: false,
+				visitFunction: function(kmlObject, config) {
+					config.customClass = "root-heading";
+					return config;
+				}
 			});
 			if (typeof kmlLoadedCallback == "function") {
 				var self = this;

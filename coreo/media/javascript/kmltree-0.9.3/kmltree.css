@@ -43,7 +43,16 @@ h4.kmltree-title {
   font-weight: bold;
   margin: 0 0 -5px 0; }
 
-.expander, .toggler, .icon {
+.toggler {
+  margin: 0;
+  padding: 0;
+  float: left;
+  width: 16px;
+  height: 16px;
+  margin-left: 17px;	
+}
+
+.expander, .icon {
   margin: 0;
   padding: 0;
   float: left;
@@ -53,11 +62,15 @@ h4.kmltree-title {
 .expander, .toggler {
   cursor: pointer; }
 
+.expander + .toggler {
+	margin-left: 0;
+}
+
 .expander {
   background: url('images/sprites/kml.png?1285562177') no-repeat -168px 0px;
   width: 16px;
   height: 16px;
-  margin-left: -17px; }
+  /* margin-left: -17px; */ }
   .expander:hover {
     background: url('images/sprites/kml.png?1285562177') no-repeat -189px 0px;
     width: 16px;
@@ -159,6 +172,9 @@ li.radioFolder.visible > .toggler {
     background: url('images/sprites/kml.png?1285562177') no-repeat -483px 0px;
     width: 16px;
     height: 16px; }
+li > ul > li.KmlPlacemark, li > ul > li.KmlPhotoOverlay, li > ul > li.KmlGroundOverlay, li > ul > li.KmlTour {
+	margin-left: 16px;
+} 
 li.KmlPlacemark > .expander, li.KmlPhotoOverlay > .expander, li.KmlGroundOverlay > .expander, li.KmlTour > .expander {
   display: none; }
 

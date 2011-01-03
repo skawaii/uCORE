@@ -150,3 +150,8 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 	letter-spacing: 1.1;
 }
 
+div.kmltree > ul:first-child > li.root-heading:first-child > span.name {
+	font-weight: bold;
+	font-size: 110%;
+	color: #6C7C90;
+}
