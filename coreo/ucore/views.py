@@ -308,12 +308,6 @@ def trophy_room(request):
       # than sorry.
       return render_to_response('login.html', context_instance=RequestContext(request))
 
-def search_mongo(request):
-    
-    url = 'http://174.129.206.221/hello//?' + request.GET['q']
-    result = urllib2.urlopen(url)
-    return HttpResponse('\n'.join(result.readlines()))
-
 def upload_csv(request):
   if request.method == 'POST':
     utils.insert_links_from_csv(request.FILES['file'])
