@@ -13,7 +13,7 @@
 				var id = null;
 				do {
 					id = prefix + ++idSeed;
-				} while (jQuery.contains(document.documentElement, $("#" + id)));
+				} while ($("#" + id).length > 0);
 				return id;
 			},
 			
@@ -201,12 +201,10 @@
 								? this.options.widthOffset : 0;
 			widthOffset += (this.element.outerWidth(true) - this.element.outerWidth(false));
 			var self = this;
+			self.element.css({ "width": "100%" });
 			var doResize = function() {
 				var windowHeight = $(window).height();
-				var windowWidth = $(window).width();
 				var myHeight = windowHeight - heightOffset;
-				var myWidth = windowWidth - widthOffset;
-				self.element.width(myWidth);
 				self.element.height(myHeight);
 				self.element.trigger("resize");
 			};
