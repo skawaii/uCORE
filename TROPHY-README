@@ -1,0 +1,22 @@
+Documentation for using the Trophy features of the webapp.
+
+In order to use the Trophy features to the fullest extent, the following configuration changes need to be made:
+1. You should create a local_settings.py file in the same directory as your settings.py file. The only thing that needs to be in the local_settings.py file are the following fields:
+
+EMAIL_HOST='your_value_here'
+EMAIL_HOST_USER='your_value_here'
+EMAIL_HOST_PASSWORD='your_value_here'
+EMAIL_PORT = your_port_here
+EMAIL_USE_TLS = True
+
+Once this is set up it will enable the trophy code to send an appropriate email to the user.
+
+2. Next you will want to make sure you have created a valid core user via the admin app. The core user needs to have a first name, and a valid e-mail address.  
+
+3. Before you start testing you need to run 'python manage.py syncdb' from your project directory.  This will load in the sample trophies that have been pre-created for you.  If you desire you can also run 'python manage.py loaddata search_tags.json' which will load some search tags that can later be used to add search log entries. NOTE: loading search_tags.json will not work if you already have some tags defined in your Tags table.
+
+4. While you are still in the admin app, try adding some SearchLogs.  If you add two SearchLog records with the same username,  you will effectively trigger my signal.  It will automatically create a TrophyCase for that user(used in the SearchLog entry) and send an e-mail to the user's e-mail address.  If that doesn't work the e-mail settings in step 1 may not be set up correctly.
+
+5. Now you are ready to test the webapp.  Start up the web server and log in to the webapp. After you have logged in successfully, try typing /trophyroom/ in the URL after your port number you have used.
+ If this works -  you should see 4 trophies with appropriate pictures.
+ Assuming that you are logged in with an appropriate user that has a valid e-mail address, you can click the button "EARN THIS TROPHY" next to any appropriate trophy you wish to earn.  This will give you a Javascript alert that you have earned a trophy,  an e-mail to the user's e-mail that you are logged in with, and should add a TrophyCase row to the table on the bottom of the webpage.

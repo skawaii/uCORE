@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>uCORE - Trophy Room</title>
+  </head>
+
+  <!-- CSS --> 
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+  
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/tscript.js"/>
+
+  <body>
+    <div id='geheader'>
+      <a href='/'>
+        <img id='core-logo' height='28px' width='100px' align='bottom' src='{{ MEDIA_URL }}images/corelogobluecog2-100x28.png'' alt='C()RE' />
+    </a>
+
+    <div id='user-info'><a href="/ge/"><span id='signuptext'>Back to the Visualizer</span></a> | <a href='FutureFeature'>Help</a> | <a href='FutureFeature'>About</a> | <a href='/logout/'>Sign Out</a> </div>
+    </div>
+  <div>
+    <table style="border-style: solid;border-width:2px; border-collapse: separate; border-color:black;  margin: 1; padding: 2px;">
+      <tbody>
+      <tr>
+        <td>
+          <img id='trophypic' height='200px' width='100px' src='{{ MEDIA_URL }}images/dart_trophy.JPG''/></td>
+        <td><h1 align='center'>-------------Trophy Room-------------- </h1></td>
+        <td>
+    <img id='trophypic' height='200px' width='100px' src='{{ MEDIA_URL }}images/dart_trophy.JPG''/>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br/>
+<br/>
+<br/>
+       {% if trophy_list %}
+       <table style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">
+           <thead>
+           <tr>
+             <th style="border-style:solid; border-color: black; border-width: 2px">Image</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Name</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Description</th><th style="border-style:solid; border-color: black; border-width: 2px; padding: 2px">Action</th>
+           </tr>
+         </thead>
+       <tbody> 
+      {% for trophy in trophy_list %}
+        <tr>
+        <td style="border-style:solid; border-color: black; border-width: 2px; padding: 2px"><img src='{{ MEDIA_URL }}{{ trophy.file_path }}' height='100px' width='200px'/></td>
+     <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.name }}</td>
+     <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.desc }}</td>
+     <td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><button value="earntrophy" onclick="earn_trophy('{{ trophy.pk }}', '{{ user }}'); return false;">Earn This Trophy</button></td> 
+      </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+    {% else %}
+    <table>
+      <tr>
+       <td>
+         <H2>No Trophies to display</H2>
+       </td>
+      </tr>
+     </table>
+     {% endif %}
+   </div>
+   <br/>
+   <br/>
+   <br/>
+   <div>
+     <h1>---------------- Trophies Already Earned --------------- </h1>
+     <br/>
+     <br/>
+     <table style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">
+       {% if trophy_case_list %}
+       <thead>
+         <tr>
+           <th style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">User</th>
+           <th style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">Trophy</th>
+           <th style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">Date Earned</th>
+         </tr>
+       </thead>
+       <tbody>
+           {% for trophy_case in trophy_case_list %}
+         <tr>
+           <td style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">{{ trophy_case.user }}</td>
+         <td>{{ trophy_case.trophy }}</td>
+         <td>{{ trophy_case.date_earned }}</td>
+         </tr>
+         {% endfor %}
+       {% endif %}
+     </table>
+</body>
+</html>

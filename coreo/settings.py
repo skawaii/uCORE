@@ -85,6 +85,8 @@ TEMPLATE_DIRS = (
     '/Users/jashot7/Code/uCORE/coreo/templates/ucore/',
     '/Users/jashot7/Code/andy/uCORE/coreo/templates/ucore/',
     'C:/dev/Django-1.2.3/uCORE/coreo/templates/ucore/',
+    '/Users/pboone/code/ucore/coreo/templates/ucore/',
+    '/Users/pcoleman/uCORE/coreo/templates/ucore/',
 )
 
 INSTALLED_APPS = (
@@ -102,4 +104,14 @@ INSTALLED_APPS = (
 )
 
 SITE_ROOT = 'http://localhost:8080/'
+
+try:
+  from local_settings import *
+except ImportError, exp:
+   pass
+
+try:
+  INSTALLED_APPS += LOCAL_INSTALLED_APPS
+except:
+  pass
 

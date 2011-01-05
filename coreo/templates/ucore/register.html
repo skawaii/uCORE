@@ -1,66 +1,61 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>uCORE - Register</title>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>uCORE - Register</title>
 
-  <!-- CSS -->
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+    </head>
 
-  </head>
+    <body id="signup_page">
+        <div id="geheader">
+            <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" /></a>
+            <div id="user-info"><a href="/login/">Sign In</a> | <a href="FutureFeature">Help</a> | <a href="FutureFeature">About</a></div>
+        </div>
 
-  <body id="signup_page">
-  <div id="geheader">
-    <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
-    </a>
-
-    <div id="user-info"><a href="/login/">Sign In</a> | <a href="FutureFeature">Help</a> | <a href="FutureFeature">About</a></div>
-    </div>
-
-  <div class="main_div">
-    <div id="core_signup_div" class="center_div">
-      <div><h1> Sign Up </h1></div>
-      <div>{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
-      <form action="/save-user/" method="post">
-            <div>{% csrf_token %}</div>
-      <ol>
-          <li>
-            <label>SID</label>
-            <input name="sid" type="text" readonly="readonly" value="{{ sid }}">
-          </li>
-        <li>
-            <label>Username</label>
-            <input name="username" type="text">
-          </li>
-        <li>
-            <label>First Name</label>
-            <input name="first_name" type="text">
-          </li>
-        <li>
-            <label>Last Name</label>
-            <input name="last_name" type="text">
-          </li>
-          <li>
-            <label>Phone</label>
-            <input name="phone_number" type="text">
-          </li>
-        <li>
-            <label>Email</label>
-            <input name="email" type="text">
-          </li>
-        <li>
-            <label>Password</label>
-            <input name="password" type="password">
-          </li>
-
-
-          <li class="submit">
-          <a href="#" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"><input type="submit" value="Sign Up" /></a>
-          </li>
-      </ol>
-      </form>
-      </div> <!-- End center_div -->
-  </div> <!-- End main_div -->
-  </body>
+        <div class="main_div">
+            <div id="core_signup_div" class="center_div">
+                <div><h1> Sign Up </h1></div>
+                <div>{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
+                <form action="/save-user/" method="post">
+                    <div>{% csrf_token %}</div>
+                    <ol>
+                        <li>
+                            <label>SID</label>
+                            <input name="sid" type="text" readonly="readonly" value="{{ sid }}">
+                        </li>
+                        <li>
+                            <label>Username</label>
+                            <input name="username" type="text">
+                        </li>
+                        <li>
+                            <label>First Name</label>
+                            <input name="first_name" type="text">
+                        </li>
+                        <li>
+                            <label>Last Name</label>
+                            <input name="last_name" type="text">
+                        </li>
+                        <li>
+                            <label>Phone</label>
+                            <input name="phone_number" type="text">
+                        </li>
+                        <li>
+                            <label>Email</label>
+                            <input name="email" type="text">
+                        </li>
+                        <li>
+                            <label>Password</label>
+                            <input name="password" type="password">
+                        </li>
+                        <li class="submit">
+                            <a href="#" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"><input type="submit" value="Sign Up" /></a>
+                        </li>
+                    </ol>
+                </form>
+            </div> <!-- End center_div -->
+        </div> <!-- End main_div -->
+    </body>
 </html>

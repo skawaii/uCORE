@@ -1,6 +1,9 @@
+import datetime
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db import models
 from django.contrib import auth
+from django.db.models.signals import post_save
 
 
 class Skin(models.Model):
@@ -17,7 +20,8 @@ class Trophy(models.Model):
   file_path = models.FilePathField('path to image file', path=settings.MEDIA_ROOT + 'trophies')
 
   def __unicode__(self):
-    return self.name
+    #  return self.name
+    return '%s %s %s' % (self.name, self.desc, self.file_path)
 
   class Meta:
     verbose_name_plural = 'trophies'
@@ -28,27 +32,6 @@ class Tag(models.Model):
 
   def __unicode__(self):
     return self.name
-
-
-class Rank(models.Model):
-  RANK_CHOICES = (
-      (1, '1 - Utter Junk'),
-      (2, '2 - Junk'),
-      (3, '3 - Ok'),
-      (4, '4 - Good'),
-      (5, '5 - Very Good')
-  )
-
-  user = models.ForeignKey('CoreUser')
-  link = models.ForeignKey('Link')
-  rank = models.IntegerField(choices=RANK_CHOICES)
-  comment = models.TextField()
-
-  def __unicode__(self):
-    return ' '.join((self.user.username, self.link.name))
-
-  class Meta:
-    verbose_name_plural = 'rankings'
 
 
 class Link(models.Model):
@@ -73,6 +56,27 @@ class CoreUser(auth.models.User):
     return ' '.join((self.username, self.sid))
 
 
+class Rating(models.Model):
+  SCORE_CHOICES = (
+      (1, '1 - Utter Junk'),
+      (2, '2 - Junk'),
+      (3, '3 - Ok'),
+      (4, '4 - Good'),
+      (5, '5 - Very Good')
+  )
+
+  user = models.ForeignKey(CoreUser)
+  link = models.ForeignKey(Link)
+  score = models.IntegerField(choices=SCORE_CHOICES)
+  comment = models.TextField(blank=True)
+
+  def __unicode__(self):
+    return ' '.join((self.user.username, self.link.name))
+
+  class Meta:
+    unique_together = ('user', 'link')
+
+
 class TrophyCase(models.Model):
   user = models.ForeignKey(CoreUser)
   trophy = models.ForeignKey(Trophy)
@@ -83,14 +87,66 @@ class TrophyCase(models.Model):
 
 
 class LinkLibrary(models.Model):
+  name = models.CharField(max_length=128)
+  desc = models.CharField(max_length=256) # completely arbitrary max_length
+  tags = models.ManyToManyField(Tag, verbose_name='user-specified tags')
   user = models.ForeignKey(CoreUser)
   links = models.ManyToManyField(Link)
-  tags = models.ManyToManyField(Tag, verbose_name='user-specified tags')
-  name = models.CharField(max_length=128)
 
   def __unicode__(self):
     return ' '.join((self.user.username, self.name))
 
   class Meta:
     verbose_name_plural = 'link libraries'
+
+class SearchLog(models.Model):
+  # user = models.CharField(max_length=100)
+   user = models.ForeignKey(CoreUser)
+   date_queried = models.DateField()
+   search_terms = models.CharField(max_length=200)
+   search_tags = models.ManyToManyField(Tag)
+
+   def __unicode__(self):
+     return ' '.join((self.user.username, self.search_terms))
+
+def check_for_trophy(sender, instance, **kwargs):
+    
+    user1 = instance.user.username
+    if (SearchLog.objects.filter(user=instance.user, search_tags=1).count() > 4):
+      # print "Inside the search condition of the check"
+      user_object = CoreUser.objects.get(username=user1)
+      trophy1 = Trophy.objects.get(pk=4)
+      if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
+        custom_message = 'Congratulations %s, you have won a trophy (Captain Blackbeard)' % user_object.first_name
+        email1 = user_object.email
+        send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
+        # I need to make the trophy type conditional eventually.
+        # for now I will hard-code the trophy-type.
+        t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
+        t.save()
+    if (SearchLog.objects.filter(user=instance.user, search_tags=2).count() > 4):
+      user_object = CoreUser.objects.get(username=user1)
+      trophy1 = Trophy.objects.get(pk=3)
+      if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
+        custom_message = 'Congratulations %s, you have won a trophy (Forrest Ranger)' % user_object.first_name
+        email1 = user_object.email
+        send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
+        # I need to make the trophy type conditional eventually.
+        # for now I will hard-code the trophy-type.
+        t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
+        t.save()
+    if (SearchLog.objects.filter(user=instance.user, search_tags=3).count() > 4):
+      user_object = CoreUser.objects.get(username=user1)
+      trophy1 = Trophy.objects.get(pk=2)
+      if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
+        custom_message = 'Congratulations %s, you have won a trophy (Artic King)' % user_object.first_name
+        email1 = user_object.email
+        send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
+        # I need to make the trophy type conditional eventually.
+        # for now I will hard-code the trophy-type.
+        t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
+        t.save()
+
+
+post_save.connect(check_for_trophy, sender=SearchLog)
 

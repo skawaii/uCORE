@@ -1,18 +1,21 @@
-#import os
 import urllib2
-#import xml.dom.ext
 import xml.dom.minidom
+import csv, zipfile, time, os
+import datetime
+from cStringIO import StringIO
+from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
 from django.core import serializers
+from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Skin, Tag
-from coreo.ucore import utils
+from django.utils import simplejson as json
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase
+from coreo.ucore import utils, shapefile
 
 
 def ge_index(request):
@@ -30,36 +33,183 @@ def ge_index(request):
   
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
+def get_csv(request):
+
+  response = HttpResponse(mimetype='text/csv')
+  response['Content-Disposition'] = 'attachment; filename=sample.csv'
+  # This will eventually handle a json object rather than static data.
+  # jsonObj = request.POST['gejson'].strip()
+  #  if not (jsonObj)
+  #  jsonObj = '{["latitude":1.0, "longitude":2.0]}'
+  jsonObj = '["baz":"booz", "tic":"tock", "altitude": 1.0, "altitude":2]'
+  obj = json.loads(jsonObj)
+  writer = csv.writer(response)
+  writer.writerow(obj)
+  return response
+
+def get_kml(request):
+
+  # I know this will be replaced once I have a sample JSON from the client
+  # passed in.  For now I am just using sample data provided by Google.
+  fileObj = StringIO() 
+  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
+  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
+  fileObj.write("<Placemark>\n")
+  fileObj.write("<name>Simple placemark</name>\n")
+  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
+  fileObj.write("<Point>\n")
+  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
+  fileObj.write("</Point>\n")
+  fileObj.write("</Placemark>\n")
+  fileObj.write("</kml>\n")
+
+  response = HttpResponse(fileObj.getvalue(), mimetype='text/xml')
+  response['Content-Disposition'] = 'attachment; filename=doc.kml'
+  return response
+
+def get_kmz(request):
+
+  # I must say I used some of : http://djangosnippets.org/snippets/709/
+  # for this part. - PRC
+  # I know this will be replaced once I have a sample JSON from the client
+  # passed in.  For now I am just using sample data provided by Google.
+  fileObj = StringIO()
+  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
+  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
+  fileObj.write("<Placemark>\n")
+  fileObj.write("<name>Simple placemark</name>\n")
+  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
+  fileObj.write("<Point>\n")
+  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
+  fileObj.write("</Point>\n")
+  fileObj.write("</Placemark>\n")
+  fileObj.write("</kml>\n")
+
+  kmz = StringIO()
+  f = zipfile.ZipFile(kmz, 'w', zipfile.ZIP_DEFLATED)
+  f.writestr("doc.kml", fileObj.getvalue())
+  f.close()
+  response = HttpResponse(mimetype='application/zip')
+  response.content = kmz.getvalue()
+  kmz.close()
+  response['Content-Type'] = 'application/vnd.google-earth.kmz'
+  response['Content-Disposition'] = 'attachment; filename=download.kmz'
+  response['Content-Description'] = 'a sample kmz file.'
+  response['Content-Length'] = str(len(response.content))
+  return response
+
+def get_library(request, username, lib_name):
+  library = LinkLibrary.objects.get(user__username=username, name=lib_name)
+
+  doc = utils.build_kml_from_library(library)
+  file_path = 'media/kml/' + username + '-' + lib_name + '.kml'
+  #xml.dom.ext.PrettyPrint(doc, open(file_path, "w"))
+
+  with open(file_path, 'w') as f:
+    f.write(doc.toprettyxml(indent='  ', encoding='UTF-8'))
+
+  uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
+
+  return HttpResponse(uri)
+
+def get_shapefile(request):
+
+  w = shapefile.Writer(shapefile.POLYLINE)
+  w.line(parts=[[[1,5],[5,5],[5,1],[3,1],[1,1]]])
+  w.poly(parts=[[[1,5],[3,1]]], shapeType=shapefile.POLYLINE)
+  w.field('FIRST_FLD', 'C', '40')
+  w.field('SECOND_FLD', 'C', '40')
+  w.record('First', 'Polygon')
+  w.save('sample')
+  shp = StringIO()
+  f = zipfile.ZipFile(shp, 'w', zipfile.ZIP_DEFLATED)
+  f.write('sample.shx')
+  f.write('sample.dbf')
+  f.write('sample.shp')
+  f.close()
+  response = HttpResponse(mimetype='application/zip')
+  response['Content-Disposition'] = 'attachment; filename=sample1.shp'
+  response.content = shp.getvalue()
+  shp.close()
+  return response
  
 def index(request):
-	# If the user is authenticated, send them to the application.
-	if request.user.is_authenticated():
-		return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+  # If the user is authenticated, send them to the application.
+  if request.user.is_authenticated():
+    return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+  # If the user is not authenticated, show them the main page.
+  return render_to_response('index.html', context_instance=RequestContext(request))
 
-	# If the user is not authenticated, show them the main page.
-	return render_to_response('index.html', context_instance=RequestContext(request))
+
+def login(request):
+  if request.method == 'GET':
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  else:
+    # authenticate the user viw username/password
+    username = request.POST['username'].strip()
+    password = request.POST['password'].strip()
+
+    # check if the user already exists
+    if not CoreUser.objects.filter(username__exact=username).exists():
+      return render_to_response('register.html', context_instance=RequestContext(request))
+
+    user = auth.authenticate(username=username, password=password)
+
+    # The user has been succesfully authenticated. Send them to the GE app.
+    if user:
+      auth.login(request, user)
+      return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+
+    return render_to_response('login.html',
+          {'error_message': 'Invalid Username/Password Combination'},
+           context_instance=RequestContext(request))
 
 
-def user_profile(request):
-  # XXX the django dev server can't use ssl, so fake getting the sid from the cert
-  # XXX pull out the name as well. pass it to register() and keep things DRY
-  # sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
-  #sid = 'jlcoope'
+def logout(request):
+  ''' Log the user out, terminating the session
+  '''
+  if request.user.is_authenticated():
+    auth.logout(request)
 
-  #if not sid: return render_to_response('install_certs.html')
+  return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
+
+def rate_link(request, link_id):
+  # XXX assuming we can get PKI certs working with WebFaction, we could pull the sid out here
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
+    link = Link.objects.get(id=link_id)
     user = CoreUser.objects.get(username=request.user.username)
-  except CoreUser.DoesNotExist:
-    # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
-    return render_to_response('login.html', context_instance=RequestContext(request))
-  
-  return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
+  except (Link.DoesNotExist, CoreUser.DoesNotExist) as e:
+    #return HttpResponse('Link with id %s does not exist' % link_id)
+    return HttpResponse(e.message)
+
+  # check to see if a Rating already exists for this (CoreUser, Link) combo. If the combo already exists:
+  #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
+  #   2. and this is a POST, update the Rating
+  rating = Rating.objects.filter(user=user, link=link) # guaranteed at most 1 result b/c of DB unique_together
+
+  if request.method == 'GET':
+    if rating: context = {'rating': rating[0], 'link': link}
+    else: context = {'link': link}
+
+    return render_to_response('rate.html', context, context_instance=RequestContext(request))
+  else:
+    if rating:
+      (rating[0].score, rating[0].comment) = (request.POST['score'], request.POST['comment'].strip())
+      rating[0].save()
+    else:
+      Rating.objects.create(user=user, link=link, score=request.POST['score'], comment=request.POST['comment'].strip())
+
+  # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
+  #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
+  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+
+
+def rate_library(request, library_id):
+  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
 
 
 def register(request, sid):
@@ -109,49 +259,15 @@ def save_user(request):
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
-  return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
-
-
-def login(request):
-  if request.method == 'GET':
-    return render_to_response('login.html', context_instance=RequestContext(request))
-  else:
-    # authenticate the user viw username/password
-    username = request.POST['username'].strip()
-    password = request.POST['password'].strip()
-
-    # check if the user already exists
-    if not CoreUser.objects.filter(username__exact=username).exists():
-      return render_to_response('register.html', context_instance=RequestContext(request))
-
-    user = auth.authenticate(username=username, password=password)
-
-    # The user has been succesfully authenticated. Send them to the GE app.
-    if user:
-      auth.login(request, user)
-      return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
-
-    return render_to_response('login.html',
-          {'error_message': 'Invalid Username/Password Combination'},
-          context_instance=RequestContext(request))
-
-
-def logout(request):
-  ''' Log the user out, terminating the session
-  '''
-  if request.user.is_authenticated():
-    auth.logout(request)
-
-  return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
+  return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
 
 def search_links(request):
-  terms = request.GET.get('q').split(' ')
+  terms = request.GET['q'].split(' ')
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
-  # XXX format the links into a dict and render to a template (doesn't exist yet)
   return HttpResponse(serializers.serialize('json', links))
 
 
@@ -162,23 +278,73 @@ def search_mongo(request):
   return HttpResponse('\n'.join(result.readlines()))
 
 
+def success(request, message=''):
+  return HttpResponse('you did it!')
+
+
+def trophy_notify(request):
+   user = request.user
+   email = request.email
+   send_mail('You have won a trophy. Congratulations.', 'Testing e-mails', 'trophy@layeredintel.com', ['prcoleman2@gmail.com'], fail_silently=False)
+
+   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
+
+
+def trophy_room(request):
+
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  try: 
+      user = CoreUser.objects.get(username=request.user.username)
+      userCore = user.username 
+      trophy_list = Trophy.objects.all()
+      trophy_case_list = TrophyCase.objects.all() 
+      return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : userCore }, context_instance=RequestContext(request))
+
+
+  except CoreUser.DoesNotExist: 
+      # as long as the login_user view forces them to register if they don't already 
+      # exist in the db, then we should never actually get here. Still, better safe
+      # than sorry.
+      return render_to_response('login.html', context_instance=RequestContext(request))
+
 def upload_csv(request):
   if request.method == 'POST':
     utils.insert_links_from_csv(request.FILES['file'])
       
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
-def get_library(request, username, lib_name):
-  library = LinkLibrary.objects.get(user__username=username, name=lib_name)
 
-  doc = utils.build_kml_from_library(library)
-  file_path = 'media/kml/' + username + '-' + lib_name + '.kml'
-  #xml.dom.ext.PrettyPrint(doc, open(file_path, "w"))
+def user_profile(request):
+  # XXX the django dev server can't use ssl, so fake getting the sid from the cert
+  # XXX pull out the name as well. pass it to register() and keep things DRY
+  # sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
+  #sid = 'jlcoope'
+  #if not sid: return render_to_response('install_certs.html')
 
-  with open(file_path, 'w') as f:
-    f.write(doc.toprettyxml(indent='  ', encoding='UTF-8'))
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
 
-  uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
+  try:
+    user = CoreUser.objects.get(username=request.user.username)
+  except CoreUser.DoesNotExist:
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  
+  return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
-  return HttpResponse(uri)
+def earn_trophy(request):
+  
+  if request.method == 'POST':
+    user2 = request.POST['user'].strip()
+    trophy2 = request.POST['trophy'].strip()
+    trophyc = Trophy.objects.get(pk=trophy2)
+    userc = CoreUser.objects.get(username=user2)
+    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
+    tc.save()
+    custom_msg = "You have won a trophy, %s.  Congratulations" % userc.first_name
+    user_email = userc.email
+    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 
