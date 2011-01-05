@@ -7,7 +7,7 @@ var initcore = function(username){
 */
 
 
-  var welcomeString = "<a href='/userprofile/'><span id='signuptext'>" + username + "</span></a> | <a href='FutureFeature'>Settings</a> | <a href='FutureFeature'>Help</a> | <a href='/logout/'>Sign Out</a>";
+  var welcomeString = "<a href='/gm/'><span id='gmapscore'>GMaps Version</span></a> | <a href='/userprofile/'><span id='signuptext'>" + username + "</span></a> | <a href='FutureFeature'>Settings</a> | <a href='FutureFeature'>Help</a> | <a href='/logout/'>Sign Out</a>";
   
   google.load("earth", "1");
     //google.load("maps", "2.xx");

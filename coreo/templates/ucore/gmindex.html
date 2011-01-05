@@ -1,0 +1,38 @@
+<html>
+<head>
+  <title>uCORE</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ MEDIA_URL }}css/cupertino/jquery-ui-1.8.7.custom.css" type="text/css" media="all" />
+ 
+  <!-- Javascript -->
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jquery-1.4.4.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jquery-ui-1.8.7.custom.min.js"></script>
+  <script type= "text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/maps.js"></script>
+
+
+<script type="text/javascript">
+function loadgoogle() {
+  //google.load("search", "1");
+  //google.load("jquery", "1.4.4");
+  //google.load("jqueryui", "1.8.7");
+
+  google.load("maps", "2.x", {"callback" : initcore}) 
+}
+</script>
+
+ </head>
+
+ <body onload="loadgoogle()" onunload="GUnload()">
+ 
+  <div>
+    <p>Date: <input type="text" id="datepicker"></p>
+  </div>
+ <div id="map_canvas" style="width: 500px; height: 300px"></div>
+
+ </body>
+
+</html>
+
