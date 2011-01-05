@@ -99,6 +99,7 @@ class LinkLibrary(models.Model):
   class Meta:
     verbose_name_plural = 'link libraries'
 
+
 class SearchLog(models.Model):
   # user = models.CharField(max_length=100)
    user = models.ForeignKey(CoreUser)
@@ -109,13 +110,15 @@ class SearchLog(models.Model):
    def __unicode__(self):
      return ' '.join((self.user.username, self.search_terms))
 
+
 def check_for_trophy(sender, instance, **kwargs):
-    
     user1 = instance.user.username
+
     if (SearchLog.objects.filter(user=instance.user, search_tags=1).count() > 4):
       # print "Inside the search condition of the check"
       user_object = CoreUser.objects.get(username=user1)
       trophy1 = Trophy.objects.get(pk=4)
+
       if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
         custom_message = 'Congratulations %s, you have won a trophy (Captain Blackbeard)' % user_object.first_name
         email1 = user_object.email
@@ -124,9 +127,11 @@ def check_for_trophy(sender, instance, **kwargs):
         # for now I will hard-code the trophy-type.
         t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
         t.save()
+
     if (SearchLog.objects.filter(user=instance.user, search_tags=2).count() > 4):
       user_object = CoreUser.objects.get(username=user1)
       trophy1 = Trophy.objects.get(pk=3)
+      
       if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
         custom_message = 'Congratulations %s, you have won a trophy (Forrest Ranger)' % user_object.first_name
         email1 = user_object.email
@@ -135,9 +140,11 @@ def check_for_trophy(sender, instance, **kwargs):
         # for now I will hard-code the trophy-type.
         t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
         t.save()
+
     if (SearchLog.objects.filter(user=instance.user, search_tags=3).count() > 4):
       user_object = CoreUser.objects.get(username=user1)
       trophy1 = Trophy.objects.get(pk=2)
+
       if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
         custom_message = 'Congratulations %s, you have won a trophy (Artic King)' % user_object.first_name
         email1 = user_object.email
