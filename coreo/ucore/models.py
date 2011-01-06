@@ -41,7 +41,7 @@ class Link(models.Model):
   tags = models.ManyToManyField(Tag, verbose_name='default tags')
 
   def __unicode__(self):
-    return self.name
+     return self.name
 
 
 class CoreUser(auth.models.User):
@@ -54,6 +54,20 @@ class CoreUser(auth.models.User):
   def __unicode__(self):
     #return self.sid
     return ' '.join((self.username, self.sid))
+
+
+class Notification(models.Model):
+  TYPE_CHOICES = (
+      ('TR', 'Trophy Notification'),
+      ('EP', 'Expired Password'),
+      ('NC', 'New Site Content'),
+  )
+  user = models.ForeignKey(CoreUser)
+  type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+  message = models.CharField(max_length=200)
+
+  def __unicode__(self):
+    return '%s  %s' % (self.user.username, self.message) 
 
 
 class Rating(models.Model):
@@ -83,7 +97,7 @@ class TrophyCase(models.Model):
   date_earned = models.DateField()
 
   def __unicode__(self):
-    return ' '.join((self.user.sid, self.trophy.name))
+     return ' '.join((self.user.sid, self.trophy.name))
 
 
 class LinkLibrary(models.Model):
@@ -99,6 +113,7 @@ class LinkLibrary(models.Model):
   class Meta:
     verbose_name_plural = 'link libraries'
 
+
 class SearchLog(models.Model):
   # user = models.CharField(max_length=100)
    user = models.ForeignKey(CoreUser)
@@ -108,6 +123,7 @@ class SearchLog(models.Model):
 
    def __unicode__(self):
      return ' '.join((self.user.username, self.search_terms))
+
 
 def check_for_trophy(sender, instance, **kwargs):
     

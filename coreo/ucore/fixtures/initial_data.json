@@ -34,5 +34,14 @@
       "desc": "For 5 searches over oceans.",
       "file_path": "images/ocean.jpg"
      }
-  }  
+  },
+  {
+    "model": "ucore.Trophy",
+    "pk": 5,
+    "fields": {
+      "name": "Successful Registration Trophy",
+      "desc": "For a successful registration.",
+      "file_path": "images/dart_trophy.JPG"
+    }
+  }
 ]
