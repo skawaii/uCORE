@@ -43,5 +43,13 @@
       "desc": "For a successful registration.",
       "file_path": "images/dart_trophy.JPG"
     }
+  },
+  {
+    "model": "ucore.Skin",
+    "pk" : 1,
+    "fields": {
+      "name" : "Default",
+      "file_path": "default.css"
+    }
   }
 ]
