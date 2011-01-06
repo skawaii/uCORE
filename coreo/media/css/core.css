@@ -98,7 +98,6 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 .gearthapp {
 	display: block;
 	position: relative;
-	border: 1px solid #000000;
 }
 
 .gearthapp .gearthapp-controlpanel {
@@ -106,7 +105,7 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 33%;
+	width: 30%;
 	margin: 0;
 	padding: 0;
 	height: 100%;
@@ -116,10 +115,11 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 	display: block;
 	position: absolute;
 	top: 0;
-	left: 33%;
-	width: 67%;
+	left: 30%;
+	width: 70%;
 	padding: 0;
 	margin: 0;
+	height: 100%;
 }
 
 .kmlaccordion-searchform {

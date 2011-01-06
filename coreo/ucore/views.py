@@ -1,8 +1,7 @@
-import urllib2
+import csv, datetime, os, time, urllib2, zipfile
 import xml.dom.minidom
-import csv, zipfile, time, os
-import datetime
 from cStringIO import StringIO
+
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -16,6 +15,19 @@ from django.template import RequestContext
 from django.utils import simplejson as json
 from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase, Notification
 from coreo.ucore import utils, shapefile
+
+
+def earn_trophy(request):
+  if request.method == 'POST':
+    user2 = request.POST['user'].strip()
+    trophy2 = request.POST['trophy'].strip()
+    trophyc = Trophy.objects.get(pk=trophy2)
+    userc = CoreUser.objects.get(username=user2)
+    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
+    tc.save()
+    custom_msg = "You have won a trophy, %s.  Congratulations" % userc.first_name
+    user_email = userc.email
+    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 
 
 def ge_index(request):
@@ -308,22 +320,25 @@ def trophy_notify(request):
 
 
 def trophy_room(request):
-
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
+
   try: 
-      user = CoreUser.objects.get(username=request.user.username)
-      userCore = user.username 
-      trophy_list = Trophy.objects.all()
-      trophy_case_list = TrophyCase.objects.all() 
-      return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : userCore }, context_instance=RequestContext(request))
-
-
+    user = CoreUser.objects.get(username=request.user.username)
+    trophy_list = Trophy.objects.all()
+    trophy_case_list = TrophyCase.objects.all() 
   except CoreUser.DoesNotExist: 
-      # as long as the login_user view forces them to register if they don't already 
-      # exist in the db, then we should never actually get here. Still, better safe
-      # than sorry.
-      return render_to_response('login.html', context_instance=RequestContext(request))
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+    
+  return render_to_response('trophyroom.html',
+      {'trophy_list' : trophy_list ,
+       'trophy_case_list' : trophy_case_list,
+       'user' : user.username
+      }, context_instance=RequestContext(request))
+
 
 def upload_csv(request):
   if request.method == 'POST':
@@ -352,16 +367,5 @@ def user_profile(request):
   
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
-def earn_trophy(request):
-  
-  if request.method == 'POST':
-    user2 = request.POST['user'].strip()
-    trophy2 = request.POST['trophy'].strip()
-    trophyc = Trophy.objects.get(pk=trophy2)
-    userc = CoreUser.objects.get(username=user2)
-    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
-    tc.save()
-    custom_msg = "You have won a trophy, %s.  Congratulations" % userc.first_name
-    user_email = userc.email
-    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
+
 

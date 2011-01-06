@@ -29,15 +29,15 @@
 	  		optionsKml: "{{ MEDIA_URL }}kml/options.kml"
 	  	});
 	  	$("#ge").fitwindow({
-	  		heightOffset: $("#geheader").outerHeight(true) + 2,
-	  		widthOffset: 2
+	  		heightOffset: $("#geheader").outerHeight(true),
+	  		widthOffset: 0
 	  	});
 	  });
 	</script>
 </head>
 <body>
 <div id='geheader'>
-	<img id="core-logo" height="28px" width="100px" align="bottom" src="/site_media/images/corelogobluecog2-100x28.png" alt="C()RE" />
+	<img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
 	<div id="user-info">
 		<a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="FutureFeature">Settings</a> | <a href="FutureFeature">Help</a> | <a href="/logout/">Sign Out</a>
 	</div>
