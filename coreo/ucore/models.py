@@ -14,9 +14,17 @@ class Skin(models.Model):
     return self.name
 
 
+class Tag(models.Model):
+  name = models.CharField(max_length=50, unique=True)
+
+  def __unicode__(self):
+    return self.name
+
+
 class Trophy(models.Model):
   name = models.CharField(max_length=50)
   desc = models.CharField('short description', max_length=100)
+  tag = models.ForeignKey(Tag)
   file_path = models.FilePathField('path to image file', path=settings.MEDIA_ROOT + 'trophies')
 
   def __unicode__(self):
@@ -25,13 +33,6 @@ class Trophy(models.Model):
 
   class Meta:
     verbose_name_plural = 'trophies'
-
-
-class Tag(models.Model):
-  name = models.CharField(max_length=50, unique=True)
-
-  def __unicode__(self):
-    return self.name
 
 
 class Link(models.Model):
