@@ -310,14 +310,6 @@ def success(request, message=''):
   return HttpResponse('you did it!')
 
 
-def trophy_notify(request):
-   user = request.user
-   email = request.email
-   send_mail('You have won a trophy. Congratulations.', 'Testing e-mails', 'trophy@layeredintel.com', ['prcoleman2@gmail.com'], fail_silently=False)
-
-   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
-
-
 def trophy_room(request):
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
