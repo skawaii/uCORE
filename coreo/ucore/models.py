@@ -56,6 +56,21 @@ class CoreUser(auth.models.User):
     return ' '.join((self.username, self.sid))
 
 
+class RatingFK(models.Model):
+  user = models.ForeignKey(CoreUser)
+  link = models.ForeignKey(Link, null=True, blank=True)
+  link_library = models.ForeignKey('LinkLibrary', null=True, blank=True)
+
+  def __unicode__(self):
+    return ' '.join((self.user.username, self.link.name if self.link else self.link_library.name))
+
+  # override the save method so that we can make sure there isn't a Link and LinkLibrary FK
+  # (can only 1 or the other)
+
+  class Meta:
+    unique_together = (('user', 'link'), ('user', 'link_library'))
+
+
 class Rating(models.Model):
   SCORE_CHOICES = (
       (1, '1 - Utter Junk'),
@@ -65,16 +80,12 @@ class Rating(models.Model):
       (5, '5 - Very Good')
   )
 
-  user = models.ForeignKey(CoreUser)
-  link = models.ForeignKey(Link)
+  rating_fk = models.ForeignKey(RatingFK)
   score = models.IntegerField(choices=SCORE_CHOICES)
   comment = models.TextField(blank=True)
 
   def __unicode__(self):
-    return ' '.join((self.user.username, self.link.name))
-
-  class Meta:
-    unique_together = ('user', 'link')
+    return str(self.rating_fk)
 
 
 class TrophyCase(models.Model):
