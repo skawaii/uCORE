@@ -128,4 +128,5 @@ class SearchLog(models.Model):
 ### Signal Registration ###
 from coreo.ucore import signals
 post_save.connect(signals.check_for_trophy, sender=SearchLog)
+post_save.connect(signals.send_trophy_email, sender=TrophyCase)
 
