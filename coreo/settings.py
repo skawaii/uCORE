@@ -115,4 +115,3 @@ try:
 except:
   pass
 
-DUMB = 'dumb'
