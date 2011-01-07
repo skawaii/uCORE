@@ -1,55 +1,102 @@
 [
-  {
+ {
+        "model": "ucore.Tag",
+        "pk": 1,
+        "fields": {
+          "name": "Ocean"
+       }
+ },
+ {
+      "model": "ucore.Tag",
+      "pk": 2,
+      "fields": {
+         "name": "Forrest"
+       }
+ },
+ {
+       "model": "ucore.Tag",
+       "pk": 3,
+       "fields": {
+         "name": "Artic"
+        }
+ },
+ {
+    "model": "ucore.Tag",
+    "pk": 4,
+    "fields": {
+       "name": "Desert"
+     }
+ },
+ { 
+  "model": "ucore.Tag",
+  "pk": 5,
+  "fields": {
+      "name": "Beach"
+    }
+ },
+ {
+   "model": "ucore.Tag",
+   "pk": 6,
+   "fields": { 
+     "name": "NA"
+    }
+ },
+ {
     "model": "ucore.Trophy",
     "pk": 1,
     "fields": {
         "name": "Life is a beach trophy",
         "desc": "For 5 tropical searches",
+        "tag": 5,
         "file_path": "images/beach.jpg"
     }
-  },
-  {
+ },
+ {
     "model": "ucore.Trophy",
     "pk": 2,
     "fields": {
       "name": "Artic King Trophy",
       "desc": "For 5 searches in the artic.",
+      "tag": 3,
       "file_path": "images/snowmountain.jpg"
     }
-  },
-  {
+ },
+ {
     "model": "ucore.Trophy",
     "pk": 3,
     "fields": {
       "name": "Forrest Ranger Trophy",
       "desc": "For 5 searches over forrests.",
+      "tag": 2,
       "file_path": "images/forrest.jpg"
     }
-  },
-  {
+ },
+ {
     "model": "ucore.Trophy",
     "pk": 4,
     "fields": {
       "name": "Captain Blackbeard Trophy",
       "desc": "For 5 searches over oceans.",
+      "tag": 1,
       "file_path": "images/ocean.jpg"
      }
-  },
-  {
+ },
+ {
     "model": "ucore.Trophy",
     "pk": 5,
     "fields": {
       "name": "Successful Registration Trophy",
       "desc": "For a successful registration.",
+      "tag": 6,
       "file_path": "images/dart_trophy.JPG"
     }
-  },
-  {
+ },
+ {
     "model": "ucore.Skin",
     "pk" : 1,
     "fields": {
       "name" : "Default",
       "file_path": "default.css"
     }
-  }
+ }
 ]
