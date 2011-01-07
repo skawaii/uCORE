@@ -1,7 +1,6 @@
 import csv, datetime, os, time, urllib2, zipfile
 import xml.dom.minidom
 from cStringIO import StringIO
-
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -284,7 +283,7 @@ def save_user(request):
       email=email, phone_number=phone_number, skin=default_skin)
   user.set_password(password)
   user.save()
-  tCase = TrophyCase(user=user, trophy=5, date_earned=datetime.datetime.now())
+  tCase = TrophyCase(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
   tCase.save()
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
