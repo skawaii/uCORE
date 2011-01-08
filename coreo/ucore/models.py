@@ -64,8 +64,13 @@ class RatingFK(models.Model):
   def __unicode__(self):
     return ' '.join((self.user.username, self.link.name if self.link else self.link_library.name))
 
-  # override the save method so that we can make sure there isn't a Link and LinkLibrary FK
-  # (can only 1 or the other)
+  # override the save method so that we can make sure there isn't a
+  # Link and LinkLibrary FK (can only 1 or the other)
+  def save(self, *args, **kwargs):
+    if self.link and self.link_library:
+      return # return an exception explaining why the save didn't happen
+
+    super(RatingFK, self).save(*args, **kwargs)
 
   class Meta:
     unique_together = (('user', 'link'), ('user', 'link_library'))
