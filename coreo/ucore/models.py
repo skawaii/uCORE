@@ -14,9 +14,17 @@ class Skin(models.Model):
     return self.name
 
 
+class Tag(models.Model):
+  name = models.CharField(max_length=50, unique=True)
+
+  def __unicode__(self):
+    return self.name
+
+
 class Trophy(models.Model):
   name = models.CharField(max_length=50)
   desc = models.CharField('short description', max_length=100)
+  tag = models.ForeignKey(Tag)
   file_path = models.FilePathField('path to image file', path=settings.MEDIA_ROOT + 'trophies')
 
   def __unicode__(self):
@@ -27,13 +35,6 @@ class Trophy(models.Model):
     verbose_name_plural = 'trophies'
 
 
-class Tag(models.Model):
-  name = models.CharField(max_length=50, unique=True)
-
-  def __unicode__(self):
-    return self.name
-
-
 class Link(models.Model):
   name = models.CharField(max_length=50)
   desc = models.CharField(max_length=256) # completely arbitrary max_length
@@ -41,7 +42,7 @@ class Link(models.Model):
   tags = models.ManyToManyField(Tag, verbose_name='default tags')
 
   def __unicode__(self):
-    return self.name
+     return self.name
 
 
 class CoreUser(auth.models.User):
@@ -54,6 +55,20 @@ class CoreUser(auth.models.User):
   def __unicode__(self):
     #return self.sid
     return ' '.join((self.username, self.sid))
+
+
+class Notification(models.Model):
+  TYPE_CHOICES = (
+      ('TR', 'Trophy Notification'),
+      ('EP', 'Expired Password'),
+      ('NC', 'New Site Content'),
+  )
+  user = models.ForeignKey(CoreUser)
+  type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+  message = models.CharField(max_length=200)
+
+  def __unicode__(self):
+    return '%s  %s' % (self.user.username, self.message) 
 
 
 class Rating(models.Model):
@@ -83,7 +98,7 @@ class TrophyCase(models.Model):
   date_earned = models.DateField()
 
   def __unicode__(self):
-    return ' '.join((self.user.sid, self.trophy.name))
+     return ' '.join((self.user.sid, self.trophy.name))
 
 
 class LinkLibrary(models.Model):
@@ -102,18 +117,16 @@ class LinkLibrary(models.Model):
 
 class SearchLog(models.Model):
   # user = models.CharField(max_length=100)
-  user = models.ForeignKey(CoreUser)
-  date_queried = models.DateField()
-  search_terms = models.CharField(max_length=200)
-  search_tags = models.ManyToManyField(Tag)
+   user = models.ForeignKey(CoreUser)
+   date_queried = models.DateField()
+   search_terms = models.CharField(max_length=200)
+   search_tags = models.ManyToManyField(Tag)
 
-  def __unicode__(self):
-    return ' '.join((self.user.username, self.search_terms))
-
-
+   def __unicode__(self):
+     return ' '.join((self.user.username, self.search_terms))
 
 ### Signal Registration ###
 from coreo.ucore import signals
-
 post_save.connect(signals.check_for_trophy, sender=SearchLog)
+post_save.connect(signals.send_trophy_email, sender=TrophyCase)
 

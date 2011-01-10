@@ -1,7 +1,6 @@
 import csv, datetime, os, time, urllib2, zipfile
 import xml.dom.minidom
 from cStringIO import StringIO
-
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -13,8 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
-
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase, Notification
 from coreo.ucore import utils, shapefile
 
 
@@ -187,6 +185,22 @@ def logout(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
+def poll_notifications(request): 
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  userperson = CoreUser.objects.filter(username=request.user)
+  if request.method == "GET":
+    json_serializer = serializers.get_serializer("json")()
+    notify_list = Notification.objects.filter(user=userperson)
+    json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
+    return response
+  elif request.method == "POST":
+    primaryKey = request.POST['id'].strip()
+    record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
+    record2delete.delete()
+    return response
+
+
 def rate_link(request, link_id):
   # XXX assuming we can get PKI certs working with WebFaction, we could pull the sid out here
   if not request.user.is_authenticated():
@@ -269,7 +283,8 @@ def save_user(request):
       email=email, phone_number=phone_number, skin=default_skin)
   user.set_password(password)
   user.save()
-
+  tCase = TrophyCase(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
+  tCase.save()
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))

@@ -1,50 +1,26 @@
 import datetime
 
 from django.core.mail import send_mail
+from coreo.ucore.models import CoreUser, SearchLog, Trophy, TrophyCase, Tag
 
-from coreo.ucore.models import CoreUser, SearchLog, Trophy, TrophyCase
+
+def singular_check(user, search_tag_name): 
+  if (SearchLog.objects.filter(user=user, search_tags=Tag.objects.filter(name__startswith=search_tag_name)).count() > 4):
+    trophyObj = Trophy.objects.get(tag=search_tag_name)
+    if (trophyObj and TrophyCase.objects.filter(user=user, trophy=trophyObj).count() == 0):
+      t = TrophyCase(user=user, trophy=trophyObj, date_earned=datetime.datetime.now())
+      t.save()
+
+
+def send_trophy_email(sender, instance, **kwargs):
+  user = CoreUser.objects.get(username=instance.user.username)
+  trophyObj = Trophy.objects.get(name=instance.trophy.name)
+  custom_message = 'Congratulations %s, you have won a trophy (%s)' % (user.first_name, trophyObj.name)
+  send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [user.email], fail_silently=False)
 
 
 def check_for_trophy(sender, instance, **kwargs):
-  user1 = instance.user.username
-
-  if (SearchLog.objects.filter(user=instance.user, search_tags=1).count() > 4):
-    # print "Inside the search condition of the check"
-    user_object = CoreUser.objects.get(username=user1)
-    trophy1 = Trophy.objects.get(pk=4)
-
-    if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
-      custom_message = 'Congratulations %s, you have won a trophy (Captain Blackbeard)' % user_object.first_name
-      email1 = user_object.email
-      send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
-      # I need to make the trophy type conditional eventually.
-      # for now I will hard-code the trophy-type.
-      t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
-      t.save()
-
-  if (SearchLog.objects.filter(user=instance.user, search_tags=2).count() > 4):
-    user_object = CoreUser.objects.get(username=user1)
-    trophy1 = Trophy.objects.get(pk=3)
-    
-    if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
-      custom_message = 'Congratulations %s, you have won a trophy (Forrest Ranger)' % user_object.first_name
-      email1 = user_object.email
-      send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
-      # I need to make the trophy type conditional eventually.
-      # for now I will hard-code the trophy-type.
-      t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
-      t.save()
-
-  if (SearchLog.objects.filter(user=instance.user, search_tags=3).count() > 4):
-    user_object = CoreUser.objects.get(username=user1)
-    trophy1 = Trophy.objects.get(pk=2)
-
-    if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
-      custom_message = 'Congratulations %s, you have won a trophy (Artic King)' % user_object.first_name
-      email1 = user_object.email
-      send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
-      # I need to make the trophy type conditional eventually.
-      # for now I will hard-code the trophy-type.
-      t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
-      t.save()
+  user = CoreUser.objects.get(username=instance.user.username)
+  for tag_name in Tag.objects.all():
+    singular_check(user, tag_name)
 
