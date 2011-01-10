@@ -196,7 +196,6 @@ def rate_link(request, link_id):
     link = Link.objects.get(id=link_id)
     user = CoreUser.objects.get(username=request.user.username)
   except (Link.DoesNotExist, CoreUser.DoesNotExist) as e:
-    #return HttpResponse('Link with id %s does not exist' % link_id)
     return HttpResponse(e.message)
 
   # check to see if a Rating already exists for this (CoreUser, Link) combo. If the combo already exists:

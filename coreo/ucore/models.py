@@ -1,6 +1,7 @@
 import datetime
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
 from django.contrib import auth
@@ -52,7 +53,6 @@ class CoreUser(auth.models.User):
   # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
-    #return self.sid
     return ' '.join((self.username, self.sid))
 
 
@@ -68,12 +68,13 @@ class RatingFK(models.Model):
   # Link and LinkLibrary FK (can only 1 or the other)
   def save(self, *args, **kwargs):
     if self.link and self.link_library:
-      return # return an exception explaining why the save didn't happen
+      raise ValidationError('A RatingFK cannot contain both a Link and a LinkLibrary reference.')
 
     super(RatingFK, self).save(*args, **kwargs)
 
   class Meta:
     unique_together = (('user', 'link'), ('user', 'link_library'))
+    verbose_name_plural = 'Rating FKs'
 
 
 class Rating(models.Model):
