@@ -8,13 +8,14 @@ from django.contrib import auth
 from django.core import serializers
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
+from django.db import IntegrityError
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
 
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase, Notification
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, Skin, Tag, Trophy, TrophyCase
 from coreo.ucore import utils, shapefile
 
 
@@ -214,25 +215,30 @@ def rate_link(request, link_id):
     link = Link.objects.get(id=link_id)
     user = CoreUser.objects.get(username=request.user.username)
   except (Link.DoesNotExist, CoreUser.DoesNotExist) as e:
-    #return HttpResponse('Link with id %s does not exist' % link_id)
     return HttpResponse(e.message)
 
-  # check to see if a Rating already exists for this (CoreUser, Link) combo. If the combo already exists:
-  #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
+  # check to see if a RatingFK already exists for this (CoreUser, Link) combo. If the combo already exists:
+  #   1. and this is a GET, pass the RatingFK & Rating to the template to be rendered so the user can update the Rating
   #   2. and this is a POST, update the Rating
-  rating = Rating.objects.filter(user=user, link=link) # guaranteed at most 1 result b/c of DB unique_together
+  rating_fk = RatingFK.objects.filter(user=user, link=link) # guaranteed at most 1 result b/c of DB unique_together
+
+  if rating_fk:
+    rating = Rating.objects.filter(rating_fk=rating_fk[0]) #again, guarantted at most 1 result
+
+    if not rating: raise IntegrityError('A RatingFK %s exists, but is not associated with a Rating' % rating_fk[0])
 
   if request.method == 'GET':
-    if rating: context = {'rating': rating[0], 'link': link}
+    if rating_fk: context = {'rating': rating[0], 'link': link}
     else: context = {'link': link}
 
     return render_to_response('rate.html', context, context_instance=RequestContext(request))
   else:
-    if rating:
-      (rating[0].score, rating[0].comment) = (request.POST['score'], request.POST['comment'].strip())
+    if rating_fk:
+      rating[0].score, rating[0].comment = (request.POST['score'], request.POST['comment'].strip())
       rating[0].save()
     else:
-      Rating.objects.create(user=user, link=link, score=request.POST['score'], comment=request.POST['comment'].strip())
+      rating_fk = RatingFK.objects.create(user=user, link=link)
+      Rating.objects.create(rating_fk=rating_fk, score=request.POST['score'], comment=request.POST['comment'].strip())
 
   # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
   #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
@@ -287,8 +293,8 @@ def save_user(request):
       email=email, phone_number=phone_number, skin=default_skin)
   user.set_password(password)
   user.save()
-  tCase = TrophyCase(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
-  tCase.save()
+
+  TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
@@ -369,6 +375,4 @@ def user_profile(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
-
-
 
