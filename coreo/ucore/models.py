@@ -86,7 +86,7 @@ class Rating(models.Model):
       (5, '5 - Very Good')
   )
 
-  rating_fk = models.ForeignKey(RatingFK)
+  rating_fk = models.ForeignKey(RatingFK, unique=True)
   score = models.IntegerField(choices=SCORE_CHOICES)
   comment = models.TextField(blank=True)
 

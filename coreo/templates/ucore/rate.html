@@ -15,9 +15,13 @@
             <div id="user-info"><a href="/ge/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="FutureFeature">Help</a> | <a href="FutureFeature">About</a> | <a href="/logout/">Sign Out</a></div>
         </div>
         <div id="userprofile_div">
-            <form action="/rate/{{ link.id }}/" method=post>
+            {% if link %}
+            <form action="/rate/link/{{ link.id }}/" method=post>
+            {% else %}{% if link_library %}
+            <form action="/rate/library/{{ link_library.id }}/" method=post>
+            {% endif %}{% endif %}
                 {% csrf_token %}
-                <h1>{{ link.name }}</h1>
+                <h1>{% if link %}{{ link.name }}{% else %}{% if link_library %}{{ link_library.name }}{% endif %}{% endif %}</h1>
                 <ol>
                     <li>
                         <label>Rating</label>
