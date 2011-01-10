@@ -1,5 +1,6 @@
 from django.contrib import admin
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase, SearchLog, Notification
+
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, SearchLog, Skin, Tag, Trophy, TrophyCase
 
 
 admin.site.register(CoreUser)

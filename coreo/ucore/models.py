@@ -6,6 +6,7 @@ from django.db import models
 from django.contrib import auth
 from django.db.models.signals import post_save
 
+
 class Skin(models.Model):
   name = models.CharField(max_length=50)
   file_path = models.FilePathField('path to CSS file', path=settings.MEDIA_ROOT + 'skins')
@@ -63,6 +64,7 @@ class Notification(models.Model):
       ('EP', 'Expired Password'),
       ('NC', 'New Site Content'),
   )
+
   user = models.ForeignKey(CoreUser)
   type = models.CharField(max_length=20, choices=TYPE_CHOICES)
   message = models.CharField(max_length=200)

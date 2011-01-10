@@ -1,6 +1,7 @@
 import datetime
 
 from django.core.mail import send_mail
+
 from coreo.ucore.models import CoreUser, SearchLog, Trophy, TrophyCase, Tag
 
 
