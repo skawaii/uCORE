@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import *
 from django.contrib import databrowse
 
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, RatingFK, Skin, Tag, Trophy, TrophyCase
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -27,6 +27,7 @@ databrowse.site.register(CoreUser)
 databrowse.site.register(Link)
 databrowse.site.register(LinkLibrary)
 databrowse.site.register(Rating)
+databrowse.site.register(RatingFK)
 databrowse.site.register(Skin)
 databrowse.site.register(Tag)
 databrowse.site.register(Trophy)
