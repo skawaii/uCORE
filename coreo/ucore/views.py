@@ -33,6 +33,21 @@ def ge_index(request):
   
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
+def gm_index(request):
+  # This is a quick hack at getting our Google Maps app integrated with Django.
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  try:
+    user = CoreUser.objects.get(username=request.user.username)
+  except CoreUser.DoesNotExist:
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  
+  return render_to_response('gmindex.html', {'user': user}, context_instance=RequestContext(request))
+
 def get_csv(request):
 
   response = HttpResponse(mimetype='text/csv')
