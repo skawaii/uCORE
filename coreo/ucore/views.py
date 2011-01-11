@@ -51,11 +51,19 @@ def get_csv(request):
   # This will eventually handle a json object rather than static data.
   # jsonObj = request.POST['gejson'].strip()
   #  if not (jsonObj)
-  #  jsonObj = '{["latitude":1.0, "longitude":2.0]}'
-  jsonObj = '["baz":"booz", "tic":"tock", "altitude": 1.0, "altitude":2]'
-  obj = json.loads(jsonObj)
+  # jsonObj = '{["latitude":1.0, "longitude":2.0]}'
+  # jsonObj = '["baz":"booz", "tic":"tock"]'
+  # obj = json.loads(jsonObj)
+  csv_data = (
+      ('First', '1', '2', '3'),
+      ('Second', '4', '5', '6'),
+      ('Third', '7', '8', '9')
+  )
+  
   writer = csv.writer(response)
-  writer.writerow(obj)
+  writer.writerow(['First', '1', '2', '3'])
+  writer.writerow(['Second', '4', '5', '6'])
+  writer.writerow(['Third', '7', '8', '9'])
   return response
 
 def get_kml(request):
