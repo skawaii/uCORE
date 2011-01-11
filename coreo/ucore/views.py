@@ -69,26 +69,6 @@ def get_csv(request):
   writer.writerow(['Third', '7', '8', '9'])
   return response
 
-def get_kml(request):
-
-  # I know this will be replaced once I have a sample JSON from the client
-  # passed in.  For now I am just using sample data provided by Google.
-  fileObj = StringIO() 
-  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
-  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
-  fileObj.write("<Placemark>\n")
-  fileObj.write("<name>Simple placemark</name>\n")
-  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
-  fileObj.write("<Point>\n")
-  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
-  fileObj.write("</Point>\n")
-  fileObj.write("</Placemark>\n")
-  fileObj.write("</kml>\n")
-
-  response = HttpResponse(fileObj.getvalue(), mimetype='text/xml')
-  response['Content-Disposition'] = 'attachment; filename=doc.kml'
-  return response
-
 def get_kmz(request):
   # I must say I used some of : http://djangosnippets.org/snippets/709/
   # for this part. - PRC
