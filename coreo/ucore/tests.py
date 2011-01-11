@@ -4,7 +4,8 @@ unittest). These will both pass when you run "manage.py test".
 
 Replace these with more appropriate tests for your application.
 """
-import datetime, zipfile
+import datetime, zipfile, os
+from cStringIO import StringIO
 from django.test import TestCase
 from django.core import mail
 from django.test.client import Client
@@ -85,13 +86,9 @@ class LoginTest(TestCase):
     self.assertTrue(c.login(username='testuser', password='2pass'))
     response = c.get('/export-csv/')
     self.assertTrue(response.content, 'First,1,2,3\nSecond,4,5,6\nThird, 7,8,9')
-    print 'Passed the get_csv test'
-
-
-  def test_get_kml(self):
-    self.assertTrue(True)
-
-
+    print '\nPassed the get_csv test'
+  
+  
   def test_get_kmz(self):
     c = Client()
     user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com', phone_number='9221112222',skin=Skin.objects.get(name='Default'))
@@ -99,15 +96,59 @@ class LoginTest(TestCase):
     user.save()
     self.assertTrue(c.login(username='testuser', password='2pass'))
     response = c.get('/getkmz/')
-    zip = zipfile.ZipFile(response.content, 'r')
+    f = open('download.zip', 'wb')
+    f.write(response.content)
+    f.close()
+    f = open('download.zip', 'rb')
+    zip = zipfile.ZipFile(f, 'r', zipfile.ZIP_DEFLATED)
+    extract = zip.extract('doc.kml')
+    fread = open(extract)
+    for line in fread:
+      self.assertIn("<?xml version='1.0' encoding='UTF-8'?>", line)
+      break
+    fread.close()
     for i in zip.namelist():
-      self.assertEquals('doc.xml', i)
+      self.assertEquals('doc.kml', i)
+    # These two lines below were added to remove the files from out of the 
+    # project directory since they aren't deleted automatically. - PC
+    os.remove('doc.kml')
+    os.remove('download.kmz')
+    os.remove('download.zip')
+    
     print 'Passed the get_kmz test.'
 
 
   def test_get_shapefile(self):
-    self.assertTrue(True)
+    c = Client()
+    user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com', phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+    user.set_password('2pass')
+    user.save()
+    self.assertTrue(c.login(username='testuser', password='2pass'))
+    response = c.get('/getshp/')
+    f = open('sample.zip', 'wb')
+    f.write(response.content)
+    f.close()
+    f = open('sample.zip', 'rb')
+    zip = zipfile.ZipFile(f, 'r', zipfile.ZIP_DEFLATED)
+    counter = 1
+    for i in zip.namelist():
+      if (counter == 1):
+        self.assertEquals('sample.shx', i)
+      elif (counter == 2):
+        self.assertEquals('sample.dbf', i)
+      elif (counter == 3):
+        self.assertEquals('sample.shp', i)
+      counter = counter + 1
+    # The lines below were added to clean the file system
+    # after the test.  - PC
+    os.remove('sample.zip')
+    os.remove('sample.shx')
+    os.remove('sample.dbf')
+    os.remove('sample.shp')
 
+    print 'Passed the get_shapefile test.'
+
+ 
 
   def test_poll_notifications(self):
     self.assertTrue(True)
