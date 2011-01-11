@@ -112,7 +112,6 @@ class LoginTest(TestCase):
     # These two lines below were added to remove the files from out of the 
     # project directory since they aren't deleted automatically. - PC
     os.remove('doc.kml')
-    os.remove('download.kmz')
     os.remove('download.zip')
     
     print 'Passed the get_kmz test.'
