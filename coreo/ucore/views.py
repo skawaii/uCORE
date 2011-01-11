@@ -283,6 +283,15 @@ def rate_library(request, library_id):
     return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
 
 
+def rate(request, ratee, ratee_id):
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
+  #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
+  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+
+
 def register(request, sid):
   ''' Pull out the user's sid, name, email, and phone number from the user's certs.
       Return a pre-filled registration form with this info so the user can create an account.
