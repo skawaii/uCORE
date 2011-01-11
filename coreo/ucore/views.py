@@ -1,21 +1,35 @@
-import urllib2
+import csv, datetime, os, time, urllib2, zipfile
 import xml.dom.minidom
-import csv, zipfile, time, os
-import datetime
 from cStringIO import StringIO
+
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
 from django.core import serializers
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
+from django.db import IntegrityError
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Rating, Skin, Tag, Trophy, TrophyCase
+
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, Skin, Tag, Trophy, TrophyCase
 from coreo.ucore import utils, shapefile
+
+
+def earn_trophy(request):
+  if request.method == 'POST':
+    user2 = request.POST['user'].strip()
+    trophy2 = request.POST['trophy'].strip()
+    trophyc = Trophy.objects.get(pk=trophy2)
+    userc = CoreUser.objects.get(username=user2)
+    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
+    tc.save()
+    custom_msg = "You have won a trophy, %s.  Congratulations" % userc.first_name
+    user_email = userc.email
+    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 
 
 def ge_index(request):
@@ -68,7 +82,6 @@ def get_kml(request):
   return response
 
 def get_kmz(request):
-
   # I must say I used some of : http://djangosnippets.org/snippets/709/
   # for this part. - PRC
   # I know this will be replaced once I have a sample JSON from the client
@@ -112,8 +125,8 @@ def get_library(request, username, lib_name):
 
   return HttpResponse(uri)
 
-def get_shapefile(request):
 
+def get_shapefile(request):
   w = shapefile.Writer(shapefile.POLYLINE)
   w.line(parts=[[[1,5],[5,5],[5,1],[3,1],[1,1]]])
   w.poly(parts=[[[1,5],[3,1]]], shapeType=shapefile.POLYLINE)
@@ -132,6 +145,7 @@ def get_shapefile(request):
   response.content = shp.getvalue()
   shp.close()
   return response
+
  
 def index(request):
   # If the user is authenticated, send them to the application.
@@ -174,42 +188,70 @@ def logout(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
-def rate_link(request, link_id):
-  # XXX assuming we can get PKI certs working with WebFaction, we could pull the sid out here
+def poll_notifications(request): 
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  userperson = CoreUser.objects.filter(username=request.user)
+
+  if request.method == "GET":
+    json_serializer = serializers.get_serializer("json")()
+    notify_list = Notification.objects.filter(user=userperson)
+    json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
+    return response
+  elif request.method == "POST":
+    primaryKey = request.POST['id'].strip()
+    record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
+    record2delete.delete()
+    return response
+
+
+def rate(request, ratee, ratee_id):
+  ''' Rate either a Link or LinkLibrary.
+      ``ratee`` must either be 'link' or 'library', with ``ratee_id`` being the respective id.
+      This is ensured in urls.py.
+  '''
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
-    link = Link.objects.get(id=link_id)
     user = CoreUser.objects.get(username=request.user.username)
-  except (Link.DoesNotExist, CoreUser.DoesNotExist) as e:
-    #return HttpResponse('Link with id %s does not exist' % link_id)
+    link = None
+    link_library = None
+
+    if ratee == 'link': link = Link.objects.get(id=ratee_id)
+    elif ratee == 'library': link_library = LinkLibrary.objects.get(id=ratee_id)
+  except (CoreUser.DoesNotExist, Link.DoesNotExist, LinkLibrary.DoesNotExist) as e:
     return HttpResponse(e.message)
 
-  # check to see if a Rating already exists for this (CoreUser, Link) combo. If the combo already exists:
+  # check to see if a RatingFK already exists for this (CoreUser, (Link|LinkLibrary)) combo. If the combo already exists:
   #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
   #   2. and this is a POST, update the Rating
-  rating = Rating.objects.filter(user=user, link=link) # guaranteed at most 1 result b/c of DB unique_together
+  rating_fk = RatingFK.objects.filter(user=user, link=link, link_library=link_library) # guaranteed at most 1 result b/c of DB unique_together
+
+  if rating_fk:
+    rating = Rating.objects.filter(rating_fk=rating_fk[0]) #again, guarantted at most 1 result
+
+    if not rating: raise IntegrityError('A RatingFK %s exists, but is not associated with a Rating' % rating_fk[0])
 
   if request.method == 'GET':
-    if rating: context = {'rating': rating[0], 'link': link}
-    else: context = {'link': link}
+    if rating_fk: context = {'rating': rating[0], 'link': link, 'link_library': link_library}
+    else: context = {'link': link, 'link_library': link_library}
 
     return render_to_response('rate.html', context, context_instance=RequestContext(request))
   else:
-    if rating:
-      (rating[0].score, rating[0].comment) = (request.POST['score'], request.POST['comment'].strip())
+    if rating_fk:
+      rating[0].score, rating[0].comment = (request.POST['score'], request.POST['comment'].strip())
       rating[0].save()
     else:
-      Rating.objects.create(user=user, link=link, score=request.POST['score'], comment=request.POST['comment'].strip())
+      if ratee == 'link': rating_fk = RatingFK.objects.create(user=user, link=link)
+      elif ratee == 'library': rating_fk = RatingFK.objects.create(user=user, link_library=link_library)
 
-  # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
-  #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
-  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+      Rating.objects.create(rating_fk=rating_fk, score=request.POST['score'], comment=request.POST['comment'].strip())
 
-
-def rate_library(request, library_id):
-  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+    # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
+    #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
+    return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
 
 
 def register(request, sid):
@@ -257,6 +299,7 @@ def save_user(request):
   user.set_password(password)
   user.save()
 
+  TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
@@ -291,22 +334,25 @@ def trophy_notify(request):
 
 
 def trophy_room(request):
-
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
+
   try: 
-      user = CoreUser.objects.get(username=request.user.username)
-      userCore = user.username 
-      trophy_list = Trophy.objects.all()
-      trophy_case_list = TrophyCase.objects.all() 
-      return render_to_response('trophyroom.html', {'trophy_list' : trophy_list , 'trophy_case_list' : trophy_case_list, 'user' : userCore }, context_instance=RequestContext(request))
-
-
+    user = CoreUser.objects.get(username=request.user.username)
+    trophy_list = Trophy.objects.all()
+    trophy_case_list = TrophyCase.objects.all() 
   except CoreUser.DoesNotExist: 
-      # as long as the login_user view forces them to register if they don't already 
-      # exist in the db, then we should never actually get here. Still, better safe
-      # than sorry.
-      return render_to_response('login.html', context_instance=RequestContext(request))
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+    
+  return render_to_response('trophyroom.html',
+      {'trophy_list' : trophy_list ,
+       'trophy_case_list' : trophy_case_list,
+       'user' : user.username
+      }, context_instance=RequestContext(request))
+
 
 def upload_csv(request):
   if request.method == 'POST':
@@ -334,17 +380,4 @@ def user_profile(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
-
-def earn_trophy(request):
-  
-  if request.method == 'POST':
-    user2 = request.POST['user'].strip()
-    trophy2 = request.POST['trophy'].strip()
-    trophyc = Trophy.objects.get(pk=trophy2)
-    userc = CoreUser.objects.get(username=user2)
-    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
-    tc.save()
-    custom_msg = "You have won a trophy, %s.  Congratulations" % userc.first_name
-    user_email = userc.email
-    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 

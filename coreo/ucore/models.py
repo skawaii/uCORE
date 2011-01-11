@@ -1,5 +1,7 @@
 import datetime
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
 from django.contrib import auth
@@ -14,9 +16,17 @@ class Skin(models.Model):
     return self.name
 
 
+class Tag(models.Model):
+  name = models.CharField(max_length=50, unique=True)
+
+  def __unicode__(self):
+    return self.name
+
+
 class Trophy(models.Model):
   name = models.CharField(max_length=50)
   desc = models.CharField('short description', max_length=100)
+  tag = models.ForeignKey(Tag)
   file_path = models.FilePathField('path to image file', path=settings.MEDIA_ROOT + 'trophies')
 
   def __unicode__(self):
@@ -27,13 +37,6 @@ class Trophy(models.Model):
     verbose_name_plural = 'trophies'
 
 
-class Tag(models.Model):
-  name = models.CharField(max_length=50, unique=True)
-
-  def __unicode__(self):
-    return self.name
-
-
 class Link(models.Model):
   name = models.CharField(max_length=50)
   desc = models.CharField(max_length=256) # completely arbitrary max_length
@@ -41,7 +44,7 @@ class Link(models.Model):
   tags = models.ManyToManyField(Tag, verbose_name='default tags')
 
   def __unicode__(self):
-    return self.name
+     return self.name
 
 
 class CoreUser(auth.models.User):
@@ -52,8 +55,43 @@ class CoreUser(auth.models.User):
   # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
-    #return self.sid
     return ' '.join((self.username, self.sid))
+
+
+class Notification(models.Model):
+  TYPE_CHOICES = (
+      ('TR', 'Trophy Notification'),
+      ('EP', 'Expired Password'),
+      ('NC', 'New Site Content'),
+  )
+
+  user = models.ForeignKey(CoreUser)
+  type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+  message = models.CharField(max_length=200)
+
+  def __unicode__(self):
+    return '%s  %s' % (self.user.username, self.message) 
+
+
+class RatingFK(models.Model):
+  user = models.ForeignKey(CoreUser)
+  link = models.ForeignKey(Link, null=True, blank=True)
+  link_library = models.ForeignKey('LinkLibrary', null=True, blank=True)
+
+  def __unicode__(self):
+    return ' '.join((self.user.username, self.link.name if self.link else self.link_library.name))
+
+  # override the save method so that we can make sure there isn't a
+  # Link and LinkLibrary FK (can only 1 or the other)
+  def save(self, *args, **kwargs):
+    if self.link and self.link_library:
+      raise ValidationError('A RatingFK cannot contain both a Link and a LinkLibrary reference.')
+
+    super(RatingFK, self).save(*args, **kwargs)
+
+  class Meta:
+    unique_together = (('user', 'link'), ('user', 'link_library'))
+    verbose_name_plural = 'Rating FKs'
 
 
 class Rating(models.Model):
@@ -65,16 +103,12 @@ class Rating(models.Model):
       (5, '5 - Very Good')
   )
 
-  user = models.ForeignKey(CoreUser)
-  link = models.ForeignKey(Link)
+  rating_fk = models.ForeignKey(RatingFK, unique=True)
   score = models.IntegerField(choices=SCORE_CHOICES)
   comment = models.TextField(blank=True)
 
   def __unicode__(self):
-    return ' '.join((self.user.username, self.link.name))
-
-  class Meta:
-    unique_together = ('user', 'link')
+    return str(self.rating_fk)
 
 
 class TrophyCase(models.Model):
@@ -83,7 +117,7 @@ class TrophyCase(models.Model):
   date_earned = models.DateField()
 
   def __unicode__(self):
-    return ' '.join((self.user.sid, self.trophy.name))
+     return ' '.join((self.user.sid, self.trophy.name))
 
 
 class LinkLibrary(models.Model):
@@ -99,6 +133,7 @@ class LinkLibrary(models.Model):
   class Meta:
     verbose_name_plural = 'link libraries'
 
+
 class SearchLog(models.Model):
   # user = models.CharField(max_length=100)
    user = models.ForeignKey(CoreUser)
@@ -109,44 +144,8 @@ class SearchLog(models.Model):
    def __unicode__(self):
      return ' '.join((self.user.username, self.search_terms))
 
-def check_for_trophy(sender, instance, **kwargs):
-    
-    user1 = instance.user.username
-    if (SearchLog.objects.filter(user=instance.user, search_tags=1).count() > 4):
-      # print "Inside the search condition of the check"
-      user_object = CoreUser.objects.get(username=user1)
-      trophy1 = Trophy.objects.get(pk=4)
-      if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
-        custom_message = 'Congratulations %s, you have won a trophy (Captain Blackbeard)' % user_object.first_name
-        email1 = user_object.email
-        send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
-        # I need to make the trophy type conditional eventually.
-        # for now I will hard-code the trophy-type.
-        t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
-        t.save()
-    if (SearchLog.objects.filter(user=instance.user, search_tags=2).count() > 4):
-      user_object = CoreUser.objects.get(username=user1)
-      trophy1 = Trophy.objects.get(pk=3)
-      if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
-        custom_message = 'Congratulations %s, you have won a trophy (Forrest Ranger)' % user_object.first_name
-        email1 = user_object.email
-        send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
-        # I need to make the trophy type conditional eventually.
-        # for now I will hard-code the trophy-type.
-        t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
-        t.save()
-    if (SearchLog.objects.filter(user=instance.user, search_tags=3).count() > 4):
-      user_object = CoreUser.objects.get(username=user1)
-      trophy1 = Trophy.objects.get(pk=2)
-      if (TrophyCase.objects.filter(user=user_object, trophy=trophy1).count() == 0):
-        custom_message = 'Congratulations %s, you have won a trophy (Artic King)' % user_object.first_name
-        email1 = user_object.email
-        send_mail(custom_message, 'Testing e-mail', 'trophy@layedintel.com', [email1], fail_silently=False)
-        # I need to make the trophy type conditional eventually.
-        # for now I will hard-code the trophy-type.
-        t = TrophyCase(user=user_object, trophy=trophy1, date_earned=datetime.datetime.now())
-        t.save()
-
-
-post_save.connect(check_for_trophy, sender=SearchLog)
+### Signal Registration ###
+from coreo.ucore import signals
+post_save.connect(signals.check_for_trophy, sender=SearchLog)
+post_save.connect(signals.send_trophy_email, sender=TrophyCase)
 
