@@ -1,6 +1,6 @@
 // Core Javascript
 
-(function(window) {
+(function(window, $) {
 	var idSeed = 0;
 
 	var core = {
@@ -51,12 +51,17 @@
 					}
 				}
 				return str;
+			},
+			
+			isOrContains: function(container, contained) {
+				return jQuery.contains(container, contained)
+					|| (container && contained && $(container).get(0) == $(contained).get(0));
 			}
 
 	};
 
 	return (window.core = core);
-})(window);
+})(window, jQuery);
 
 
 /**
@@ -153,14 +158,14 @@
 				var leftColWidth = self.element.outerWidth(true);
 				var totalWidth = self.element.parent().width();
 				var newRightColWidth = totalWidth - leftColWidth;
-				rightColumn.css({width: newRightColWidth + "px", left: leftColWidth + "px"});
+				rightColumn.css({width: newRightColWidth + "px"});
+				return true;
 			};
 			this.element.resizable({
 				handles: "e",
-				resize: resizeRightColumn
-			});
-			this.element.each(function(index, el) {
-				$(this).resize(resizeRightColumn);
+				resize: function() {
+					resizeRightColumn();
+				}
 			});
 		}
 
@@ -206,7 +211,7 @@
 				var windowHeight = $(window).height();
 				var myHeight = windowHeight - heightOffset;
 				self.element.height(myHeight);
-				self.element.trigger("resize");
+				self.element.resize();
 			};
 			$(window).resize(function(event) {
 				doResize();
@@ -383,6 +388,12 @@
  */
 (function($) {
 
+	var SEARCH_FORM_CLASS = "kmlaccordion-searchform";
+	
+	var SEARCH_INPUT_CLASS = "kmlaccordion-searchinput";
+	
+	var KMLTREE_CONTAINER_CLASS = "ui-kmlaccordion-kmltreecontainer";
+	
 	var KmlAccordion = {
 
 		options: {
@@ -414,11 +425,11 @@
 			// add markup for the skeleton of the accordion panels
 			this.element.append("<h3><a href=\"#\">KML Documents</a></h3>"
 					+ "<div>"
-					+ "<div id=\"" + searchFormElId + "\" class=\"kmlaccordion-searchform\">"
-					+ "<input class=\"kmlaccordion-searchinput\" id=\"" + searchInputElId + "\" type=\"text\" />"
+					+ "<div id=\"" + searchFormElId + "\" class=\"" + SEARCH_FORM_CLASS + "\">"
+					+ "<input class=\"" + SEARCH_INPUT_CLASS + "\" id=\"" + searchInputElId + "\" type=\"text\" />"
 					+ "<button>Search</button>"
 					+ "</div>"
-					+ "<div class=\"ui-kmlaccordion-kmltreecontainer\" id=\"" + kmlDocsElId + "\"></div>"
+					+ "<div class=\"" + KMLTREE_CONTAINER_CLASS + "\" id=\"" + kmlDocsElId + "\"></div>"
 					+ "</div>"
 					+ "<h3><a href=\"#\">Google Earth Layers</a></h3>"
 					+ "<div><div id=\"" + layersElId + "\"></div></div>"
@@ -511,6 +522,7 @@
 				text: false
 			});
 			searchButtonEl.click(doSearch);
+<<<<<<< HEAD
 
 			var resizeSearchForm = function() {
 				var searchFormWidth = $("#" + searchFormElId).innerWidth();
@@ -526,6 +538,11 @@
 			});
 
 
+=======
+			
+			this._resizeSearchForm();
+			
+>>>>>>> 5c5f543021b874fdda4e18909ef870cefc209bbe
 			this.options.kmlDocsContainerElId = kmlDocsElId;
 
 			// create kmltree object for the Google Earth Layers panel
@@ -566,6 +583,23 @@
 			layersKmlTree.load();
 		},
 
+		
+		_resizeSearchForm: function() {
+			var searchFormEl = this.element.find("." + SEARCH_FORM_CLASS);
+			var searchTxtEl = searchFormEl.find("input[type='text']");
+			var searchButtonEl = searchFormEl.find("button");
+			var searchFormWidth = searchFormEl.innerWidth();
+			var searchButtonWidth = searchButtonEl.outerWidth(true);
+			var searchTxtBorder = searchTxtEl.outerWidth(true) - searchTxtEl.outerWidth(false);
+			var searchTxtWidth = searchFormWidth - searchButtonWidth - searchTxtBorder;
+			searchTxtEl.width(searchTxtWidth + "px");
+		},
+		
+		resize: function() {
+			this.element.accordion("resize");
+			this._resizeSearchForm();
+		},
+		
 		_addKmlToEl: function(kmlUrl, kmlTreeEl, kmlLoadedCallback) {
 			var newKmlTree = kmltree({
 				url: kmlUrl,
@@ -643,15 +677,93 @@
 			var containerEl = this.element;
 			containerEl.addClass("gearthapp");
 			var controlPanelElId = core.generateId();
-			containerEl.append("<div id=\"" + controlPanelElId + "\" class=\"gearthapp-controlpanel\"></div>");
+			var collapserElId = core.generateId();
+			var kmlAccordionElId = core.generateId();
 			var earthPanelElId = core.generateId();
 			containerEl.append("<div id=\"" + earthPanelElId + "\" class=\"gearthapp-earthpanel\"></div>");
 
+			// iframe exists to implement the "iframe shim" strategy for 
+			// overlaying elements on the GE plugin instance
+			containerEl.append("<iframe src=\"javascript:false\" frameborder=\"0\" class=\"core-controlpanel\">" +
+								"</iframe>" +
+								"<div class=\"ui-widget ui-widget-header core-controlpanel-collapsed\">" +
+									"<span class=\"ui-icon ui-icon-circle-triangle-e\"></span>" +
+								"</div>" +
+								"<div id=\"" + controlPanelElId + "\" class=\"gearthapp-controlpanel\">" +
+									"<div>" +
+										"<div class=\"ui-widget ui-widget-header collapser\">" +
+											"<span class=\"ui-icon ui-icon-circle-triangle-w\"></span>" +
+										"</div>" +
+										"<div>" +
+											"<div id=\"" + kmlAccordionElId + "\"></div>" +
+										"</div>" +
+									"</div>" +
+								"</div>" +
+								"<div id=\"" + earthPanelElId + "\" class=\"gearthapp-earthpanel\"></div>");
+			var controlPanel = $("#" + controlPanelElId);
+			var contentToCollapse = $("#" + controlPanelElId).find("div:first-child");
+			var iframeShim = containerEl.find("iframe");
+			var collapseControl = contentToCollapse.find("> div:first-child");
+			var expandControl = containerEl.find("> div.core-controlpanel-collapsed");
+			expandControl.mouseenter(function() { $(this).addClass("ui-state-hover"); });
+			expandControl.mouseleave(function() { $(this).removeClass("ui-state-hover"); });
+			expandControl.hide();
+			var accordionContainer = collapseControl.next();
+			collapseControl.mouseenter(function() { $(this).addClass("ui-state-hover"); });
+			collapseControl.mouseleave(function() { $(this).removeClass("ui-state-hover"); });
+			var collapseControlPanel = function() {
+				// width must be in pixels so that hide animation works correctly
+				// (hide effect creates a wrapper element - % width results in % 
+				// of wrapper element)
+				controlPanel.width(controlPanel.width());
+				// resize earth (set position: absolute so that delayed 
+				// collapsing animation of control panel doesn't interfere with GE position.
+				// begin this first because it takes longer.
+				$("#" + earthPanelElId).css({ width: "100%", position: "absolute", top: 0, left: 0 });
+				// resize iframe shim to fit expanded control panel
+				iframeShim.css({ width: controlPanel.outerWidth(true) });
+				// animate collapsing of control panel. when collapsing 
+				// finishes, resize iframe shim to fit collapsed control panel
+				controlPanel.css({position: "absolute", top: 0, left: 0});
+				controlPanel.hide("slide", {direction: "left", easing: "jswing"}, 400, function() {
+					iframeShim.css({ width: expandControl.outerWidth(true) });
+					expandControl.show();
+					// revert earth panel positioning
+					$("#" + earthPanelElId).css({ width: "100%", position: "relative", top: null, left: null });
+					controlPanel.css({position: "relative", top: 0, left: 0});
+				});
+			};
+			var expandControlPanel = function() {
+				$("#" + earthPanelElId).css({ width: "100%", position: "absolute", top: 0, left: 0 });
+				// hide expansion control
+				expandControl.hide();
+				// expand iframe shim to fit final width of control panel
+				iframeShim.css({ width: controlPanel.outerWidth(true) });
+				// animate expansion of control panel, remove iframe when finished
+				controlPanel.show("slide", { direction: "left", easing: "jswing" }, 400, function() {
+					iframeShim.css({ width: expandControl.width() });
+					// resize earth - not animated because resize is choppy
+					$("#" + earthPanelElId).css({ position: "relative", top: null, left: null, width: (containerEl.innerWidth() - controlPanel.outerWidth(true)) + "px" });
+				});
+			};
+			collapseControl.click(collapseControlPanel);
+			expandControl.click(expandControlPanel);
+			
 			var self = this;
 
 			$("#" + earthPanelElId).gearth({
 				earthLoaded: function(event, data) {
-					$("#" + controlPanelElId).kmlaccordion({
+					// resize KML accordion to fill height
+					var resizeKmlAccordion = function() {
+						var controlPanelHeight = $("#" + controlPanelElId).innerHeight();
+						var collapserHeight = collapseControl.outerHeight(true);
+						var borderWidth = accordionContainer.outerHeight(true) - accordionContainer.outerHeight(false);
+						var kmlAccordionHeight = controlPanelHeight - collapserHeight - borderWidth;
+						accordionContainer.height(kmlAccordionHeight);
+						$("#" + kmlAccordionElId).kmlaccordion("resize");
+					};
+					resizeKmlAccordion();
+					$("#" + kmlAccordionElId).kmlaccordion({
 						gex: new GEarthExtensions(data.earth),
 						mapElement: event.target,
 						kmlDocs: self.options.kmlDocs,
@@ -661,14 +773,40 @@
 					$("#" + controlPanelElId).resizableleftcolumn({
 						rightColumn: event.target
 					});
-					self.element.resize(function(event) {
-						if (event.target == self.element[0]) {
-							$("#" + controlPanelElId).triggerHandler("resize");
+					var calculatePanelAspectRatio = function() {
+						return ($("#" + controlPanelElId).width() * 1.0) / self.element.width();
+					};
+					var panelAspectRatio = calculatePanelAspectRatio();
+					$("#" + controlPanelElId).resize(function(event) {
+						if (core.isOrContains(event.target, $("#" + controlPanelElId))) {
+							panelAspectRatio = calculatePanelAspectRatio();
+							resizeKmlAccordion();
+							return true;
 						}
 						else {
-							event.stopImmediatePropagation();
+							return false;
 						}
 					});
+					self.element.resize(function(event) {
+						if (core.isOrContains(event.target, self.element)) {
+							$("#" + controlPanelElId).height("100%");
+							$("#" + earthPanelElId).height("100%");
+							// only resize control panel and earth panel if control panel is expanded
+							if (!expandControl.is(":visible")) {
+								// maintain aspect ratio
+								var newControlPanelWidth = self.element.width() * panelAspectRatio;
+								$("#" + controlPanelElId).width(newControlPanelWidth);
+								var newEarthWidth = self.element.width() - $("#" + controlPanelElId).width()
+								$("#" + earthPanelElId).width(newEarthWidth);
+								resizeKmlAccordion();								
+							}
+							return true;
+						}
+						else {
+							return false;
+						}
+					});
+					resizeKmlAccordion();
 				}
 			});
 		}
