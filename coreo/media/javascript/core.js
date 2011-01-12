@@ -54,7 +54,7 @@
 			},
 			
 			isOrContains: function(container, contained) {
-				return jQuery.contains(container, contained)
+				return jQuery.contains(container, contained.get(0))
 					|| (container && contained && $(container).get(0) == $(contained).get(0));
 			}
 			
@@ -148,7 +148,8 @@
 	var ResizableLeftColumn = {
 		
 		options: {
-			rightColumn: null
+			rightColumn: null,
+			minWidth: 10
 		},
 		
 		_init: function() {
@@ -156,13 +157,15 @@
 			var self = this;
 			var resizeRightColumn = function() {
 				var leftColWidth = self.element.outerWidth(true);
-				var totalWidth = self.element.parent().width();
-				var newRightColWidth = totalWidth - leftColWidth;
+				var totalWidth = self.element.parent().innerWidth();
+				var borderWidth = self.element.outerWidth(true) - self.element.outerWidth(false);
+				var newRightColWidth = totalWidth - leftColWidth - borderWidth;
 				rightColumn.css({width: newRightColWidth + "px"});
 				return true;
 			};
 			this.element.resizable({
 				handles: "e",
+				minWidth: this.options.minWidth,
 				resize: function() {
 					resizeRightColumn();
 				}
@@ -353,8 +356,10 @@
 			this.element.append("<h3><a href=\"#\">KML Documents</a></h3>"
 					+ "<div>"
 					+ "<div id=\"" + searchFormElId + "\" class=\"" + SEARCH_FORM_CLASS + "\">"
-					+ "<input class=\"" + SEARCH_INPUT_CLASS + "\" id=\"" + searchInputElId + "\" type=\"text\" />"
-					+ "<button>Search</button>"
+					+ "<table><tr>"
+					+ "<td><input class=\"" + SEARCH_INPUT_CLASS + "\" id=\"" + searchInputElId + "\" type=\"text\" /></td>"
+					+ "<td class=\"buttonContainer\"><button>Search</button></td>"
+					+ "</tr></table>"
 					+ "</div>"
 					+ "<div class=\"" + KMLTREE_CONTAINER_CLASS + "\" id=\"" + kmlDocsElId + "\"></div>"
 					+ "</div>"
@@ -444,13 +449,11 @@
 			var searchButtonEl = $("#" + searchFormElId + " button");
 			searchButtonEl.button({
 				icons: {
-					primary: "kmlaccordion-searchbutton"
+					primary: "ui-icon-search"
 				},
 				text: false
 			});
 			searchButtonEl.click(doSearch);
-			
-			this._resizeSearchForm();
 			
 			this.options.kmlDocsContainerElId = kmlDocsElId;
 			
@@ -492,23 +495,12 @@
 			layersKmlTree.load();
 		},
 		
-		_resizeSearchForm: function() {
-			var searchFormEl = this.element.find("." + SEARCH_FORM_CLASS);
-			var searchTxtEl = searchFormEl.find("input[type='text']");
-			var searchButtonEl = searchFormEl.find("button");
-			var searchFormWidth = searchFormEl.innerWidth();
-			var searchButtonWidth = searchButtonEl.outerWidth(true);
-			var searchTxtBorder = searchTxtEl.outerWidth(true) - searchTxtEl.outerWidth(false);
-			var searchTxtWidth = searchFormWidth - searchButtonWidth - searchTxtBorder;
-			searchTxtEl.width(searchTxtWidth + "px");
-		},
-		
 		resize: function() {
 			this.element.accordion("resize");
-			this._resizeSearchForm();
 		},
 		
 		_addKmlToEl: function(kmlUrl, kmlTreeEl, kmlLoadedCallback) {
+			var visitedRoot = false;
 			var newKmlTree = kmltree({
 				url: kmlUrl,
 				element: kmlTreeEl,
@@ -519,6 +511,11 @@
 				showTitle: false,
 				visitFunction: function(kmlObject, config) {
 					config.customClass = "root-heading";
+					// config.open = false;
+					if (visitedRoot && config.type === "KmlNetworkLink") {
+						config.listItemType = "checkHideChildren";
+					}
+					visitedRoot = true;
 					return config;
 				}
 			});
@@ -609,6 +606,7 @@
 			var controlPanel = $("#" + controlPanelElId);
 			var contentToCollapse = $("#" + controlPanelElId).find("div:first-child");
 			var iframeShim = containerEl.find("iframe");
+			iframeShim.width(0);
 			var collapseControl = contentToCollapse.find("> div:first-child");
 			var expandControl = containerEl.find("> div.core-controlpanel-collapsed");
 			expandControl.mouseenter(function() { $(this).addClass("ui-state-hover"); });
@@ -617,6 +615,15 @@
 			var accordionContainer = collapseControl.next();
 			collapseControl.mouseenter(function() { $(this).addClass("ui-state-hover"); });
 			collapseControl.mouseleave(function() { $(this).removeClass("ui-state-hover"); });
+			// resize KML accordion to fill height
+			var resizeKmlAccordion = function() {
+				var controlPanelHeight = $("#" + controlPanelElId).innerHeight();
+				var collapserHeight = collapseControl.outerHeight(true);
+				var borderWidth = accordionContainer.outerHeight(true) - accordionContainer.outerHeight(false);
+				var kmlAccordionHeight = controlPanelHeight - collapserHeight - borderWidth;
+				accordionContainer.height(kmlAccordionHeight);
+				$("#" + kmlAccordionElId).kmlaccordion("resize");
+			};
 			var collapseControlPanel = function() {
 				// width must be in pixels so that hide animation works correctly
 				// (hide effect creates a wrapper element - % width results in % 
@@ -647,9 +654,10 @@
 				iframeShim.css({ width: controlPanel.outerWidth(true) });
 				// animate expansion of control panel, remove iframe when finished
 				controlPanel.show("slide", { direction: "left", easing: "jswing" }, 400, function() {
-					iframeShim.css({ width: expandControl.width() });
+					iframeShim.width(0);
 					// resize earth - not animated because resize is choppy
 					$("#" + earthPanelElId).css({ position: "relative", top: null, left: null, width: (containerEl.innerWidth() - controlPanel.outerWidth(true)) + "px" });
+					resizeKmlAccordion();
 				});
 			};
 			collapseControl.click(collapseControlPanel);
@@ -659,15 +667,6 @@
 			
 			$("#" + earthPanelElId).gearth({
 				earthLoaded: function(event, data) {
-					// resize KML accordion to fill height
-					var resizeKmlAccordion = function() {
-						var controlPanelHeight = $("#" + controlPanelElId).innerHeight();
-						var collapserHeight = collapseControl.outerHeight(true);
-						var borderWidth = accordionContainer.outerHeight(true) - accordionContainer.outerHeight(false);
-						var kmlAccordionHeight = controlPanelHeight - collapserHeight - borderWidth;
-						accordionContainer.height(kmlAccordionHeight);
-						$("#" + kmlAccordionElId).kmlaccordion("resize");
-					};
 					resizeKmlAccordion();
 					$("#" + kmlAccordionElId).kmlaccordion({
 						gex: new GEarthExtensions(data.earth),
@@ -677,7 +676,8 @@
 						optionsKml: self.options.optionsKml
 					});
 					$("#" + controlPanelElId).resizableleftcolumn({
-						rightColumn: event.target
+						rightColumn: event.target,
+						minWidth: 180
 					});
 					var calculatePanelAspectRatio = function() {
 						return ($("#" + controlPanelElId).width() * 1.0) / self.element.width();
@@ -700,9 +700,9 @@
 							// only resize control panel and earth panel if control panel is expanded
 							if (!expandControl.is(":visible")) {
 								// maintain aspect ratio
-								var newControlPanelWidth = self.element.width() * panelAspectRatio;
+								var newControlPanelWidth = Math.round(self.element.width() * panelAspectRatio);
 								$("#" + controlPanelElId).width(newControlPanelWidth);
-								var newEarthWidth = self.element.width() - $("#" + controlPanelElId).width()
+								var newEarthWidth = Math.floor(self.element.width() - $("#" + controlPanelElId).outerWidth(true));
 								$("#" + earthPanelElId).width(newEarthWidth);
 								resizeKmlAccordion();								
 							}

@@ -88,6 +88,10 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 .ui-kmlaccordion {
 }
 
+.ui-kmlaccordion > h3 {
+	white-space: nowrap;
+}
+
 .ui-kmlaccordion-kmltreecontainer {
 }
 
@@ -136,20 +140,26 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 	white-space: nowrap;
 }
 
-.kmlaccordion-searchform button {
-	vertical-align: middle;
+.kmlaccordion-searchform table {
+	width: 100%;
+	table-layout: fixed;
+}
+
+.kmlaccordion-searchform table td.buttonContainer {
+	width: 2.3em;
 }
 
 .kmlaccordion-searchform input {
 	vertical-align: middle;
-	padding: 0 2px !important;
-	font-size: 12pt !important;
-	height: 24px !important;
+	font-size: 1.1em !important;
+	height: 1.9em !important;
+	width: 100%;
 }
 
-.kmlaccordion-searchbutton {
-	background-image: url("../images/search.png") !important;
-	background-position: -5px -3px !important;
+.kmlaccordion-searchform button {
+	width: 2.3em;
+	height: 2.3em;
+	vertical-align: middle;
 }
 
 .ui-emptytext {
