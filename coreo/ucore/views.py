@@ -54,31 +54,19 @@ def get_csv(request):
   # This will eventually handle a json object rather than static data.
   # jsonObj = request.POST['gejson'].strip()
   #  if not (jsonObj)
-  #  jsonObj = '{["latitude":1.0, "longitude":2.0]}'
-  jsonObj = '["baz":"booz", "tic":"tock", "altitude": 1.0, "altitude":2]'
-  obj = json.loads(jsonObj)
+  # jsonObj = '{["latitude":1.0, "longitude":2.0]}'
+  # jsonObj = '["baz":"booz", "tic":"tock"]'
+  # obj = json.loads(jsonObj)
+  csv_data = (
+      ('First', '1', '2', '3'),
+      ('Second', '4', '5', '6'),
+      ('Third', '7', '8', '9')
+  )
+  
   writer = csv.writer(response)
-  writer.writerow(obj)
-  return response
-
-def get_kml(request):
-
-  # I know this will be replaced once I have a sample JSON from the client
-  # passed in.  For now I am just using sample data provided by Google.
-  fileObj = StringIO() 
-  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
-  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
-  fileObj.write("<Placemark>\n")
-  fileObj.write("<name>Simple placemark</name>\n")
-  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
-  fileObj.write("<Point>\n")
-  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
-  fileObj.write("</Point>\n")
-  fileObj.write("</Placemark>\n")
-  fileObj.write("</kml>\n")
-
-  response = HttpResponse(fileObj.getvalue(), mimetype='text/xml')
-  response['Content-Disposition'] = 'attachment; filename=doc.kml'
+  writer.writerow(['First', '1', '2', '3'])
+  writer.writerow(['Second', '4', '5', '6'])
+  writer.writerow(['Third', '7', '8', '9'])
   return response
 
 def get_kmz(request):
@@ -323,14 +311,6 @@ def search_mongo(request):
 
 def success(request, message=''):
   return HttpResponse('you did it!')
-
-
-def trophy_notify(request):
-   user = request.user
-   email = request.email
-   send_mail('You have won a trophy. Congratulations.', 'Testing e-mails', 'trophy@layeredintel.com', ['prcoleman2@gmail.com'], fail_silently=False)
-
-   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
 def trophy_room(request):
