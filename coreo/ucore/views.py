@@ -207,9 +207,9 @@ def poll_notifications(request):
 
 
 def rate(request, ratee, ratee_id):
-  ''' Rate either a Link or LinkLibrary.
+  ''' Rate either a ``Link`` or ``LinkLibrary``.
       ``ratee`` must either be 'link' or 'library', with ``ratee_id`` being the respective id.
-      This is ensured in urls.py.
+      The value of ``ratee`` is ensured in urls.py.
   '''
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
