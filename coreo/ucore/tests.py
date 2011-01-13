@@ -6,12 +6,13 @@ Replace these with more appropriate tests for your application.
 """
 import datetime, zipfile, os
 from cStringIO import StringIO
-
+from django.core import serializers
 from django.test import TestCase
 from django.core import mail
 from django.test.client import Client
 
 from coreo.ucore.models import CoreUser, Skin, Tag, SearchLog, TrophyCase
+from coreo.ucore.models import Notification
 
 
 class SimpleTest(TestCase):
@@ -185,5 +186,23 @@ class LoginTest(TestCase):
  
 
   def test_poll_notifications(self):
-    self.assertTrue(True)
 
+    c = Client()
+    user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+    user.set_password('2pass')
+    user.save()
+
+    self.assertTrue(c.login(username='testuser', password='2pass'))
+    Notification.objects.create(user=user, type="TR", message="You won a new registration trophy")
+    self.assertEquals(1, Notification.objects.all().count())
+    response = c.get('/notifications/')
+    for obj in serializers.deserialize("json", response.content):
+      self.assertEquals("You won a new registration trophy", obj.object.message)
+      self.assertEquals("TR", obj.object.type)
+      self.assertEquals(user, obj.object.user)
+    print 'The GET method of notifications works well.'
+    c.post('/notifications/', { "id": 1 }) 
+    self.assertEquals(0, Notification.objects.all().count())
+    print 'The POST method of notifications also works.'
+    print 'Poll notification test has passed.'
