@@ -186,23 +186,22 @@ def poll_notifications(request):
   response = HttpResponse(mimetype='application/json')
   if request.method == "GET":
     print 'request user is %s' % request.user
-  #  try:
-  #    json_serializer = serializers.get_serializer("json")()
-  #    notify_list = Notification.objects.filter(user=userperson)
-      #  print 'size of the notify_list is: %d' % notify_list.all().count()
-  #    if notify_list.count() == 0:
-  #      print "did not get any notification for that user."
-  #    json_serializer.serialize(notify_list, ensure_ascii=True, stream=response)
-  #  except Exception, e:
-  #    print e.message 
-  #  return response
     try:
-       result = []
-       result.append({"message": "trophy"})
-       print json.dumps(result)
-       return HttpResponse(json.dumps(result), mimetype='application/json')
-    except:
-       return HttpResponse("An Error has occurred.")
+      json_serializer = serializers.get_serializer("json")()
+      notify_list = Notification.objects.filter(user=userperson)
+      #  print 'size of the notify_list is: %d' % notify_list.all().count()
+      #  if notify_list.count() == 0:
+      #    print "did not get any notification for that user."
+      json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
+    except Exception, e:
+      print e.message 
+    return response
+  #  try:
+  #    result = '[{"message": "trophy", "id": "test"}]'
+       # print json.dumps(result)
+ #     return HttpResponse(result, mimetype='application/json')
+ #   except:
+ #     return HttpResponse("An Error has occurred.")
   elif request.method == "POST":
     primaryKey = request.POST['id'].strip()
     record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
