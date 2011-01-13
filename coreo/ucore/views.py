@@ -69,6 +69,7 @@ def get_csv(request):
   writer.writerow(['Third', '7', '8', '9'])
   return response
 
+
 def get_kmz(request):
   # I must say I used some of : http://djangosnippets.org/snippets/709/
   # for this part. - PRC
@@ -98,6 +99,7 @@ def get_kmz(request):
   response['Content-Description'] = 'a sample kmz file.'
   response['Content-Length'] = str(len(response.content))
   return response
+
 
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
@@ -177,21 +179,43 @@ def logout(request):
 
 
 def poll_notifications(request): 
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
+  # if not request.user.is_authenticated():
+  #  return render_to_response('login.html', context_instance=RequestContext(request))
 
   userperson = CoreUser.objects.filter(username=request.user)
-
+  response = HttpResponse(mimetype='application/json')
   if request.method == "GET":
-    json_serializer = serializers.get_serializer("json")()
-    notify_list = Notification.objects.filter(user=userperson)
-    json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
-    return response
+    print 'request user is %s' % request.user
+  #  try:
+  #    json_serializer = serializers.get_serializer("json")()
+  #    notify_list = Notification.objects.filter(user=userperson)
+      #  print 'size of the notify_list is: %d' % notify_list.all().count()
+  #    if notify_list.count() == 0:
+  #      print "did not get any notification for that user."
+  #    json_serializer.serialize(notify_list, ensure_ascii=True, stream=response)
+  #  except Exception, e:
+  #    print e.message 
+  #  return response
+    try:
+       result = []
+       result.append({"message": "trophy"})
+       print json.dumps(result)
+       return HttpResponse(json.dumps(result), mimetype='application/json')
+    except:
+       return HttpResponse("An Error has occurred.")
   elif request.method == "POST":
     primaryKey = request.POST['id'].strip()
     record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
     record2delete.delete()
     return response
+
+
+def notifytest(request):
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  # userperson = CoreUser.objects.filter(username=request.user)
+  return render_to_response('notify.html', context_instance=RequestContext(request))
 
 
 def rate(request, ratee, ratee_id):
@@ -288,6 +312,7 @@ def save_user(request):
   user.save()
 
   TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
+  Notification.objects.create(user=user, type='TR', message='You have won a registration trophy.')
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))

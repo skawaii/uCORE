@@ -70,7 +70,7 @@ class Notification(models.Model):
   message = models.CharField(max_length=200)
 
   def __unicode__(self):
-    return '%s  %s' % (self.user.username, self.message) 
+    return '%s  %s  %s' % (self.user.username, self.message, self.type) 
 
 
 class RatingFK(models.Model):

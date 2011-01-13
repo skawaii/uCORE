@@ -2,7 +2,7 @@ import datetime
 
 from django.core.mail import send_mail
 
-from coreo.ucore.models import CoreUser, SearchLog, Trophy, TrophyCase, Tag
+from coreo.ucore.models import CoreUser, SearchLog, Trophy, TrophyCase, Tag,Notification
 
 
 def singular_check(user, search_tag_name): 
@@ -11,6 +11,8 @@ def singular_check(user, search_tag_name):
     if (trophyObj and TrophyCase.objects.filter(user=user, trophy=trophyObj).count() == 0):
       t = TrophyCase(user=user, trophy=trophyObj, date_earned=datetime.datetime.now())
       t.save()
+      msg = 'You have won a %s trophy' % trophyObj.name
+      Notification.objects.create(user=user, type='TR', message=msg)
 
 
 def send_trophy_email(sender, instance, **kwargs):
