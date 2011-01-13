@@ -11,8 +11,7 @@ div.kmltree {
     -webkit-user-select: text;
     user-select: text; }
   div.kmltree ul {
-    list-style: none;
-    padding-left: 18px; }
+    list-style: none; }
   div.kmltree ul.no-title {
     padding-left: 0;
   }
@@ -20,7 +19,21 @@ div.kmltree {
     padding-top: 5px;
     display: none; }
   div.kmltree li.open > ul {
-    display: block; }
+    display: block;
+    margin-left: 18px;
+    padding-left: 18px; }
+
+div.kmltree ul.kmltree > li > ul {
+	margin-left: 36px;
+}
+	
+.expander ~ ul li {
+	margin-left: -18px;
+}
+
+ul ul .expander {
+	margin-left: -18px;
+}
 
 span.kmlId, span.nlDocId {
   display: none; }
