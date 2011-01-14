@@ -62,14 +62,14 @@ class LoginTest(TestCase):
     user.set_password('2pass')
     user.save()
 
-    tagref = Tag.objects.get(name='Ocean')
+    tagref = Tag.objects.get(name='Ocean', type='T')
     user = CoreUser.objects.get(pk=1)
 
     for x in range(1, 6):
       term_value = "Ocean" + str(x)
       anything  = SearchLog(user=user, date_queried=datetime.datetime.now(), search_terms=term_value)
       anything.save()
-      anything.search_tags.add(Tag.objects.get(name='Ocean'))
+      anything.search_tags.add(Tag.objects.get(name='Ocean', type='T'))
       anything.save()    
 
     self.assertEqual(TrophyCase.objects.all().count(), 1)

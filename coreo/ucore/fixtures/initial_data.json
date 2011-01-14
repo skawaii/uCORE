@@ -3,42 +3,48 @@
         "model": "ucore.Tag",
         "pk": 1,
         "fields": {
-          "name": "Ocean"
+          "name": "Ocean",
+          "type": "T"
        }
  },
  {
       "model": "ucore.Tag",
       "pk": 2,
       "fields": {
-         "name": "Forrest"
+         "name": "Forrest",
+         "type": "T"
        }
  },
  {
        "model": "ucore.Tag",
        "pk": 3,
        "fields": {
-         "name": "Artic"
+         "name": "Artic",
+         "type": "T"
         }
  },
  {
     "model": "ucore.Tag",
     "pk": 4,
     "fields": {
-       "name": "Desert"
+       "name": "Desert",
+       "type": "T"
      }
  },
  { 
   "model": "ucore.Tag",
   "pk": 5,
   "fields": {
-      "name": "Beach"
+      "name": "Beach",
+      "type": "T"
     }
  },
  {
    "model": "ucore.Tag",
    "pk": 6,
    "fields": { 
-     "name": "NA"
+     "name": "NA",
+     "type": "T"
     }
  },
  {
