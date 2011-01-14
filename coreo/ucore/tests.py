@@ -4,15 +4,14 @@ unittest). These will both pass when you run "manage.py test".
 
 Replace these with more appropriate tests for your application.
 """
-import datetime, zipfile, os
+import datetime, os, zipfile
 from cStringIO import StringIO
-from django.core import serializers
+
+from django.core import mail, serializers
 from django.test import TestCase
-from django.core import mail
 from django.test.client import Client
 
-from coreo.ucore.models import CoreUser, Skin, Tag, SearchLog, TrophyCase
-from coreo.ucore.models import Notification
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, SearchLog, Skin, Tag, TrophyCase
 
 
 class SimpleTest(TestCase):
@@ -175,8 +174,7 @@ class LoginTest(TestCase):
         self.assertEquals('sample.shp', i)
       counter = counter + 1
 
-    # The lines below were added to clean the file system
-    # after the test.  - PC
+    # The lines below were added to clean the file system after the test.  - PC
     os.remove('sample.zip')
     os.remove('sample.shx')
     os.remove('sample.dbf')
@@ -186,7 +184,6 @@ class LoginTest(TestCase):
  
 
   def test_poll_notifications(self):
-
     c = Client()
     user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222',skin=Skin.objects.get(name='Default'))
@@ -197,12 +194,101 @@ class LoginTest(TestCase):
     Notification.objects.create(user=user, type="TR", message="You won a new registration trophy")
     self.assertEquals(1, Notification.objects.all().count())
     response = c.get('/notifications/')
+
     for obj in serializers.deserialize("json", response.content):
       self.assertEquals("You won a new registration trophy", obj.object.message)
       self.assertEquals("TR", obj.object.type)
       self.assertEquals(user, obj.object.user)
+
     print 'The GET method of notifications works well.'
     c.post('/notifications/', { "id": 1 }) 
     self.assertEquals(0, Notification.objects.all().count())
     print 'The POST method of notifications also works.'
     print 'Poll notification test has passed.'
+
+
+class RateTest(TestCase):
+  def setUp(self):
+    # this could be in a fixture
+    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+    self.user.set_password('2pass')
+    self.user.save()
+
+    self.link_tags = (Tag.objects.create(name='LinkTag1'), Tag.objects.create(name='LinkTag2'))
+    self.link_library_tags = (Tag.objects.create(name='LinkLibraryTag1'), Tag.objects.create(name='LinkLibraryTag2'))
+
+    self.link = Link.objects.create(name='Test Link', desc='Just a test', url='http://test.com')
+    self.link.tags.add(self.link_tags[0])
+    self.link.tags.add(self.link_tags[1])
+
+    self.link_library = LinkLibrary.objects.create(name='Test LL', desc='Just a test', user=self.user)
+    self.link_library.tags.add(self.link_library_tags[0])
+    self.link_library.tags.add(self.link_library_tags[1])
+    self.link_library.links.add(self.link)
+
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
+
+  def test_view_link_rating(self):
+    rating_fk = RatingFK.objects.create(user=self.user, link=self.link)
+    rating = Rating.objects.create(rating_fk=rating_fk, score=3, comment='could be better')
+
+    response = self.client.get('/rate/link/1/')
+
+    self.assertTemplateUsed(response, 'rate.html')
+    self.assertEquals(response.status_code, 200)
+    self.assertEquals(response.context['rating'].score, 3)
+    self.assertEquals(response.context['rating'].comment, 'could be better')
+    self.assertEquals(response.context['link'], self.link)
+    self.assertEquals(response.context['link_library'], None)
+
+  def test_view_link_library_rating(self):
+    rating_fk = RatingFK.objects.create(user=self.user, link_library=self.link_library)
+    rating = Rating.objects.create(rating_fk=rating_fk, score=5, comment='mint chocolate chip!')
+
+    response = self.client.get('/rate/library/1/')
+
+    self.assertTemplateUsed(response, 'rate.html')
+    self.assertEquals(response.status_code, 200)
+    self.assertEquals(response.context['rating'].score, 5)
+    self.assertEquals(response.context['rating'].comment, 'mint chocolate chip!')
+    self.assertEquals(response.context['link'], None)
+    self.assertEquals(response.context['link_library'], self.link_library)
+
+
+  def test_rating_link(self):
+    response = self.client.post('/rate/link/1/', {'score': 1, 'comment': 'What is this? A link for ants?!'})
+
+    self.assertRedirects(response, '/success/')
+    self.assertEquals(RatingFK.objects.all().count(), 1)
+    self.assertEquals(Rating.objects.all().count(), 1)
+
+    rating_fk = RatingFK.objects.get(pk=1)
+    self.assertEquals(rating_fk.user, self.user)
+    self.assertEquals(rating_fk.link, self.link)
+    self.assertEquals(rating_fk.link_library, None)
+
+    rating = Rating.objects.get(pk=1)
+    self.assertEquals(rating.rating_fk, rating_fk)
+    self.assertEquals(rating.score, 1)
+    self.assertEquals(rating.comment, 'What is this? A link for ants?!')
+
+
+  def test_rating_link_library(self):
+    response = self.client.post('/rate/library/1/', {'score': 1, 'comment': 'What is this? A library for ants?!'})
+
+    self.assertRedirects(response, '/success/')
+    self.assertEquals(RatingFK.objects.all().count(), 1)
+    self.assertEquals(Rating.objects.all().count(), 1)
+
+    rating_fk = RatingFK.objects.get(pk=1)
+    self.assertEquals(rating_fk.user, self.user)
+    self.assertEquals(rating_fk.link, None)
+    self.assertEquals(rating_fk.link_library, self.link_library)
+
+    rating = Rating.objects.get(pk=1)
+    self.assertEquals(rating.rating_fk, rating_fk)
+    self.assertEquals(rating.score, 1)
+    self.assertEquals(rating.comment, 'What is this? A library for ants?!')
+
