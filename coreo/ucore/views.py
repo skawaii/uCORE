@@ -1,4 +1,4 @@
-import csv, datetime, os, time, urllib2, zipfile
+import csv, datetime, os, time, urllib2, zipfile, logging
 import xml.dom.minidom
 from cStringIO import StringIO
 
@@ -183,6 +183,8 @@ def poll_notifications(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   userperson = CoreUser.objects.filter(username=request.user)
+  if not userperson: 
+    logging.debug('No user retrieved by the username of %s' % request.user)
   response = HttpResponse(mimetype='application/json')
   if request.method == "GET":
     print 'request user is %s' % request.user
@@ -191,10 +193,12 @@ def poll_notifications(request):
       notify_list = Notification.objects.filter(user=userperson)
       json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
     except Exception, e:
+      logging.error(e.message)
       print e.message 
     return response
   elif request.method == "POST":
     primaryKey = request.POST['id'].strip()
+    logging.debug('Received the following id to delete from notifications : %s' % primaryKey)
     record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
     record2delete.delete()
     return response
@@ -202,6 +206,7 @@ def poll_notifications(request):
 
 def notifytest(request):
   if not request.user.is_authenticated():
+    logging.warning('%s was not authenticated' % request.user)
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   # userperson = CoreUser.objects.filter(username=request.user)
@@ -310,6 +315,7 @@ def save_user(request):
 
 def search_links(request):
   terms = request.GET['q'].split(' ')
+  logging.debug('Received terms %s in the GET of search_links\n' % terms)
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
@@ -346,7 +352,7 @@ def trophy_room(request):
       {'trophy_list' : trophy_list ,
        'trophy_case_list' : trophy_case_list,
        'user' : user.username
-      }, context_instance=RequestContext(request))
+      }, context_instance=RequestContext(request)) 
 
 
 def upload_csv(request):
