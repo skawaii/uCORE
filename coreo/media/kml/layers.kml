@@ -1,98 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
 <Folder>
-	<name>Google Earth Layers</name>
-	<visibility>0</visibility>
-	<open>1</open>
-        <Folder id="LAYER_TERRAIN">
-                <name>3d Terrain and Ocean Surface</name>
-                <visibility>1</visibility>
-                <Style>
-                        <ListStyle>
-                                <listItemType>checkHideChildren</listItemType>
-                                <ItemIcon>
-                                        <state>open</state>
-                                        <href>http://kmltree.googlecode.com/hg/src/images/3d.png</href>
-                                </ItemIcon>
-                                <bgColor>00ffffff</bgColor>
-                                <maxSnippetLines>2</maxSnippetLines>
-                        </ListStyle>
-                </Style>
-        </Folder>
-	<Folder id="LAYER_ROADS">
-		<name>Roads</name>
-		<visibility>0</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open closed</state>
-					<href>http://marinemap.googlecode.com/svn/trunk/media/common/images/silk/arrow_branch.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="LAYER_BORDERS">
-		<name>Borders and Labels</name>
-		<visibility>0</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open closed</state>
-					<href>http://marinemap.googlecode.com/svn/trunk/media/common/images/silk/flag_blue.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="LAYER_BUILDINGS">
-		<name>3d Buildings</name>
-		<visibility>0</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open closed</state>
-					<href>http://marinemap.googlecode.com/svn/trunk/media/common/images/3d_buildings_16px.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="LAYER_BUILDINGS_LOW_RESOLUTION">
-		<name>Low Resolution 3d Buildings</name>
-		<visibility>0</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open closed</state>
-					<href>http://marinemap.googlecode.com/svn/trunk/media/common/images/silk/database.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="GRID">
-		<name>Grid</name>
-		<visibility>0</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open</state>
-					<href>http://marinemap.googlecode.com/svn/trunk/media/common/images/silk/sport_golf.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
+  <name>Google Earth Layers</name>
+  <visibility>0</visibility>
+  <open>1</open>
+    <Folder id="LAYER_TERRAIN">
+      <name>3D Terrain and Ocean Surface</name>
+      <visibility>1</visibility>
+      <Style>
+        <ListStyle>
+          <listItemType>checkHideChildren</listItemType>
+          <ItemIcon>
+            <state>open</state>
+            <href>http://kmltree.googlecode.com/hg/src/images/3d.png</href>
+          </ItemIcon>
+          <bgColor>00ffffff</bgColor>
+          <maxSnippetLines>2</maxSnippetLines>
+        </ListStyle>
+      </Style>
+    </Folder>
+  <Folder id="LAYER_ROADS">
+    <name>Roads</name>
+    <visibility>0</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open closed</state>
+          <href>http://marinemap.googlecode.com/svn/trunk/media/common/images/silk/arrow_branch.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="LAYER_BORDERS">
+    <name>Borders and Labels</name>
+    <visibility>0</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open closed</state>
+          <href>http://marinemap.googlecode.com/svn/trunk/media/common/images/silk/flag_blue.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="LAYER_BUILDINGS">
+    <name>3d Buildings</name>
+    <visibility>0</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open closed</state>
+          <href>http://marinemap.googlecode.com/svn/trunk/media/common/images/3d_buildings_16px.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="LAYER_BUILDINGS_LOW_RESOLUTION">
+    <name>Low Resolution 3d Buildings</name>
+    <visibility>0</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open closed</state>
+          <href>http://marinemap.googlecode.com/svn/trunk/media/common/images/silk/database.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="GRID">
+    <name>Grid</name>
+    <visibility>0</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open</state>
+          <href>http://marinemap.googlecode.com/svn/trunk/media/common/images/silk/sport_golf.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
 </Folder>
 </kml>

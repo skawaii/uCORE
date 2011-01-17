@@ -105,8 +105,15 @@ INSTALLED_APPS = (
 
 SITE_ROOT = 'http://localhost:8080/'
 
+import logging
+
 try:
   from local_settings import *
+  logging.basicConfig(
+      level=logging.DEBUG,
+      filename='ucore.log',
+      filemode = 'w'
+  )
 except ImportError, exp:
    pass
 

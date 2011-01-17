@@ -1,113 +1,113 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
 <Folder>
-	<name>Display Options</name>
-	<visibility>0</visibility>
-	<open>1</open>
-	<Folder id="NAVIGATION_CONTROLS">
-		<name>Navigation Controls</name>
-		<visibility>1</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open closed</state>
-					<href>http://kmltree.googlecode.com/hg/src/images/nav.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="STATUS_BAR">
-		<name>Status Bar</name>
-		<visibility>1</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open closed</state>
-					<href>http://kmltree.googlecode.com/hg/src/images/status.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="OVERVIEW_MAP">
-		<name>Overview Map</name>
-		<visibility>0</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open closed</state>
-					<href>http://kmltree.googlecode.com/hg/src/images/overview.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="SCALE_LEGEND">
-		<name>Scale Legend</name>
-		<visibility>0</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open closed</state>
-					<href>http://kmltree.googlecode.com/hg/src/images/scale.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="ATMOSPHERE">
-		<name>Atmosphere</name>
-		<visibility>1</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open</state>
-					<href>http://kmltree.googlecode.com/hg/src/images/atmosphere.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="SUN">
-		<name>Sun</name>
-		<visibility>0</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open</state>
-					<href>http://kmltree.googlecode.com/hg/src/images/sun.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
-	<Folder id="HISTORICAL_IMAGERY">
-		<name>Historical Imagery</name>
-		<visibility>0</visibility>
-		<Style>
-			<ListStyle>
-				<listItemType>checkHideChildren</listItemType>
-				<ItemIcon>
-					<state>open</state>
-					<href>http://kmltree.googlecode.com/hg/src/images/historical.png</href>
-				</ItemIcon>
-				<bgColor>00ffffff</bgColor>
-				<maxSnippetLines>2</maxSnippetLines>
-			</ListStyle>
-		</Style>
-	</Folder>
+  <name>Display Options</name>
+  <visibility>0</visibility>
+  <open>1</open>
+  <Folder id="NAVIGATION_CONTROLS">
+    <name>Navigation Controls</name>
+    <visibility>1</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open closed</state>
+          <href>http://kmltree.googlecode.com/hg/src/images/nav.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="STATUS_BAR">
+    <name>Status Bar</name>
+    <visibility>1</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open closed</state>
+          <href>http://kmltree.googlecode.com/hg/src/images/status.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="OVERVIEW_MAP">
+    <name>Overview Map</name>
+    <visibility>0</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open closed</state>
+          <href>http://kmltree.googlecode.com/hg/src/images/overview.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="SCALE_LEGEND">
+    <name>Scale Legend</name>
+    <visibility>0</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open closed</state>
+          <href>http://kmltree.googlecode.com/hg/src/images/scale.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="ATMOSPHERE">
+    <name>Atmosphere</name>
+    <visibility>1</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open</state>
+          <href>http://kmltree.googlecode.com/hg/src/images/atmosphere.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="SUN">
+    <name>Sun</name>
+    <visibility>0</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open</state>
+          <href>http://kmltree.googlecode.com/hg/src/images/sun.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
+  <Folder id="HISTORICAL_IMAGERY">
+    <name>Historical Imagery</name>
+    <visibility>0</visibility>
+    <Style>
+      <ListStyle>
+        <listItemType>checkHideChildren</listItemType>
+        <ItemIcon>
+          <state>open</state>
+          <href>http://kmltree.googlecode.com/hg/src/images/historical.png</href>
+        </ItemIcon>
+        <bgColor>00ffffff</bgColor>
+        <maxSnippetLines>2</maxSnippetLines>
+      </ListStyle>
+    </Style>
+  </Folder>
 </Folder>
 </kml>

@@ -1,4 +1,4 @@
-import csv, datetime, os, time, urllib2, zipfile
+import csv, datetime, os, time, urllib2, zipfile, logging
 import xml.dom.minidom
 from cStringIO import StringIO
 
@@ -69,6 +69,7 @@ def get_csv(request):
   writer.writerow(['Third', '7', '8', '9'])
   return response
 
+
 def get_kmz(request):
   # I must say I used some of : http://djangosnippets.org/snippets/709/
   # for this part. - PRC
@@ -98,6 +99,7 @@ def get_kmz(request):
   response['Content-Description'] = 'a sample kmz file.'
   response['Content-Length'] = str(len(response.content))
   return response
+
 
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
@@ -181,23 +183,40 @@ def poll_notifications(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   userperson = CoreUser.objects.filter(username=request.user)
-
+  if not userperson: 
+    logging.debug('No user retrieved by the username of %s' % request.user)
+  response = HttpResponse(mimetype='application/json')
   if request.method == "GET":
-    json_serializer = serializers.get_serializer("json")()
-    notify_list = Notification.objects.filter(user=userperson)
-    json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
+    print 'request user is %s' % request.user
+    try:
+      json_serializer = serializers.get_serializer("json")()
+      notify_list = Notification.objects.filter(user=userperson)
+      json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
+    except Exception, e:
+      logging.error(e.message)
+      print e.message 
     return response
   elif request.method == "POST":
     primaryKey = request.POST['id'].strip()
+    logging.debug('Received the following id to delete from notifications : %s' % primaryKey)
     record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
     record2delete.delete()
     return response
 
 
+def notifytest(request):
+  if not request.user.is_authenticated():
+    logging.warning('%s was not authenticated' % request.user)
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  # userperson = CoreUser.objects.filter(username=request.user)
+  return render_to_response('notify.html', context_instance=RequestContext(request))
+
+
 def rate(request, ratee, ratee_id):
-  ''' Rate either a Link or LinkLibrary.
+  ''' Rate either a ``Link`` or ``LinkLibrary``.
       ``ratee`` must either be 'link' or 'library', with ``ratee_id`` being the respective id.
-      This is ensured in urls.py.
+      The value of ``ratee`` is ensured in urls.py.
   '''
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -288,6 +307,7 @@ def save_user(request):
   user.save()
 
   TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
+  Notification.objects.create(user=user, type='TR', message='You have won a registration trophy.')
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
@@ -295,6 +315,7 @@ def save_user(request):
 
 def search_links(request):
   terms = request.GET['q'].split(' ')
+  logging.debug('Received terms %s in the GET of search_links\n' % terms)
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
@@ -331,7 +352,7 @@ def trophy_room(request):
       {'trophy_list' : trophy_list ,
        'trophy_case_list' : trophy_case_list,
        'user' : user.username
-      }, context_instance=RequestContext(request))
+      }, context_instance=RequestContext(request)) 
 
 
 def upload_csv(request):
