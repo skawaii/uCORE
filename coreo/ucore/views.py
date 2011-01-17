@@ -295,8 +295,9 @@ def save_user(request):
       prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
       result = prog.match(phone_number)
       newphone = result.group(1) + result.group(2) + result.group(3)
-  except Exception as e:
-    logging.error('Parsing phone number exception')
+  except Exception, e:
+    logging.error(e.message)
+    logging.error('Exception parsing phone number. Phone number not set.')
   if not (sid and username and first_name and last_name and password and email and newphone and phone_number):
     # redisplay the registration page
     return render_to_response('register.html',
