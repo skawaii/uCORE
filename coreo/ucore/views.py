@@ -1,4 +1,4 @@
-import csv, datetime, os, time, urllib2, zipfile
+import csv, datetime, os, time, urllib2, zipfile, logging, re
 import xml.dom.minidom
 from cStringIO import StringIO
 
@@ -178,32 +178,28 @@ def logout(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
-def poll_notifications(request): 
-  # if not request.user.is_authenticated():
-  #  return render_to_response('login.html', context_instance=RequestContext(request))
+def poll_notifications(request, notification_id):
+  # notification_id is passed in on a delete request in the URL.
+  if not request.user.is_authenticated(): 
+    return render_to_response('login.html', context_instance=RequestContext(request))
 
   userperson = CoreUser.objects.filter(username=request.user)
+  if not userperson: 
+    logging.debug('No user retrieved by the username of %s' % request.user)
   response = HttpResponse(mimetype='application/json')
   if request.method == "GET":
-    print 'request user is %s' % request.user
+    # print 'request user is %s' % request.user
     try:
       json_serializer = serializers.get_serializer("json")()
       notify_list = Notification.objects.filter(user=userperson)
-      #  print 'size of the notify_list is: %d' % notify_list.all().count()
-      #  if notify_list.count() == 0:
-      #    print "did not get any notification for that user."
       json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
     except Exception, e:
+      logging.error(e.message)
       print e.message 
     return response
-  #  try:
-  #    result = '[{"message": "trophy", "id": "test"}]'
-       # print json.dumps(result)
- #     return HttpResponse(result, mimetype='application/json')
- #   except:
- #     return HttpResponse("An Error has occurred.")
-  elif request.method == "POST":
-    primaryKey = request.POST['id'].strip()
+  elif request.method == "DELETE":
+    primaryKey = notification_id 
+    logging.debug('Received the following id to delete from notifications : %s' % primaryKey)
     record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
     record2delete.delete()
     return response
@@ -211,6 +207,7 @@ def poll_notifications(request):
 
 def notifytest(request):
   if not request.user.is_authenticated():
+    logging.warning('%s was not authenticated' % request.user)
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   # userperson = CoreUser.objects.filter(username=request.user)
@@ -290,8 +287,18 @@ def save_user(request):
   password = request.POST['password'].strip()
   email = request.POST['email'].strip()
   phone_number = request.POST['phone_number'].strip()
-
-  if not (sid and username and first_name and last_name and password and email and phone_number):
+  newphone = ''
+  try:
+    if (len(phone_number) == 10):
+      newphone = phone_number
+    else:
+      prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+      result = prog.match(phone_number)
+      newphone = result.group(1) + result.group(2) + result.group(3)
+  except Exception, e:
+    logging.error(e.message)
+    logging.error('Exception parsing phone number. Phone number not set.')
+  if not (sid and username and first_name and last_name and password and email and newphone and phone_number):
     # redisplay the registration page
     return render_to_response('register.html',
         {'sid': sid,
@@ -306,7 +313,7 @@ def save_user(request):
   # save the new user to the DB with the default skin
   default_skin = Skin.objects.get(name='Default')
   user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name,
-      email=email, phone_number=phone_number, skin=default_skin)
+      email=email, phone_number=newphone, skin=default_skin)
   user.set_password(password)
   user.save()
 
@@ -318,7 +325,8 @@ def save_user(request):
 
 
 def search_links(request):
-  terms = request.GET['q'].split(' ')
+  terms = request.GET['q'].split(' ') 
+  logging.debug('Received terms %s in the GET of search_links\n' % terms)
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
@@ -327,7 +335,7 @@ def search_links(request):
 
 
 def search_mongo(request):
-  url = 'http://174.129.206.221/hello//?' + request.GET['q']
+  url = 'http://174.129.206.221/hello/ /?' + request.GET['q']
   result = urllib2.urlopen(url)
 
   return HttpResponse('\n'.join(result.readlines()))
@@ -338,7 +346,7 @@ def success(request, message=''):
 
 
 def trophy_room(request):
-  if not request.user.is_authenticated():
+  if not request.user.is_authenticated( ):
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   try: 
@@ -355,7 +363,7 @@ def trophy_room(request):
       {'trophy_list' : trophy_list ,
        'trophy_case_list' : trophy_case_list,
        'user' : user.username
-      }, context_instance=RequestContext(request))
+      }, context_instance=RequestContext(request)) 
 
 
 def upload_csv(request):
@@ -372,7 +380,7 @@ def user_profile(request):
   #sid = 'jlcoope'
   #if not sid: return render_to_response('install_certs.html')
 
-  if not request.user.is_authenticated():
+  if not request.user.is_authenticated() :
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:

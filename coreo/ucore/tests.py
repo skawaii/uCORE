@@ -61,14 +61,14 @@ class LoginTest(TestCase):
     user.set_password('2pass')
     user.save()
 
-    tagref = Tag.objects.get(name='Ocean')
+    tagref = Tag.objects.get(name='Ocean', type='T')
     user = CoreUser.objects.get(pk=1)
 
     for x in range(1, 6):
       term_value = "Ocean" + str(x)
       anything  = SearchLog(user=user, date_queried=datetime.datetime.now(), search_terms=term_value)
       anything.save()
-      anything.search_tags.add(Tag.objects.get(name='Ocean'))
+      anything.search_tags.add(Tag.objects.get(name='Ocean', type='T'))
       anything.save()    
 
     self.assertEqual(TrophyCase.objects.all().count(), 1)
@@ -84,7 +84,7 @@ class LoginTest(TestCase):
   def test_registration_trophy_isearned(self):
     c = Client()
     c.post('/save-user/', {'sid': 'something', 'username': 'bubba', 'first_name': 'Bubba', 'last_name': 'Smith',
-      'password': 'somethinghere', 'email':'prcoleman2@gmail.com', 'phone_number':'5555554444'})
+      'password': 'somethinghere', 'email':'prcoleman2@gmail.com', 'phone_number':'(555)555-4444'})
 
     self.assertEquals(TrophyCase.objects.all().count(), 1)
 
@@ -201,9 +201,9 @@ class LoginTest(TestCase):
       self.assertEquals(user, obj.object.user)
 
     print 'The GET method of notifications works well.'
-    c.post('/notifications/', { "id": 1 }) 
+    c.delete('/notifications/1/') 
     self.assertEquals(0, Notification.objects.all().count())
-    print 'The POST method of notifications also works.'
+    print 'The DELETE method of notifications also works.'
     print 'Poll notification test has passed.'
 
 

@@ -7,6 +7,8 @@
         <!-- CSS -->
         <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
         <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+        <!-- JScript -->
+        <script type="text/javascript" src="{{ MEDIA_URL }}javascript/phonenum.js"></script>
     </head>
 
     <body id="signup_page">
@@ -19,7 +21,7 @@
             <div id="core_signup_div" class="center_div">
                 <div><h1> Sign Up </h1></div>
                 <div>{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
-                <form action="/save-user/" method="post">
+                <form action="/save-user/" method="post" name="frmPhone">
                     <div>{% csrf_token %}</div>
                     <ol>
                         <li>
@@ -40,7 +42,7 @@
                         </li>
                         <li>
                             <label>Phone</label>
-                            <input name="phone_number" type="text">
+                            <input name="phone_number" type="text" onfocus="javascript:getIt(this)">
                         </li>
                         <li>
                             <label>Email</label>
