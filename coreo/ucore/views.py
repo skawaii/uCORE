@@ -1,5 +1,5 @@
-import csv, datetime, os, time, urllib2, zipfile, logging, re
-import xml.dom.minidom
+import csv, datetime, logging, os, re, time, urllib2, zipfile
+#import xml.dom.minidom
 from cStringIO import StringIO
 
 from django.core.mail import send_mail
@@ -16,7 +16,7 @@ from django.template import RequestContext
 from django.utils import simplejson as json
 
 from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, Skin, Tag, Trophy, TrophyCase
-from coreo.ucore import utils, shapefile
+from coreo.ucore import shapefile, utils
 
 
 def earn_trophy(request):
@@ -27,7 +27,7 @@ def earn_trophy(request):
     userc = CoreUser.objects.get(username=user2)
     tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
     tc.save()
-    custom_msg = "You have won a trophy, %s.  Congratulations" % userc.first_name
+    custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
     user_email = userc.email
     send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 
@@ -76,16 +76,16 @@ def get_kmz(request):
   # I know this will be replaced once I have a sample JSON from the client
   # passed in.  For now I am just using sample data provided by Google.
   fileObj = StringIO()
-  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
-  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
-  fileObj.write("<Placemark>\n")
-  fileObj.write("<name>Simple placemark</name>\n")
-  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
-  fileObj.write("<Point>\n")
-  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
-  fileObj.write("</Point>\n")
-  fileObj.write("</Placemark>\n")
-  fileObj.write("</kml>\n")
+  fileObj.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+  fileObj.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
+  fileObj.write('<Placemark>\n')
+  fileObj.write('<name>Simple placemark</name>\n')
+  fileObj.write('<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n')
+  fileObj.write('<Point>\n')
+  fileObj.write('<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n')
+  fileObj.write('</Point>\n')
+  fileObj.write('</Placemark>\n')
+  fileObj.write('</kml>\n')
 
   kmz = StringIO()
   f = zipfile.ZipFile(kmz, 'w', zipfile.ZIP_DEFLATED)
@@ -288,6 +288,7 @@ def save_user(request):
   email = request.POST['email'].strip()
   phone_number = request.POST['phone_number'].strip()
   newphone = ''
+
   try:
     if (len(phone_number) == 10):
       newphone = phone_number
@@ -298,6 +299,7 @@ def save_user(request):
   except Exception, e:
     logging.error(e.message)
     logging.error('Exception parsing phone number. Phone number not set.')
+
   if not (sid and username and first_name and last_name and password and email and newphone and phone_number):
     # redisplay the registration page
     return render_to_response('register.html',
@@ -335,7 +337,7 @@ def search_links(request):
 
 
 def search_mongo(request):
-  url = 'http://174.129.206.221/hello/ /?' + request.GET['q']
+  url = 'http://174.129.206.221/hello//?' + request.GET['q']
   result = urllib2.urlopen(url)
 
   return HttpResponse('\n'.join(result.readlines()))
@@ -346,7 +348,7 @@ def success(request, message=''):
 
 
 def trophy_room(request):
-  if not request.user.is_authenticated( ):
+  if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   try: 
@@ -363,7 +365,7 @@ def trophy_room(request):
       {'trophy_list' : trophy_list ,
        'trophy_case_list' : trophy_case_list,
        'user' : user.username
-      }, context_instance=RequestContext(request)) 
+      }, context_instance=RequestContext(request))
 
 
 def upload_csv(request):
@@ -380,7 +382,7 @@ def user_profile(request):
   #sid = 'jlcoope'
   #if not sid: return render_to_response('install_certs.html')
 
-  if not request.user.is_authenticated() :
+  if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:

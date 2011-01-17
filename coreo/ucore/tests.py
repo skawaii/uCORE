@@ -14,21 +14,6 @@ from django.test.client import Client
 from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, SearchLog, Skin, Tag, TrophyCase
 
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.failUnlessEqual(1 + 1, 2)
-
-__test__ = {"doctest": """
-Another way to test that 1 + 1 is equal to 2.
-
->>> 1 + 1 == 2
-True
-"""}
-
-
 class LoginTest(TestCase):
   fixtures = ['initial_data.json']
 
@@ -38,24 +23,22 @@ class LoginTest(TestCase):
         phone_number='9221112222', skin=Skin.objects.get(name='Default'))
     user.set_password('2pass')
     user.save()
-    c = Client()
 
-    self.assertTrue(c.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
-    print '\nPassed the login test.'
+    #print '\nPassed the login test.'
 
 
   def test_trophypage(self):
-    c = Client()
-    c.login(username='testuser', password='2pass')
-    response = c.get('/trophyroom/')
+    self.client.login(username='testuser', password='2pass')
+    response = self.client.get('/trophyroom/')
 
     self.assertEqual(response.status_code, 200)
 
-    print 'Passed the trophyroom url test.\n'
+    #print 'Passed the trophyroom url test.\n'
 
 
-  def test_signal_isworking(self):
+  def test_signal_working(self):
     user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222', skin=Skin.objects.get(name='Default'))
     user.set_password('2pass')
@@ -65,7 +48,7 @@ class LoginTest(TestCase):
     user = CoreUser.objects.get(pk=1)
 
     for x in range(1, 6):
-      term_value = "Ocean" + str(x)
+      term_value = 'Ocean' + str(x)
       anything  = SearchLog(user=user, date_queried=datetime.datetime.now(), search_terms=term_value)
       anything.save()
       anything.search_tags.add(Tag.objects.get(name='Ocean', type='T'))
@@ -74,54 +57,51 @@ class LoginTest(TestCase):
     self.assertEqual(TrophyCase.objects.all().count(), 1)
 
     trophy = TrophyCase.objects.get(pk=1)
-    self.assertEquals("Captain Blackbeard Trophy", trophy.trophy.name)
+    self.assertEquals('Captain Blackbeard Trophy', trophy.trophy.name)
     self.assertEquals(len(mail.outbox), 1)
 
-    print '\nPassed the e-mail test'
-    print '\nPassed the signal test.'
+    #print '\nPassed the e-mail test'
+    #print '\nPassed the signal test.'
 
 
-  def test_registration_trophy_isearned(self):
-    c = Client()
-    c.post('/save-user/', {'sid': 'something', 'username': 'bubba', 'first_name': 'Bubba', 'last_name': 'Smith',
+  def test_registration_trophy_earned(self):
+    self.client.post('/save-user/', {'sid': 'something', 'username': 'bubba', 'first_name': 'Bubba', 'last_name': 'Smith',
       'password': 'somethinghere', 'email':'prcoleman2@gmail.com', 'phone_number':'(555)555-4444'})
 
     self.assertEquals(TrophyCase.objects.all().count(), 1)
 
     trophy = TrophyCase.objects.get(pk=1).trophy
 
-    self.assertEquals("Successful Registration Trophy", trophy.name)
+    self.assertEquals('Successful Registration Trophy', trophy.name)
     self.assertEquals(len(mail.outbox), 1)
     self.assertEquals('bubba', TrophyCase.objects.get(pk=1).user.username)
 
-    print 'Passed the registration trophy test.'
+    #print 'Passed the registration trophy test.'
 
 
   def test_get_csv(self):
-    c = Client()
     user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     user.set_password('2pass')
     user.save()
 
-    self.assertTrue(c.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
-    response = c.get('/export-csv/')
+    response = self.client.get('/export-csv/')
     self.assertTrue(response.content, 'First,1,2,3\nSecond,4,5,6\nThird, 7,8,9')
 
-    print '\nPassed the get_csv test'
+    #print '\nPassed the get_csv test'
   
   
   def test_get_kmz(self):
-    c = Client()
     user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     user.set_password('2pass')
     user.save()
 
-    self.assertTrue(c.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
-    response = c.get('/getkmz/')
+    response = self.client.get('/getkmz/')
     f = open('download.zip', 'wb')
     f.write(response.content)
     f.close()
@@ -132,7 +112,8 @@ class LoginTest(TestCase):
     fread = open(extract)
 
     for line in fread:
-      self.assertIn("<?xml version='1.0' encoding='UTF-8'?>", line)
+      # using "" for attr values in xml/html is the standard...change this
+      self.assertIn('<?xml version="1.0" encoding="UTF-8"?>', line)
       break
 
     fread.close()
@@ -145,19 +126,18 @@ class LoginTest(TestCase):
     os.remove('doc.kml')
     os.remove('download.zip')
     
-    print 'Passed the get_kmz test.'
+    #print 'Passed the get_kmz test.'
 
 
   def test_get_shapefile(self):
-    c = Client()
     user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     user.set_password('2pass')
     user.save()
 
-    self.assertTrue(c.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
-    response = c.get('/getshp/')
+    response = self.client.get('/getshp/')
     f = open('sample.zip', 'wb')
     f.write(response.content)
     f.close()
@@ -180,31 +160,32 @@ class LoginTest(TestCase):
     os.remove('sample.dbf')
     os.remove('sample.shp')
 
-    print 'Passed the get_shapefile test.'
+    #print 'Passed the get_shapefile test.'
  
 
   def test_poll_notifications(self):
-    c = Client()
     user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     user.set_password('2pass')
     user.save()
 
-    self.assertTrue(c.login(username='testuser', password='2pass'))
-    Notification.objects.create(user=user, type="TR", message="You won a new registration trophy")
-    self.assertEquals(1, Notification.objects.all().count())
-    response = c.get('/notifications/')
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    Notification.objects.create(user=user, type='TR', message='You won a new registration trophy')
+    self.assertEquals(Notification.objects.all().count(), 1)
+    response = self.client.get('/notifications/')
 
-    for obj in serializers.deserialize("json", response.content):
-      self.assertEquals("You won a new registration trophy", obj.object.message)
-      self.assertEquals("TR", obj.object.type)
+    for obj in serializers.deserialize('json', response.content):
+      self.assertEquals('You won a new registration trophy', obj.object.message)
+      self.assertEquals('TR', obj.object.type)
       self.assertEquals(user, obj.object.user)
 
-    print 'The GET method of notifications works well.'
-    c.delete('/notifications/1/') 
-    self.assertEquals(0, Notification.objects.all().count())
-    print 'The DELETE method of notifications also works.'
-    print 'Poll notification test has passed.'
+    #print 'The GET method of notifications works well.'
+
+    self.client.delete('/notifications/1/') 
+    self.assertEquals(Notification.objects.all().count(), 0)
+
+    #print 'The DELETE method of notifications also works.'
+    #print 'Poll notification test has passed.'
 
 
 class RateTest(TestCase):
