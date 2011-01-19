@@ -43,11 +43,25 @@ class Trophy(models.Model):
     verbose_name_plural = 'trophies'
 
 
+class POC(models.Model):
+  first_name = models.CharField(max_length=20)
+  last_name = models.CharField(max_length=20)
+  phone_number = models.PositiveSmallIntegerField()
+  email = models.EmailField()
+
+  def __unicode__(self):
+    return self.get_full_name()
+
+  def get_full_name(self):
+    return ' '.join((self.first_name, self.last_name))
+
+
 class Link(models.Model):
   name = models.CharField(max_length=50)
   desc = models.CharField(max_length=256) # completely arbitrary max_length
   url = models.URLField(unique=True) # do we want verify_exists=True?
   tags = models.ManyToManyField(Tag, verbose_name='default tags')
+  poc = models.ForeignKey(POC)
 
   def __unicode__(self):
      return self.name
@@ -149,6 +163,7 @@ class SearchLog(models.Model):
 
    def __unicode__(self):
      return ' '.join((self.user.username, self.search_terms))
+
 
 ### Signal Registration ###
 from coreo.ucore import signals
