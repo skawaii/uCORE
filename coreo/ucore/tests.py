@@ -29,7 +29,7 @@ class LoginTest(TestCase):
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
     self.assertTrue(self.client.session.has_key('_auth_user_id'))
 
-    #print '\nPassed the login test.'
+    print '\nPassed the login test.'
 
 
 class LogoutTest(TestCase):
@@ -63,7 +63,7 @@ class TrophyTest(TestCase):
 
     self.assertEqual(response.status_code, 200)
 
-    #print 'Passed the trophyroom url test.\n'
+    print 'Passed the trophyroom url test.\n'
 
 
   def test_signal_working(self):
@@ -83,8 +83,8 @@ class TrophyTest(TestCase):
     self.assertEquals(trophy_case.trophy.name, 'Captain Blackbeard Trophy')
     self.assertEquals(len(mail.outbox), 1)
 
-    #print '\nPassed the e-mail test'
-    #print '\nPassed the signal test.'
+    print '\nPassed the e-mail test'
+    print '\nPassed the signal test.'
 
 
   def test_registration_trophy_earned(self):
@@ -99,7 +99,7 @@ class TrophyTest(TestCase):
     self.assertEquals(trophy_case.trophy.name, 'Successful Registration Trophy')
     self.assertEquals(len(mail.outbox), 1)
 
-    #print 'Passed the registration trophy test.'
+    print 'Passed the registration trophy test.'
 
 class CsvTest(TestCase):
   def setUp(self):
@@ -116,7 +116,7 @@ class CsvTest(TestCase):
 
     self.assertTrue(response.content, 'First,1,2,3\nSecond,4,5,6\nThird, 7,8,9')
 
-    #print '\nPassed the get_csv test'
+    print '\nPassed the get_csv test'
   
   
 class KmzTest(TestCase):
@@ -150,7 +150,7 @@ class KmzTest(TestCase):
     os.remove('doc.kml')
     os.remove('download.kmz')
     
-    #print 'Passed the get_kmz test.'
+    print 'Passed the get_kmz test.'
 
 
 class ShapefileTest(TestCase):
@@ -182,7 +182,7 @@ class ShapefileTest(TestCase):
     os.remove('sample.dbf')
     os.remove('sample.shp')
 
-    #print 'Passed the get_shapefile test.'
+    print 'Passed the get_shapefile test.'
  
 
 class NotificationTest(TestCase):
@@ -206,7 +206,7 @@ class NotificationTest(TestCase):
       self.assertEquals(obj.object.type, 'TR')
       self.assertEquals(obj.object.user, self.user)
 
-    #print 'The GET method of notifications works well.'
+    print 'The GET method of notifications works well.'
 
 
   def test_delete_notification(self):
@@ -214,8 +214,8 @@ class NotificationTest(TestCase):
 
     self.assertEquals(Notification.objects.all().count(), 0)
 
-    #print 'The DELETE method of notifications also works.'
-    #print 'Poll notification test has passed.'
+    print 'The DELETE method of notifications also works.'
+    print 'Poll notification test has passed.'
 
 
 class RateTest(TestCase):
@@ -253,6 +253,7 @@ class RateTest(TestCase):
     self.assertEquals(response.context['rating'].comment, 'could be better')
     self.assertEquals(response.context['link'], self.link)
     self.assertEquals(response.context['link_library'], None)
+    print 'The test for view link rating has passed'
 
   def test_view_link_library_rating(self):
     rating_fk = RatingFK.objects.create(user=self.user, link_library=self.link_library)
@@ -266,6 +267,7 @@ class RateTest(TestCase):
     self.assertEquals(response.context['rating'].comment, 'mint chocolate chip!')
     self.assertEquals(response.context['link'], None)
     self.assertEquals(response.context['link_library'], self.link_library)
+    print 'The test for view link library has passed.'
 
 
   def test_rating_link(self):
@@ -284,6 +286,7 @@ class RateTest(TestCase):
     self.assertEquals(rating.rating_fk, rating_fk)
     self.assertEquals(rating.score, 1)
     self.assertEquals(rating.comment, 'What is this? A link for ants?!')
+    print 'Passed the tests for rating a link.'
 
 
   def test_rating_link_library(self):
@@ -302,4 +305,5 @@ class RateTest(TestCase):
     self.assertEquals(rating.rating_fk, rating_fk)
     self.assertEquals(rating.score, 1)
     self.assertEquals(rating.comment, 'What is this? A library for ants?!')
+    print 'Passed the test for rating a link library.'
 
