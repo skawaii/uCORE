@@ -48,7 +48,12 @@ def ge_index(request):
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
 def get_csv(request):
-
+  ''' get_csv is a method that will return csv to the browser.
+      It eventually will accept json input from the GE view,
+      and return it as a .csv file to the browser. 
+      Right now the filename is sample.csv but can be modified
+      as necessary.
+   '''
   response = HttpResponse(mimetype='text/csv')
   response['Content-Disposition'] = 'attachment; filename=sample.csv'
   # This will eventually handle a json object rather than static data.
@@ -179,6 +184,12 @@ def logout(request):
 
 
 def poll_notifications(request, notification_id):
+  '''poll_notifications has two methods it supports: GET and DELETE
+     for DELETE you have to submit a notification_id which will then
+     delete the notification from the table. 
+     If you call a GET, don't send any parameters and the view will
+     return a json list of all notifications for the logged in user.
+  '''
   # notification_id is passed in on a delete request in the URL.
   if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -294,6 +305,7 @@ def save_user(request):
       newphone = phone_number
     else:
       prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+      # prog = re.compile(r"(\d+[^/d]+)")
       result = prog.match(phone_number)
       newphone = result.group(1) + result.group(2) + result.group(3)
   except Exception, e:
