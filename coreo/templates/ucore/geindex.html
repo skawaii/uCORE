@@ -10,7 +10,7 @@
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
 
 	<!-- Javascript -->
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.min.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
 	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
 
@@ -26,7 +26,8 @@
 	  $(document).ready(function() {
 	  	$("#ge").gearthapp({
 	  		layersKml: "{{ MEDIA_URL }}kml/layers.kml",
-	  		optionsKml: "{{ MEDIA_URL }}kml/options.kml"
+	  		optionsKml: "{{ MEDIA_URL }}kml/options.kml",
+	  		kmlDocs: "{{ MEDIA_URL }}kml/top_eleven.kml"
 	  	});
 	  	$("#ge").fitwindow({
 	  		heightOffset: $("#geheader").outerHeight(true),

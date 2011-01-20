@@ -1,5 +1,5 @@
-import csv, datetime, os, time, urllib2, zipfile
-import xml.dom.minidom
+import csv, datetime, logging, os, re, time, urllib2, zipfile
+#import xml.dom.minidom
 from cStringIO import StringIO
 
 from django.core.mail import send_mail
@@ -16,7 +16,7 @@ from django.template import RequestContext
 from django.utils import simplejson as json
 
 from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, Skin, Tag, Trophy, TrophyCase
-from coreo.ucore import utils, shapefile
+from coreo.ucore import shapefile, utils
 
 
 def earn_trophy(request):
@@ -27,7 +27,7 @@ def earn_trophy(request):
     userc = CoreUser.objects.get(username=user2)
     tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
     tc.save()
-    custom_msg = "You have won a trophy, %s.  Congratulations" % userc.first_name
+    custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
     user_email = userc.email
     send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 
@@ -69,32 +69,21 @@ def get_csv(request):
   # This will eventually handle a json object rather than static data.
   # jsonObj = request.POST['gejson'].strip()
   #  if not (jsonObj)
-  #  jsonObj = '{["latitude":1.0, "longitude":2.0]}'
-  jsonObj = '["baz":"booz", "tic":"tock", "altitude": 1.0, "altitude":2]'
-  obj = json.loads(jsonObj)
+  # jsonObj = '{["latitude":1.0, "longitude":2.0]}'
+  # jsonObj = '["baz":"booz", "tic":"tock"]'
+  # obj = json.loads(jsonObj)
+  csv_data = (
+      ('First', '1', '2', '3'),
+      ('Second', '4', '5', '6'),
+      ('Third', '7', '8', '9')
+  )
+  
   writer = csv.writer(response)
-  writer.writerow(obj)
+  writer.writerow(['First', '1', '2', '3'])
+  writer.writerow(['Second', '4', '5', '6'])
+  writer.writerow(['Third', '7', '8', '9'])
   return response
 
-def get_kml(request):
-
-  # I know this will be replaced once I have a sample JSON from the client
-  # passed in.  For now I am just using sample data provided by Google.
-  fileObj = StringIO() 
-  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
-  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
-  fileObj.write("<Placemark>\n")
-  fileObj.write("<name>Simple placemark</name>\n")
-  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
-  fileObj.write("<Point>\n")
-  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
-  fileObj.write("</Point>\n")
-  fileObj.write("</Placemark>\n")
-  fileObj.write("</kml>\n")
-
-  response = HttpResponse(fileObj.getvalue(), mimetype='text/xml')
-  response['Content-Disposition'] = 'attachment; filename=doc.kml'
-  return response
 
 def get_kmz(request):
   # I must say I used some of : http://djangosnippets.org/snippets/709/
@@ -102,16 +91,16 @@ def get_kmz(request):
   # I know this will be replaced once I have a sample JSON from the client
   # passed in.  For now I am just using sample data provided by Google.
   fileObj = StringIO()
-  fileObj.write("<?xml version='1.0' encoding='UTF-8'?>\n")
-  fileObj.write("<kml xmlns='http://www.opengis.net/kml/2.2'>\n")
-  fileObj.write("<Placemark>\n")
-  fileObj.write("<name>Simple placemark</name>\n")
-  fileObj.write("<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n")
-  fileObj.write("<Point>\n")
-  fileObj.write("<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n")
-  fileObj.write("</Point>\n")
-  fileObj.write("</Placemark>\n")
-  fileObj.write("</kml>\n")
+  fileObj.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+  fileObj.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
+  fileObj.write('<Placemark>\n')
+  fileObj.write('<name>Simple placemark</name>\n')
+  fileObj.write('<description>Attached to the ground. Intelligently places itself at the height of the underlying terrain.</description>\n')
+  fileObj.write('<Point>\n')
+  fileObj.write('<coordinates>-122.0822035425683,37.42228990140251,0</coordinates>\n')
+  fileObj.write('</Point>\n')
+  fileObj.write('</Placemark>\n')
+  fileObj.write('</kml>\n')
 
   kmz = StringIO()
   f = zipfile.ZipFile(kmz, 'w', zipfile.ZIP_DEFLATED)
@@ -125,6 +114,7 @@ def get_kmz(request):
   response['Content-Description'] = 'a sample kmz file.'
   response['Content-Length'] = str(len(response.content))
   return response
+
 
 def get_library(request, username, lib_name):
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
@@ -203,28 +193,46 @@ def logout(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
-def poll_notifications(request): 
-  if not request.user.is_authenticated():
+def poll_notifications(request, notification_id):
+  # notification_id is passed in on a delete request in the URL.
+  if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   userperson = CoreUser.objects.filter(username=request.user)
-
+  if not userperson: 
+    logging.debug('No user retrieved by the username of %s' % request.user)
+  response = HttpResponse(mimetype='application/json')
   if request.method == "GET":
-    json_serializer = serializers.get_serializer("json")()
-    notify_list = Notification.objects.filter(user=userperson)
-    json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
+    # print 'request user is %s' % request.user
+    try:
+      json_serializer = serializers.get_serializer("json")()
+      notify_list = Notification.objects.filter(user=userperson)
+      json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
+    except Exception, e:
+      logging.error(e.message)
+      print e.message 
     return response
-  elif request.method == "POST":
-    primaryKey = request.POST['id'].strip()
+  elif request.method == "DELETE":
+    primaryKey = notification_id 
+    logging.debug('Received the following id to delete from notifications : %s' % primaryKey)
     record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
     record2delete.delete()
     return response
 
 
+def notifytest(request):
+  if not request.user.is_authenticated():
+    logging.warning('%s was not authenticated' % request.user)
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  # userperson = CoreUser.objects.filter(username=request.user)
+  return render_to_response('notify.html', context_instance=RequestContext(request))
+
+
 def rate(request, ratee, ratee_id):
-  ''' Rate either a Link or LinkLibrary.
+  ''' Rate either a ``Link`` or ``LinkLibrary``.
       ``ratee`` must either be 'link' or 'library', with ``ratee_id`` being the respective id.
-      This is ensured in urls.py.
+      The value of ``ratee`` is ensured in urls.py.
   '''
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -294,8 +302,20 @@ def save_user(request):
   password = request.POST['password'].strip()
   email = request.POST['email'].strip()
   phone_number = request.POST['phone_number'].strip()
+  newphone = ''
 
-  if not (sid and username and first_name and last_name and password and email and phone_number):
+  try:
+    if (len(phone_number) == 10):
+      newphone = phone_number
+    else:
+      prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+      result = prog.match(phone_number)
+      newphone = result.group(1) + result.group(2) + result.group(3)
+  except Exception, e:
+    logging.error(e.message)
+    logging.error('Exception parsing phone number. Phone number not set.')
+
+  if not (sid and username and first_name and last_name and password and email and newphone and phone_number):
     # redisplay the registration page
     return render_to_response('register.html',
         {'sid': sid,
@@ -310,18 +330,20 @@ def save_user(request):
   # save the new user to the DB with the default skin
   default_skin = Skin.objects.get(name='Default')
   user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name,
-      email=email, phone_number=phone_number, skin=default_skin)
+      email=email, phone_number=newphone, skin=default_skin)
   user.set_password(password)
   user.save()
 
   TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
+  Notification.objects.create(user=user, type='TR', message='You have won a registration trophy.')
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
 
 def search_links(request):
-  terms = request.GET['q'].split(' ')
+  terms = request.GET['q'].split(' ') 
+  logging.debug('Received terms %s in the GET of search_links\n' % terms)
   links = list(Link.objects.filter(tags__name__in=terms).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
@@ -338,14 +360,6 @@ def search_mongo(request):
 
 def success(request, message=''):
   return HttpResponse('you did it!')
-
-
-def trophy_notify(request):
-   user = request.user
-   email = request.email
-   send_mail('You have won a trophy. Congratulations.', 'Testing e-mails', 'trophy@layeredintel.com', ['prcoleman2@gmail.com'], fail_silently=False)
-
-   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
 def trophy_room(request):
@@ -396,3 +410,17 @@ def user_profile(request):
   
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
+
+def map(request):
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  try:
+    user = CoreUser.objects.get(username=request.user.username)
+  except CoreUser.DoesNotExist:
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  
+  return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))

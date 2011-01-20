@@ -1,10 +1,10 @@
 import datetime
 
 from django.conf import settings
+from django.contrib import auth
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
-from django.contrib import auth
 from django.db.models.signals import post_save
 
 
@@ -17,7 +17,13 @@ class Skin(models.Model):
 
 
 class Tag(models.Model):
+  TAG_CHOICES = (
+      ('T', 'Trophy'),
+      ('P', 'Public')
+  )
+
   name = models.CharField(max_length=50, unique=True)
+  type = models.CharField(max_length=1, choices=TAG_CHOICES)
 
   def __unicode__(self):
     return self.name
@@ -59,7 +65,7 @@ class CoreUser(auth.models.User):
 
 
 class Notification(models.Model):
-  TYPE_CHOICES = (
+  TYPE_CHOICES = ( 
       ('TR', 'Trophy Notification'),
       ('EP', 'Expired Password'),
       ('NC', 'New Site Content'),
@@ -70,7 +76,7 @@ class Notification(models.Model):
   message = models.CharField(max_length=200)
 
   def __unicode__(self):
-    return '%s  %s' % (self.user.username, self.message) 
+    return '%s  %s  %s' % (self.user.username, self.message, self.type) 
 
 
 class RatingFK(models.Model):
