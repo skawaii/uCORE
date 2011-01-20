@@ -16,6 +16,26 @@ if (!window.core.util)
 (function($, ns) {
 	
 	/**
+	 * Returns the textual representation of an XML DOM object
+	 */
+	var getXmlString = function(xmlDom) {
+		if (!xmlDom)
+			return undefined;
+		var xml;
+		if (xmlDom.xml) {
+			xml = xmlDom.xml;
+		}
+		else if (typeof XMLSerializer == "function") {
+			xml = (new XMLSerializer()).serializeToString(xmlDom);
+		}
+		else {
+			throw "Unsupported browser";
+		}
+		return xml;
+	};
+	ns.getXmlString = getXmlString;
+	
+	/**
 	 * Creates an XML document object from an XML string
 	 */
 	var createXmlDoc = function(xmlString) {
