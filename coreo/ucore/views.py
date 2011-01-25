@@ -331,11 +331,20 @@ def save_user(request):
 def search_links(request):
   terms = request.GET['q'].split(' ') 
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
-  links = list(Link.objects.filter(tags__name__in=terms).distinct())
-  links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
-  return HttpResponse(serializers.serialize('json', links))
+  # search Link for matches
+  #results = list(Link.objects.filter(tags__name__in=terms).distinct())
+  results = list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+  results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+
+  # search LinkLibraries for matches
+  #results += list(LinkLibrary.objects.filter(tags__name__in=terms).distinct())
+  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+
+  return HttpResponse(serializers.serialize('json', results))
 
 
 def search_mongo(request):
