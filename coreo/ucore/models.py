@@ -7,6 +7,8 @@ from django.core.mail import send_mail
 from django.db import models
 from django.db.models.signals import post_save
 
+from coreo.ucore.managers import InheritanceManager
+
 
 class Skin(models.Model):
   name = models.CharField(max_length=50)
@@ -36,8 +38,7 @@ class Trophy(models.Model):
   file_path = models.FilePathField('path to image file', path=settings.MEDIA_ROOT + 'trophies')
 
   def __unicode__(self):
-    #  return self.name
-    return '%s %s %s' % (self.name, self.desc, self.file_path)
+    return self.name
 
   class Meta:
     verbose_name_plural = 'trophies'
@@ -47,7 +48,7 @@ class POC(models.Model):
   first_name = models.CharField(max_length=20)
   last_name = models.CharField(max_length=20)
   phone_number = models.PositiveSmallIntegerField()
-  email = models.EmailField()
+  email = models.EmailField(unique=True)
 
   def __unicode__(self):
     return self.get_full_name()
@@ -155,14 +156,28 @@ class LinkLibrary(models.Model):
 
 
 class SearchLog(models.Model):
-  # user = models.CharField(max_length=100)
-   user = models.ForeignKey(CoreUser)
-   date_queried = models.DateField()
-   search_terms = models.CharField(max_length=200)
-   search_tags = models.ManyToManyField(Tag)
+  user = models.ForeignKey(CoreUser)
+  date_queried = models.DateField()
+  search_terms = models.CharField(max_length=200)
+  search_tags = models.ManyToManyField(Tag)
 
-   def __unicode__(self):
-     return ' '.join((self.user.username, self.search_terms))
+  def __unicode__(self):
+    return ' '.join((self.user.username, self.search_terms))
+
+
+### Trophy Progress models ###
+#class TrophyProgress(models.Model):
+#  user = models.ForeignKey(CoreUser)
+#  trophy = models.ForeignKey(Trophy)
+#  #count = models.PositiveSmallIntegerField()
+#  #total_needed = models.PositiveSmallIntegerField()
+#  date_awarded = models.DateField()
+#
+#  objects = InheritanceManager()
+#
+#
+#class RatingTrophyProgress(TrophyProgress):
+#  pass
 
 
 ### Signal Registration ###
