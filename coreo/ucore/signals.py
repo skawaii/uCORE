@@ -1,8 +1,8 @@
-import datetime
+import datetime, logging
 
 from django.core.mail import send_mail
 
-from coreo.ucore.models import CoreUser, SearchLog, Trophy, TrophyCase, Tag,Notification
+from coreo.ucore.models import CoreUser, Notification, SearchLog, Tag, Trophy, TrophyCase
 
 
 def singular_check(user, search_tag_name): 
@@ -26,4 +26,13 @@ def check_for_trophy(sender, instance, **kwargs):
   user = CoreUser.objects.get(username=instance.user.username)
   for tag_name in Tag.objects.all():
     singular_check(user, tag_name)
+
+
+def initialize_new_user(sender, **kwargs):
+  # if created is True, then this is a new user registration and the registration trophy needs
+  # to be added to their TrophyCase
+  if kwargs['created']:
+    TrophyCase.objects.create(user=kwargs['instance'], trophy=Trophy.objects.get(name__contains='Registration'),
+       date_earned=datetime.datetime.now())
+    #Notification.objects.create(user=user, type='TR', message='You have won a registration trophy.')
 

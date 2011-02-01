@@ -321,8 +321,10 @@ def save_user(request):
   user.set_password(password)
   user.save()
 
-  TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
-  Notification.objects.create(user=user, type='TR', message='You have won a registration trophy.')
+  # XXX do this in the CoreUser post_save signal, which should check if the user already has the reg trophy
+  #TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
+  #Notification.objects.create(user=user, type='TR', message='You have won a registration trophy.')
+
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
   # hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
