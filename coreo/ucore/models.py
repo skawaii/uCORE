@@ -5,9 +5,6 @@ from django.contrib import auth
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models.signals import post_save
-
-from coreo.ucore.managers import InheritanceManager
 
 
 class Skin(models.Model):
@@ -33,8 +30,9 @@ class Tag(models.Model):
 
 class Trophy(models.Model):
   name = models.CharField(max_length=50)
-  desc = models.CharField('short description', max_length=100)
+  desc = models.CharField('short description', max_length=100, help_text='Include details on how to earn this trophy.')
   tag = models.ForeignKey(Tag)
+  earning_req = models.PositiveSmallIntegerField(help_text='Total actions required for earning this trophy.')
   file_path = models.FilePathField('path to image file', path=settings.MEDIA_ROOT + 'trophies')
 
   def __unicode__(self):
@@ -55,6 +53,9 @@ class POC(models.Model):
 
   def get_full_name(self):
     return ' '.join((self.first_name, self.last_name))
+
+  class Meta:
+    verbose_name_plural = 'POCs'
 
 
 class Link(models.Model):
@@ -135,7 +136,9 @@ class Rating(models.Model):
 class TrophyCase(models.Model):
   user = models.ForeignKey(CoreUser)
   trophy = models.ForeignKey(Trophy)
-  date_earned = models.DateField()
+  count = models.PositiveSmallIntegerField(default=1)
+  earned = models.BooleanField(default=False)
+  date_earned = models.DateField(blank=True, null=True)
 
   def __unicode__(self):
      return ' '.join((self.user.sid, self.trophy.name))
@@ -181,7 +184,11 @@ class SearchLog(models.Model):
 
 
 ### Signal Registration ###
+from django.db.models.signals import post_save
 from coreo.ucore import signals
+
 post_save.connect(signals.check_for_trophy, sender=SearchLog)
 post_save.connect(signals.send_trophy_email, sender=TrophyCase)
+#XXX add a post_save signal on save_user() that awards the registration trophy and take that logic out of save_user()
+post_save.connect(signals.initialize_new_user, sender=CoreUser)
 
