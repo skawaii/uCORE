@@ -98,7 +98,7 @@
       "name": "Successful Registration Trophy",
       "desc": "For a successful registration.",
       "tag": 6,
-      "earning_req": 5,
+      "earning_req": 1,
       "file_path": "images/dart_trophy.JPG"
     }
  },
