@@ -11,9 +11,10 @@
   <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
   
   <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
-  <script type="text/javascript">
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+ <script type="text/javascript">
      $(window).load(function() {
-        setInterval("test();", 10000);
+          setInterval("test();", 10000);
         });
      
      function test()

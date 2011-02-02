@@ -150,6 +150,10 @@ def index(request):
   return render_to_response('index.html', context_instance=RequestContext(request))
 
 
+def testgrid(request):
+  return render_to_response('testgrid.html', context_instance=RequestContext(request))
+
+
 def login(request):
   if request.method == 'GET':
     return render_to_response('login.html', context_instance=RequestContext(request))
