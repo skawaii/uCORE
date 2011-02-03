@@ -11,7 +11,7 @@ from django.core import mail, serializers
 from django.test import TestCase
 from django.test.client import Client
 
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, SearchLog, Skin, Tag, TrophyCase
+from coreo.ucore.models import *
 
 
 # XXX in every setUp(), a CoreUser is being created. This should be put into a fixture
@@ -218,10 +218,12 @@ class RateTest(TestCase):
     self.user.set_password('2pass')
     self.user.save()
 
+    self.poc = POC.objects.create(first_name='homer', last_name='simpson', phone_number='1234567890', email='homer@simpsons.com')
+
     self.link_tags = (Tag.objects.create(name='LinkTag1'), Tag.objects.create(name='LinkTag2'))
     self.link_library_tags = (Tag.objects.create(name='LinkLibraryTag1'), Tag.objects.create(name='LinkLibraryTag2'))
 
-    self.link = Link.objects.create(name='Test Link', desc='Just a test', url='http://test.com')
+    self.link = Link.objects.create(name='Test Link', desc='Just a test', url='http://test.com', poc=self.poc)
     self.link.tags.add(self.link_tags[0])
     self.link.tags.add(self.link_tags[1])
 
