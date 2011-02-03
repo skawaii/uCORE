@@ -35,7 +35,7 @@ def check_trophy_conditions(sender, **kwargs):
 
   if not trophy_case.date_earned and trophy_case.count >= trophy_case.trophy.earning_req:
     logging.debug('%s just earned the %s trophy' % (trophy_case.user, trophy_case.trophy.name))
-    trophy_case.date_earned = datetime.datetime.now()
+    trophy_case.date_earned = datetime.date.today()
     trophy_case.save()
 
     Notification.objects.create(user=trophy_case.user, type='TR', message='You earned the %s trophy.' % trophy_case.trophy.name)
@@ -46,4 +46,8 @@ def initialize_new_user(sender, **kwargs):
   # to be added to their TrophyCase
   if kwargs['created']:
     TrophyCase.objects.create(user=kwargs['instance'], trophy=Trophy.objects.get(name__contains='Registration'))
+
+
+def delete_user_settings(sender, **kwargs):
+  kwargs['instance'].settings.delete()
 

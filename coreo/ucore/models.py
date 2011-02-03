@@ -89,8 +89,8 @@ class Settings(models.Model):
 class CoreUser(auth.models.User):
   sid = models.CharField(max_length=20, unique=True)
   phone_number = models.PositiveSmallIntegerField()
-  skin = models.ForeignKey(Skin, null=True)
-  settings = models.OneToOneField(Settings, null=True)
+  skin = models.ForeignKey(Skin, null=True, blank=True)
+  settings = models.OneToOneField(Settings, null=True, blank=True)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
   # links = models.ManyToManyField(Link, through='LinkLibrary')
 
@@ -192,9 +192,10 @@ class SearchLog(models.Model):
 
 
 ### Signal Registration ###
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from coreo.ucore import signals
 
+post_delete.connect(signals.delete_user_settings, sender=CoreUser)
 post_save.connect(signals.check_for_trophy, sender=SearchLog)
 post_save.connect(signals.send_notification_email, sender=Notification)
 post_save.connect(signals.check_trophy_conditions, sender=TrophyCase)
