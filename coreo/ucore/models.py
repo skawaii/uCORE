@@ -69,11 +69,29 @@ class Link(models.Model):
      return self.name
 
 
+class Settings(models.Model):
+  ''' All fields in this model should contain a ``default`` value and a ``help_text``.
+      Providing a ``default`` value allows us to save a new CoreUser without bugging the user for their
+      settings upon registering. The ``help_text`` is what will be the description on the settings page
+      that the user will see.
+  '''
+  wants_emails = models.BooleanField(default=True, help_text='Would you like to be notified of events via email?')
+  #skin = models.ForeignKey(Skin, default=Skin.objects.get(name='Default'),
+  #skin = models.ForeignKey(Skin, help_text='Customize the look and feel with skins.')
+
+  def __unicode__(self):
+    return 'settings %s' % self.pk
+
+  class Meta:
+    verbose_name_plural = 'settings'
+
+
 class CoreUser(auth.models.User):
   sid = models.CharField(max_length=20)
   phone_number = models.PositiveSmallIntegerField()
   skin = models.ForeignKey(Skin)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
+  settings = models.OneToOneField(Settings)
   # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
@@ -137,7 +155,6 @@ class TrophyCase(models.Model):
   user = models.ForeignKey(CoreUser)
   trophy = models.ForeignKey(Trophy)
   count = models.PositiveSmallIntegerField(default=1)
-  earned = models.BooleanField(default=False)
   date_earned = models.DateField(blank=True, null=True)
 
   def __unicode__(self):
@@ -168,27 +185,12 @@ class SearchLog(models.Model):
     return ' '.join((self.user.username, self.search_terms))
 
 
-### Trophy Progress models ###
-#class TrophyProgress(models.Model):
-#  user = models.ForeignKey(CoreUser)
-#  trophy = models.ForeignKey(Trophy)
-#  #count = models.PositiveSmallIntegerField()
-#  #total_needed = models.PositiveSmallIntegerField()
-#  date_awarded = models.DateField()
-#
-#  objects = InheritanceManager()
-#
-#
-#class RatingTrophyProgress(TrophyProgress):
-#  pass
-
-
 ### Signal Registration ###
 from django.db.models.signals import post_save
 from coreo.ucore import signals
 
 post_save.connect(signals.check_for_trophy, sender=SearchLog)
-post_save.connect(signals.send_trophy_email, sender=TrophyCase)
-#XXX add a post_save signal on save_user() that awards the registration trophy and take that logic out of save_user()
+post_save.connect(signals.send_notification_email, sender=Notification)
+post_save.connect(signals.check_trophy_conditions, sender=TrophyCase)
 post_save.connect(signals.initialize_new_user, sender=CoreUser)
 
