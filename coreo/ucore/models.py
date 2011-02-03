@@ -87,15 +87,21 @@ class Settings(models.Model):
 
 
 class CoreUser(auth.models.User):
-  sid = models.CharField(max_length=20)
+  sid = models.CharField(max_length=20, unique=True)
   phone_number = models.PositiveSmallIntegerField()
-  skin = models.ForeignKey(Skin)
+  skin = models.ForeignKey(Skin, null=True)
+  settings = models.OneToOneField(Settings, null=True)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
-  settings = models.OneToOneField(Settings)
   # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
     return ' '.join((self.username, self.sid))
+
+  def save(self, *args, **kwargs):
+    if not self.settings: self.settings = Settings.objects.create()
+    if not self.skin: self.skin = Skin.objects.get(name='Default')
+
+    super(CoreUser, self).save(*args, **kwargs)
 
 
 class Notification(models.Model):
