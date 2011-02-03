@@ -15,7 +15,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
 
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, Skin, Tag, Trophy, TrophyCase
+from coreo.ucore.models import *
 from coreo.ucore import shapefile, utils
 
 
@@ -309,22 +309,20 @@ def save_user(request):
          'error_message': 'Please fill in all required fields.'
         }, context_instance=RequestContext(request))
 
-  # XXX currently User.phone_number is stored as an int
-  #   1. keep as an int
-  #   2. change from an int to a CharField
-  # either way, we should use regex to check before we put it into the DB
+  # create/update the user to the DB with the default skin
+  user, created = CoreUser.objects.get_or_create(sid=sid, defaults={'username': username, 'first_name': first_name,
+    'last_name': last_name, 'email': email, 'phone_number': newphone})
 
-  # save the new user to the DB with the default skin
-  default_skin = Skin.objects.get(name='Default')
-  user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name,
-      email=email, phone_number=newphone, skin=default_skin)
+  if not created:
+    user.first_name = first_name
+    user.last_name = last_name
+    user.email = email
+    user.phone_number = newphone
+
   user.set_password(password)
   user.save()
 
-  TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
-  Notification.objects.create(user=user, type='TR', message='You have won a registration trophy.')
-  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
-  # hits the back button
+  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
 
