@@ -35,11 +35,13 @@
     <script>
       var totalTable = [];
       var grid;
+
+
       $(document).ready(function()
       {
-                document.getElementById('question').style.display='none';
+        document.getElementById('question').style.display='none';
+        document.getElementById('myGrid').style.display='none';
       });
-              
 
 
       function searchLinks(term)
@@ -96,16 +98,10 @@
                for (var j = 0; j < selectedRows.length; j++)
                {
                  var rowNum = selectedRows[j];
-                 alert("You selected:  " + totalTable[rowNum]["name"] + " | " + totalTable[rowNum]["pk"]);
-                 alert("you entered: " + document.getElementById('q1').value);
+                 // alert("You selected:  " + totalTable[rowNum]["name"] + " | " + totalTable[rowNum]["pk"]);
+                 // alert("you entered: " + document.getElementById('q1').value);
                }  
-          // $("#question").style.display="block";
-      //    $("#question").dialog({ width: 300, buttons: { "Save Library Name":
-      //     function() {
-              alert("you entered: " + document.getElementById('q1').value);
-      //     }
-      //   }
-      //  });
+               //  alert("you entered: " + document.getElementById('q1').value);
          } 
      } 
    });
@@ -118,7 +114,7 @@
          <br/>
          <br/>
      Search Term <input id="test"><br/> 
-     <button onclick="document.getElementById('question').style.display = 'block'; searchLinks(document.getElementById('test').value); return false;">Search!</button>
+     <button onclick="document.getElementById('question').style.display = 'block'; document.getElementById('myGrid').style.display='block'; searchLinks(document.getElementById('test').value); return false;">Search!</button>
      
          <div id='dialog'>
            <div id="myGrid" style="width:100%;height:500px;">
