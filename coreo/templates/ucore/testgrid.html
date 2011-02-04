@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <link href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" rel="stylesheet" type="text/css"/>
+    <script src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+         
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/smoothness/jquery-ui-1.8.5.custom.css" type="text/css" media="screen" charset="utf-8" />
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/examples.css" type="text/css" media="screen" charset="utf-8" />
+    <style>
+       .slick-cell-checkboxsel {
+           background: #f0f0f0;
+           border-right-color: silver;
+           border-right-style: solid;     
+         }   
+    </style>
+    <script src="{{ MEDIA_URL }}javascript/lib/firebugx.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-ui-1.8.5.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.jsonp-1.1.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slick.core.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.remotemodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.checkboxselectcolumn.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.autotooltips.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellrangedecorator.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellcopymanager.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.rowselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slick.editors.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slick.grid.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slick.dataview.js"></script>
+    <script>
+      var totalTable = [];
+      var grid;
+      $(document).ready(function()
+      {
+                document.getElementById('question').style.display='none';
+      });
+              
+
+
+      function searchLinks(term)
+       {
+         // alert('Got to searchLinks and passed in : ' + term);
+         $.getJSON('../search-links/', { q : term },
+         function(jsonstuff)
+         { 
+           if (!jQuery.isEmptyObject(jsonstuff))
+           {
+   
+          var columns = [];
+          $(function()
+          {
+          var checkboxSelector = new Slick.CheckboxSelectColumn({
+                 cssClass: "slick-cell-checkboxsel"
+          });
+          columns.push(checkboxSelector.getColumnDefinition());
+          // for (var i = 0; i < jsonstuff.length; i++) {
+          //  columns.push({ id: i, name: String.fromCharCode("A".charCodeAt(0) + i), field: i, width: 100,
+          //          editor: TextCellEditor
+          // });
+          columns.push({ id: "name", name: "name", field: "name", width:300,
+               editor: TextCellEditor
+           });
+          columns.push({ id: "desc", name: "desc", field: "description", width:300,
+               editor: TextCellEditor
+           });
+          columns.push({ id: "url", name: "url", field: "urlfield", width:500,
+               editor: TextCellEditor
+           });
+           for (var i=0; i < jsonstuff.length; i++)
+           {
+               var d = (totalTable[i] = {}); 
+               d["name"] = jsonstuff[i].fields.name;
+               d["description"] = jsonstuff[i].fields.desc;
+               d["urlfield"] = jsonstuff[i].fields.url;
+               d["pk"] = jsonstuff[i].pk;
+          }
+          var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
+          // }
+          // var dataView = new Slick.Data.DataView();
+          // dataView.setItems(totalTable);
+          grid = new Slick.Grid("#myGrid", totalTable, columns, options);
+
+          // grid = new Slick.Grid('#myGrid', dataView, columns, options);  
+          grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
+          grid.registerPlugin(checkboxSelector);
+              })  // document.getElementById('dialog').innerHTML = totalTable; 
+         } });
+           
+         $("#dialog").dialog({ width: 1000, buttons: { "Save Link Library": function() {
+               var selectedRows = grid.getSelectedRows();
+               for (var j = 0; j < selectedRows.length; j++)
+               {
+                 var rowNum = selectedRows[j];
+                 alert("You selected:  " + totalTable[rowNum]["name"] + " | " + totalTable[rowNum]["pk"]);
+                 alert("you entered: " + document.getElementById('q1').value);
+               }  
+          // $("#question").style.display="block";
+      //    $("#question").dialog({ width: 300, buttons: { "Save Library Name":
+      //     function() {
+              alert("you entered: " + document.getElementById('q1').value);
+      //     }
+      //   }
+      //  });
+         } 
+     } 
+   });
+       }
+       </script>
+       </head>
+       <body>
+         <br/>
+         <br/>
+         <br/>
+         <br/>
+     Search Term <input id="test"><br/> 
+     <button onclick="document.getElementById('question').style.display = 'block'; searchLinks(document.getElementById('test').value); return false;">Search!</button>
+     
+         <div id='dialog'>
+           <div id="myGrid" style="width:100%;height:500px;">
+           </div>
+           <div id="question">
+             <label for="q1">Library Name:</label><input id="q1"/>
+           </div>
+    </body>
+</html>
+
