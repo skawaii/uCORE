@@ -11,7 +11,7 @@ from django.core import mail, serializers
 from django.test import TestCase
 from django.test.client import Client
 
-from coreo.ucore.models import *
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, SearchLog, Skin, Tag, TrophyCase
 
 
 # XXX in every setUp(), a CoreUser is being created. This should be put into a fixture
@@ -20,13 +20,13 @@ from coreo.ucore.models import *
 class LoginTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     self.user.set_password('2pass')
     self.user.save()
 
-  def test_login(self):
-    self.client.post('/login/', {'username': 'testuser', 'password': '2pass'})
 
+  def test_login(self):
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
     self.assertTrue(self.client.session.has_key('_auth_user_id'))
 
     #print '\nPassed the login test.'
@@ -35,14 +35,15 @@ class LoginTest(TestCase):
 class LogoutTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     self.user.set_password('2pass')
     self.user.save()
 
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
+
   def test_logout(self):
-    self.client.get('/logout/')
+    self.client.logout()
 
     self.assertFalse(self.client.session.has_key('_auth_user_id'))
   
@@ -50,16 +51,12 @@ class LogoutTest(TestCase):
 class TrophyTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     self.user.set_password('2pass')
     self.user.save()
 
-    # clear out the auto-generated trophy cases and notifications
-    TrophyCase.objects.all().delete()
-    Notification.objects.all().delete()
-    mail.outbox = []
-
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
 
   def test_trophypage(self):
     response = self.client.get('/trophyroom/')
@@ -68,7 +65,8 @@ class TrophyTest(TestCase):
 
     #print 'Passed the trophyroom url test.\n'
 
-  def test_post_save_signal(self):
+
+  def test_signal_working(self):
     ocean_tag = Tag.objects.get(name='Ocean', type='T')
     user = CoreUser.objects.get(pk=1)
 
@@ -83,10 +81,11 @@ class TrophyTest(TestCase):
 
     trophy_case = TrophyCase.objects.get(pk=1)
     self.assertEquals(trophy_case.trophy.name, 'Captain Blackbeard Trophy')
-    self.assertEquals(trophy_case.date_earned, datetime.date.today())
+    self.assertEquals(len(mail.outbox), 1)
 
     #print '\nPassed the e-mail test'
     #print '\nPassed the signal test.'
+
 
   def test_registration_trophy_earned(self):
     self.client.post('/save-user/', {'sid': 'something', 'username': 'bubba', 'first_name': 'Bubba', 'last_name': 'Smith',
@@ -98,18 +97,19 @@ class TrophyTest(TestCase):
 
     self.assertEquals(trophy_case.user.username, 'bubba')
     self.assertEquals(trophy_case.trophy.name, 'Successful Registration Trophy')
+    self.assertEquals(len(mail.outbox), 1)
 
     #print 'Passed the registration trophy test.'
-
 
 class CsvTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     self.user.set_password('2pass')
     self.user.save()
 
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
 
   def test_get_csv(self):
     response = self.client.get('/export-csv/')
@@ -122,11 +122,12 @@ class CsvTest(TestCase):
 class KmzTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     self.user.set_password('2pass')
     self.user.save()
 
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
 
   def test_get_kmz(self):
     response = self.client.get('/getkmz/')
@@ -155,11 +156,12 @@ class KmzTest(TestCase):
 class ShapefileTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     self.user.set_password('2pass')
     self.user.save()
 
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
 
   def test_get_shapefile(self):
     response = self.client.get('/getshp/')
@@ -186,16 +188,14 @@ class ShapefileTest(TestCase):
 class NotificationTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     self.user.set_password('2pass')
     self.user.save()
 
-    # delete the auto-generated notification resulting from saving a new user and add a know notification
-    Notification.objects.all().delete()
-    mail.outbox = [] # empty the outbox
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
     Notification.objects.create(user=self.user, type='TR', message='You won a new registration trophy')
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
   def test_get_notification(self):
     response = self.client.get('/notifications/')
@@ -208,6 +208,7 @@ class NotificationTest(TestCase):
 
     #print 'The GET method of notifications works well.'
 
+
   def test_delete_notification(self):
     self.client.delete('/notifications/1/') 
 
@@ -216,24 +217,19 @@ class NotificationTest(TestCase):
     #print 'The DELETE method of notifications also works.'
     #print 'Poll notification test has passed.'
 
-  def test_post_save_signal(self):
-    self.assertEquals(len(mail.outbox), 1)
-
 
 class RateTest(TestCase):
   def setUp(self):
     # this could be in a fixture
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     self.user.set_password('2pass')
     self.user.save()
-
-    self.poc = POC.objects.create(first_name='homer', last_name='simpson', phone_number='1234567890', email='homer@simpsons.com')
 
     self.link_tags = (Tag.objects.create(name='LinkTag1'), Tag.objects.create(name='LinkTag2'))
     self.link_library_tags = (Tag.objects.create(name='LinkLibraryTag1'), Tag.objects.create(name='LinkLibraryTag2'))
 
-    self.link = Link.objects.create(name='Test Link', desc='Just a test', url='http://test.com', poc=self.poc)
+    self.link = Link.objects.create(name='Test Link', desc='Just a test', url='http://test.com')
     self.link.tags.add(self.link_tags[0])
     self.link.tags.add(self.link_tags[1])
 
@@ -243,6 +239,7 @@ class RateTest(TestCase):
     self.link_library.links.add(self.link)
 
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
 
   def test_view_link_rating(self):
     rating_fk = RatingFK.objects.create(user=self.user, link=self.link)
@@ -270,6 +267,7 @@ class RateTest(TestCase):
     self.assertEquals(response.context['link'], None)
     self.assertEquals(response.context['link_library'], self.link_library)
 
+
   def test_rating_link(self):
     response = self.client.post('/rate/link/1/', {'score': 1, 'comment': 'What is this? A link for ants?!'})
 
@@ -286,6 +284,7 @@ class RateTest(TestCase):
     self.assertEquals(rating.rating_fk, rating_fk)
     self.assertEquals(rating.score, 1)
     self.assertEquals(rating.comment, 'What is this? A link for ants?!')
+
 
   def test_rating_link_library(self):
     response = self.client.post('/rate/library/1/', {'score': 1, 'comment': 'What is this? A library for ants?!'})

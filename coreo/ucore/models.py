@@ -5,6 +5,7 @@ from django.contrib import auth
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
+from django.db.models.signals import post_save
 
 
 class Skin(models.Model):
@@ -30,32 +31,16 @@ class Tag(models.Model):
 
 class Trophy(models.Model):
   name = models.CharField(max_length=50)
-  desc = models.CharField('short description', max_length=100, help_text='Include details on how to earn this trophy.')
+  desc = models.CharField('short description', max_length=100)
   tag = models.ForeignKey(Tag)
-  earning_req = models.PositiveSmallIntegerField(help_text='Total actions required for earning this trophy.')
   file_path = models.FilePathField('path to image file', path=settings.MEDIA_ROOT + 'trophies')
 
   def __unicode__(self):
-    return self.name
+    #  return self.name
+    return '%s %s %s' % (self.name, self.desc, self.file_path)
 
   class Meta:
     verbose_name_plural = 'trophies'
-
-
-class POC(models.Model):
-  first_name = models.CharField(max_length=20)
-  last_name = models.CharField(max_length=20)
-  phone_number = models.PositiveSmallIntegerField()
-  email = models.EmailField(unique=True)
-
-  def __unicode__(self):
-    return self.get_full_name()
-
-  def get_full_name(self):
-    return ' '.join((self.first_name, self.last_name))
-
-  class Meta:
-    verbose_name_plural = 'POCs'
 
 
 class Link(models.Model):
@@ -63,45 +48,20 @@ class Link(models.Model):
   desc = models.CharField(max_length=256) # completely arbitrary max_length
   url = models.URLField(unique=True) # do we want verify_exists=True?
   tags = models.ManyToManyField(Tag, verbose_name='default tags')
-  poc = models.ForeignKey(POC)
 
   def __unicode__(self):
      return self.name
 
 
-class Settings(models.Model):
-  ''' All fields in this model should contain a ``default`` value and a ``help_text``.
-      Providing a ``default`` value allows us to save a new CoreUser without bugging the user for their
-      settings upon registering. The ``help_text`` is what will be the description on the settings page
-      that the user will see.
-  '''
-  wants_emails = models.BooleanField(default=True, help_text='Would you like to be notified of events via email?')
-  #skin = models.ForeignKey(Skin, default=Skin.objects.get(name='Default'),
-  #skin = models.ForeignKey(Skin, help_text='Customize the look and feel with skins.')
-
-  def __unicode__(self):
-    return 'settings %s' % self.pk
-
-  class Meta:
-    verbose_name_plural = 'settings'
-
-
 class CoreUser(auth.models.User):
-  sid = models.CharField(max_length=20, unique=True)
+  sid = models.CharField(max_length=20)
   phone_number = models.PositiveSmallIntegerField()
-  skin = models.ForeignKey(Skin, null=True, blank=True)
-  settings = models.OneToOneField(Settings, null=True, blank=True)
+  skin = models.ForeignKey(Skin)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
   # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
     return ' '.join((self.username, self.sid))
-
-  def save(self, *args, **kwargs):
-    if not self.settings: self.settings = Settings.objects.create()
-    if not self.skin: self.skin = Skin.objects.get(name='Default')
-
-    super(CoreUser, self).save(*args, **kwargs)
 
 
 class Notification(models.Model):
@@ -160,8 +120,7 @@ class Rating(models.Model):
 class TrophyCase(models.Model):
   user = models.ForeignKey(CoreUser)
   trophy = models.ForeignKey(Trophy)
-  count = models.PositiveSmallIntegerField(default=1)
-  date_earned = models.DateField(blank=True, null=True)
+  date_earned = models.DateField()
 
   def __unicode__(self):
      return ' '.join((self.user.sid, self.trophy.name))
@@ -182,22 +141,17 @@ class LinkLibrary(models.Model):
 
 
 class SearchLog(models.Model):
-  user = models.ForeignKey(CoreUser)
-  date_queried = models.DateField()
-  search_terms = models.CharField(max_length=200)
-  search_tags = models.ManyToManyField(Tag)
+  # user = models.CharField(max_length=100)
+   user = models.ForeignKey(CoreUser)
+   date_queried = models.DateField()
+   search_terms = models.CharField(max_length=200)
+   search_tags = models.ManyToManyField(Tag)
 
-  def __unicode__(self):
-    return ' '.join((self.user.username, self.search_terms))
-
+   def __unicode__(self):
+     return ' '.join((self.user.username, self.search_terms))
 
 ### Signal Registration ###
-from django.db.models.signals import post_delete, post_save
 from coreo.ucore import signals
-
-post_delete.connect(signals.delete_user_settings, sender=CoreUser)
 post_save.connect(signals.check_for_trophy, sender=SearchLog)
-post_save.connect(signals.send_notification_email, sender=Notification)
-post_save.connect(signals.check_trophy_conditions, sender=TrophyCase)
-post_save.connect(signals.initialize_new_user, sender=CoreUser)
+post_save.connect(signals.send_trophy_email, sender=TrophyCase)
 

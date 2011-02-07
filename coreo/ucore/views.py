@@ -15,7 +15,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
 
-from coreo.ucore.models import *
+from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, Skin, Tag, Trophy, TrophyCase
 from coreo.ucore import shapefile, utils
 
 
@@ -117,7 +117,6 @@ def get_kmz(request):
 
 
 def get_library(request, username, lib_name):
-  # XXX and try/except in case the lib_name doesn't exist
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
 
   doc = utils.build_kml_from_library(library)
@@ -125,7 +124,6 @@ def get_library(request, username, lib_name):
   #xml.dom.ext.PrettyPrint(doc, open(file_path, "w"))
 
   with open(file_path, 'w') as f:
-    # XXX try setting newl=''
     f.write(doc.toprettyxml(indent='  ', encoding='UTF-8'))
 
   uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
@@ -324,40 +322,33 @@ def save_user(request):
          'error_message': 'Please fill in all required fields.'
         }, context_instance=RequestContext(request))
 
-  # create/update the user to the DB with the default skin
-  user, created = CoreUser.objects.get_or_create(sid=sid, defaults={'username': username, 'first_name': first_name,
-    'last_name': last_name, 'email': email, 'phone_number': newphone})
+  # XXX currently User.phone_number is stored as an int
+  #   1. keep as an int
+  #   2. change from an int to a CharField
+  # either way, we should use regex to check before we put it into the DB
 
-  if not created:
-    user.first_name = first_name
-    user.last_name = last_name
-    user.email = email
-    user.phone_number = newphone
-
+  # save the new user to the DB with the default skin
+  default_skin = Skin.objects.get(name='Default')
+  user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name,
+      email=email, phone_number=newphone, skin=default_skin)
   user.set_password(password)
   user.save()
 
-  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
+  TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
+  Notification.objects.create(user=user, type='TR', message='You have won a registration trophy.')
+  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
+  # hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
 
 def search_links(request):
   terms = request.GET['q'].split(' ') 
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
+  links = list(Link.objects.filter(tags__name__in=terms).distinct())
+  links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
-  # search Link for matches
-  #results = list(Link.objects.filter(tags__name__in=terms).distinct())
-  results = list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
-
-  # search LinkLibraries for matches
-  #results += list(LinkLibrary.objects.filter(tags__name__in=terms).distinct())
-  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
-
-  return HttpResponse(serializers.serialize('json', results))
+  return HttpResponse(serializers.serialize('json', links))
 
 
 def search_mongo(request):

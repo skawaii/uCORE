@@ -51,11 +51,10 @@
     "model": "ucore.Trophy",
     "pk": 1,
     "fields": {
-      "name": "Life is a beach trophy",
-      "desc": "For 5 tropical searches",
-      "tag": 5,
-      "earning_req": 5,
-      "file_path": "images/beach.jpg"
+        "name": "Life is a beach trophy",
+        "desc": "For 5 tropical searches",
+        "tag": 5,
+        "file_path": "images/beach.jpg"
     }
  },
  {
@@ -65,7 +64,6 @@
       "name": "Artic King Trophy",
       "desc": "For 5 searches in the artic.",
       "tag": 3,
-      "earning_req": 5,
       "file_path": "images/snowmountain.jpg"
     }
  },
@@ -76,7 +74,6 @@
       "name": "Forrest Ranger Trophy",
       "desc": "For 5 searches over forrests.",
       "tag": 2,
-      "earning_req": 5,
       "file_path": "images/forrest.jpg"
     }
  },
@@ -87,7 +84,6 @@
       "name": "Captain Blackbeard Trophy",
       "desc": "For 5 searches over oceans.",
       "tag": 1,
-      "earning_req": 5,
       "file_path": "images/ocean.jpg"
      }
  },
@@ -98,7 +94,6 @@
       "name": "Successful Registration Trophy",
       "desc": "For a successful registration.",
       "tag": 6,
-      "earning_req": 1,
       "file_path": "images/dart_trophy.JPG"
     }
  },

@@ -1,44 +1,35 @@
 import csv
 import xml.dom.minidom
-
 from coreo.ucore.models import *
-
 
 def insert_links_from_csv(csv_file):
   link_file = csv.reader(csv_file)
-
-  # headers are name, description, url, tags, poc_first, poc_last, poc_phone, poc_email
   headers = link_file.next()
 
   for row in link_file:
     fields = zip(headers, row)
-    poc = {}
-
-    # create the POC obj if it doesn't already exist in the DB
-    for field, value in fields[4:]:
-      poc[field] = value.strip()
-
-    db_poc = POC.objects.get_or_create(email=poc['poc_email'], defaults={'first_name': poc['poc_first'],
-        'last_name': poc['poc_last'], 'phone_number': poc['poc_phone']})[0]
-
-    # create the Link obj
     link = {}
 
-    for field, value in fields[:4]:
+    for (field, value) in fields:
       link[field] = value.strip()
 
-    link['tags'] = link['tags'].strip('"')
-
-    db_link = Link(name=link['name'], url=link['url'], desc=link['description'], poc=db_poc)
+    link['tags']=link['tags'].strip('"')
+    db_link = Link(name=link['name'], url=link['url'],
+    desc=link['description'])
     db_link.save()
 
     for tag in link['tags'].split(','):
       tag = tag.strip()
-      db_tag = Tag.objects.get_or_create(name=tag)[0]
-      db_link.tags.add(db_tag)
+
+      try:
+        stored_tag=Tag.objects.get(name__exact=tag)
+      except Tag.DoesNotExist:
+        stored_tag=Tag(name=tag)
+
+      stored_tag.save()
+      db_link.tags.add(stored_tag)
 
     db_link.save()
-
 
 def build_kml_from_library(link_library):
   doc = xml.dom.minidom.Document()
