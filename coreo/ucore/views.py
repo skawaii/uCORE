@@ -19,6 +19,39 @@ from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating
 from coreo.ucore import shapefile, utils
 
 
+def create_library(request):
+  # if request.method == 'POST':
+ 
+  if not request.user.is_authenticated(): 
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  userperson = CoreUser.objects.get(username=request.user)
+  try:
+    if not userperson:
+      print 'user was not defined.'
+      logging.debug('No user retrieved by the username of %s' % request.user)
+    if request.method == 'POST':
+      links = request.POST['links'].strip()
+      print 'value of links is: ' + links
+      name = request.POST['name'].strip()
+      desc = request.POST['desc'].strip()
+      linkArray = links.strip(',')
+      # library = LinkLibrary(name=name, desc=desc,
+      maintag = Tag.objects.get(name='HotButton')
+    library = LinkLibrary(name=name, desc=desc, user=userperson)
+    library.save()
+    library.tags.add(maintag)
+    for i in linkArray:
+      if i != ',':
+        link = Link.objects.get(pk=int(i))
+        library.links.add(link)
+    library.save()
+  except Exception, e:
+    print e.message
+
+  return render_to_response('testgrid.html',  context_instance=RequestContext(request))
+
+
 def earn_trophy(request):
   if request.method == 'POST':
     user2 = request.POST['user'].strip()
@@ -347,20 +380,28 @@ def save_user(request):
 def search_links(request):
   terms = request.GET['q'].split(' ') 
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
-
+  try:
   # search Link for matches
-  #results = list(Link.objects.filter(tags__name__in=terms).distinct())
-  results = list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  # results = list(Link.objects.filter(tags__name__in=terms).distinct())
+    results = list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+    results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+    results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
   # search LinkLibraries for matches
-  #results += list(LinkLibrary.objects.filter(tags__name__in=terms).distinct())
-  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
-
-  return HttpResponse(serializers.serialize('json', results))
+  # results += list(LinkLibrary.objects.filter(tags__name__in=terms).distinct())
+    results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+    results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+    results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+    return HttpResponse(serializers.serialize('json', results))
+  except Exception, e:
+    print e.message
+    return HttpResponse()
+  #    terms = request.GET['q'].split(' ') 
+  #    logging.debug('Received terms %s in the GET of search_links\n' % terms)
+  #    links = list(Link.objects.filter(tags__name__in=terms).distinct())
+  #    links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  #    links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  #    return HttpResponse(serializers.serialize('json', links))
 
 
 def search_mongo(request):

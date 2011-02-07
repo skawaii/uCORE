@@ -95,13 +95,26 @@
            
          $("#dialog").dialog({ width: 1000, buttons: { "Save Link Library": function() {
                var selectedRows = grid.getSelectedRows();
+               var row_parameter;
                for (var j = 0; j < selectedRows.length; j++)
                {
                  var rowNum = selectedRows[j];
                  // alert("You selected:  " + totalTable[rowNum]["name"] + " | " + totalTable[rowNum]["pk"]);
-                 // alert("you entered: " + document.getElementById('q1').value);
-               }  
+                 // alert("you entered: " + document.getElementById('q1').value); 
+                 if (j == 0)
+                 {
+                   row_parameter = totalTable[rowNum]["pk"];
+                 }
+                 else
+                 {
+                   row_parameter = row_parameter + "," + totalTable[rowNum]["pk"];
+                 }
+               }
+               var library_name = document.getElementById('q1').value;
+               var library_desc = document.getElementById('q2').value;
+               $.post("../create-library/", { name: library_name, desc: library_desc, links: row_parameter});
                //  alert("you entered: " + document.getElementById('q1').value);
+               $("#dialog").dialog("close");
          } 
      } 
    });
@@ -120,7 +133,7 @@
            <div id="myGrid" style="width:100%;height:500px;">
            </div>
            <div id="question">
-             <label for="q1">Library Name:</label><input id="q1"/>
+             <label for="q1">Library Name:</label><input id="q1"/>&nbsp;&nbsp;&nbsp;&nbsp;<label for="q2">Library Description:</label><input id="q2"/>
            </div>
     </body>
 </html>
