@@ -20,16 +20,11 @@ from coreo.ucore import shapefile, utils
 
 
 def create_library(request):
-  # if request.method == 'POST':
  
-  if not request.user.is_authenticated(): 
-    return render_to_response('login.html', context_instance=RequestContext(request))
-
   userperson = CoreUser.objects.get(username=request.user)
   try:
     if not userperson:
-      print 'user was not defined.'
-      logging.debug('No user retrieved by the username of %s' % request.user)
+      logging.error('No user retrieved by the username of %s' % request.user)
     if request.method == 'POST':
       links = request.POST['links'].strip()
       print 'value of links is: ' + links
@@ -48,6 +43,7 @@ def create_library(request):
     library.save()
   except Exception, e:
     print e.message
+    logging.error(e.message)
 
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
@@ -62,7 +58,7 @@ def earn_trophy(request):
     tc.save()
     custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
     user_email = userc.email
-    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
+    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 
 
 def ge_index(request):
@@ -136,7 +132,7 @@ def get_kmz(request):
   response['Content-Disposition'] = 'attachment; filename=download.kmz'
   response['Content-Description'] = 'a sample kmz file.'
   response['Content-Length'] = str(len(response.content))
-  return response
+  return response 
 
 
 def get_library(request, username, lib_name):
@@ -185,8 +181,12 @@ def index(request):
   return render_to_response('index.html', context_instance=RequestContext(request))
 
 
-def testgrid(request):
-  return render_to_response('testgrid.html', context_instance=RequestContext(request))
+def library_demo(request):
+  if not request.user.is_authenticated(): 
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  else:
+    return render_to_response('testgrid.html', context_instance=RequestContext(request))
+
 
 
 def login(request):

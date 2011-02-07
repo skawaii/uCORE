@@ -45,10 +45,34 @@ class LogoutTest(TestCase):
     self.client.get('/logout/')
 
     self.assertFalse(self.client.session.has_key('_auth_user_id'))
-  
+
+
+class CreateLibraryTest(TestCase):
+
+  def setUp(self):
+    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
+        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+    self.user.set_password('2pass')
+    self.user.save()
+
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
+  def testCreate(self):
+    self.client.login(username='testuser', password='2pass')
+    response = self.client.get('/library-demo/')
+    self.assertEquals(response.status_code, 200)
+    # Link.create(
+    # response = self.client.post('/create-library/', { 'name': 'test library', 'desc': 'test description', 'links': '1,3,5'})
+    # self.assertEquals(response.status_code, 200)
+    # self.assertEquals(LinkLibrary.objects.all().count(), 1)
+    # library = LinkLibrary.objects.get(pk=1)
+    # self.assertEquals(library.name, 'test library')
+    # self.assertEquals(library.links.all().count(), 3)
+    print 'Passed the create link library test.'
+
 
 class TrophyTest(TestCase):
-  def setUp(self):
+  def  setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222',skin=Skin.objects.get(name='Default'))
     self.user.set_password('2pass')

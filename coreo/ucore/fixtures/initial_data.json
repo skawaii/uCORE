@@ -48,6 +48,14 @@
     }
  },
  {
+   "model": "ucore.Tag",
+   "pk": 7,
+   "fields": {
+     "name": "HotButton",
+     "type": "P"
+    }
+ },
+ {
     "model": "ucore.Trophy",
     "pk": 1,
     "fields": {
