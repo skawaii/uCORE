@@ -55,12 +55,6 @@ class CreateLibraryTest(TestCase):
     self.user.set_password('2pass')
     self.user.save()
 
-    # clear out the auto-generated trophy cases and notifications
-    TrophyCase.objects.all().delete()
-    Notification.objects.all().delete()
-    mail.outbox = []
-
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
   def testCreate(self):
     self.client.login(username='testuser', password='2pass')
@@ -83,6 +77,12 @@ class TrophyTest(TestCase):
     self.user.set_password('2pass')
     self.user.save()
 
+    # clear out the auto-generated trophy cases and notifications
+    TrophyCase.objects.all().delete()
+    Notification.objects.all().delete()
+    mail.outbox = []
+
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
   def test_trophypage(self):
