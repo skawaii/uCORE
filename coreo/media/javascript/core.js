@@ -2,9 +2,9 @@
 
 (function(window, $) {
 	var idSeed = 0;
-	
+
 	var core = {
-			
+
 			/**
 			 * Creates a new unique DOM element ID
 			 */
@@ -16,7 +16,7 @@
 				} while ($("#" + id).length > 0);
 				return id;
 			},
-			
+
 			/**
 			 * Creates an array from the parameter
 			 */
@@ -34,7 +34,7 @@
 				}
 				return arr;
 			},
-			
+
 			/**
 			 * Generates a string describing the properties of an object
 			 */
@@ -57,9 +57,9 @@
 				return jQuery.contains(container, contained.get(0))
 					|| (container && contained && $(container).get(0) == $(contained).get(0));
 			}
-			
+
 	};
-	
+
 	return (window.core = core);
 })(window, jQuery);
 
@@ -86,12 +86,12 @@
 (function($) {
 
 	var EmptyText = {
-		
+
 		options: {
 			text: "Enter a value",
 			cssClass: "ui-emptytext"
 		},
-		
+
 		_init: function() {
 			var self = this;
 			this.element.focusin(function(event) {
@@ -109,7 +109,7 @@
 			this.element.focusout(focusout);
 			this.clear();
 		},
-		
+
 		getValue: function() {
 			var val = this.element.val();
 			if (val.trim() === this.options.text) {
@@ -117,17 +117,17 @@
 			}
 			return val;
 		},
-		
+
 		clear: function() {
 			this.element.val(this.options.text);
 			this.element.addClass(this.options.cssClass);
 			this.element.blur();
 		}
-		
+
 	};
-	
+
 	$.widget("ui.emptytext", EmptyText);
-	
+
 })(jQuery);
 
 
@@ -144,14 +144,14 @@
  *         resizable element
  */
 (function($) {
-	
+
 	var ResizableLeftColumn = {
-		
+
 		options: {
 			rightColumn: null,
 			minWidth: 10
 		},
-		
+
 		_init: function() {
 			var rightColumn = $(this.options.rightColumn);
 			var self = this;
@@ -171,11 +171,11 @@
 				}
 			});
 		}
-	
+
 	};
-	
+
 	$.widget("ui.resizableleftcolumn", ResizableLeftColumn);
-	
+
 })(jQuery);
 
 
@@ -193,14 +193,14 @@
  *         calculate the width of the element
  */
 (function($) {
-	
+
 	var FitWindow = {
-		
+
 		options: {
 			heightOffset: 0,
 			widthOffset: 0
 		},
-		
+
 		_init: function() {
 			var heightOffset = typeof this.options.heightOffset == "number" 
 								? this.options.heightOffset : 0;
@@ -221,11 +221,11 @@
 			});
 			doResize();
 		}
-	
+
 	};
-	
+
 	$.widget("ui.fitwindow", FitWindow);
-	
+
 })(jQuery);
 
 
@@ -257,16 +257,16 @@
  *     $("#ge").gearth("earth");
  */
 (function($) {
-	
+
 	var GEarth = {
 
 		EARTH_LOADED: "earthLoaded",
-		
+
 		// default options
 		options: {
 			earth: null
 		},
-		
+
 		_init: function() {
 			var self = this;
 			// create Google Earth instance
@@ -282,10 +282,83 @@
 		},
 
 	};
-	
+
 	$.widget("ui.gearth", GEarth);
 
 })(jQuery);
+
+/**
+ * GMaps jQuery widget
+ * 
+ * Renders a Google Maps plugin instance. 
+ * 
+ * Options:
+ * 
+ *     maps: GMaps plugin instance
+ *     
+ * Callbacks:
+ * 
+ *     mapsLoaded: invoked after GMaps plugin instance is created
+ * 
+ * Typical usage:
+ *     
+ *     <div id="gm"></div>
+ *     ...
+ *     // Create a new Google Maps widget
+ *     $("#gm").gmaps({
+ *         mapsLoaded: function(event, data) {
+ *             // data.earth = Maps plugin instance
+ *         }
+ *     });
+ *     ...
+ *     // Retrieve the GMaps plugin instance from the widget
+ *     $("#gm").gmaps("maps");
+ */
+(function($) {
+
+	var GMaps = {
+
+		MAPS_LOADED: "mapsLoaded",
+
+		// default options
+		options: {
+			maps: null,
+			mapsContainerElId : null
+			
+		},
+
+		_init: function() {
+			var self = this;
+	
+		
+			var mapsContainerElId = self.options.mapsContainerElId;
+			var map = new GMap2(document.getElementById(mapsContainerElId), { size: new GSize(800,800) } );
+
+			GEvent.addListener(map, "load", function() {
+ 				alert("maps loaded");
+
+				self._trigger(GMaps.MAPS_LOADED, 0, {maps: self.options.maps});
+
+			});
+			self.options.maps = map;
+	 		map.setCenter(new GLatLng(37.4419, -122.1419), 13);
+			var customUI = map.getDefaultUI();
+       			// Remove MapType.G_HYBRID_MAP
+       			customUI.maptypes.hybrid = false;
+      			map.setUI(customUI);
+
+
+					
+			
+		
+		},
+
+	};
+
+	$.widget("ui.gmaps", GMaps);
+
+})(jQuery);
+
 
 
 /**
@@ -325,7 +398,7 @@
 	var KMLTREE_CONTAINER_CLASS = "ui-kmlaccordion-kmltreecontainer";
 	
 	var KmlAccordion = {
-		
+
 		options: {
 			gex: null,
 			mapElement: null,
@@ -334,11 +407,11 @@
 			optionsKml: null,
 			kmlDocsContainerElId: null
 		},
-		
+
 		_init: function() {
 			this.element.addClass("ui-widget");
 			this.element.addClass("ui-kmlaccordion");
-			
+
 			// kmlDocsElId is the ID of the element that contains the search
 			// form and the kml trees
 			var kmlDocsElId = core.generateId();
@@ -351,7 +424,7 @@
 			var layersElId = core.generateId();
 			// optionsElId is the ID of the kmltree element with GE options
 			var optionsElId = core.generateId();
-			
+
 			// add markup for the skeleton of the accordion panels
 			this.element.append("<h3><a href=\"#\">KML Documents</a></h3>"
 					+ "<div>"
@@ -365,17 +438,17 @@
 					+ "</div>"
 					+ "<h3><a href=\"#\">Google Earth Layers</a></h3>"
 					+ "<div><div id=\"" + layersElId + "\"></div></div>"
-					+ "<h3><a href=\"#\">Google Earth Options</a></h3>"
+					+ "<h3><a href=\"#\">Google Maps Options</a></h3>"
 					+ "<div><div id=\"" + optionsElId + "\"></div></div>");
-			
+
 			this.element.accordion({
 				fillSpace: true
 			});
 
 			var self = this;
-			
+
 			// create search box
-			
+
 			$("#" + searchInputElId).emptytext({
 				text: "search"
 			});
@@ -384,15 +457,15 @@
 					// do nothing - no search text entered
 					return;
 				}
-				
+
 				var searchTxt = $("#" + searchInputElId).val();
-				
+
 		        var showLoading = function(msg, el){
 		            var h = $('<div class="kmltree-loading" style=\"position:relative;\"><span style=\"white-space: nowrap; overflow: hidden\">' + 
 		                msg + '</span></div>');
 		            el.append(h).effect("slide", { }, 200, null);
 		        };
-		        
+
 				var showPrefixRegex = /^show[\s:-=]+/i;
 		        if (searchTxt.match('^http')) {
 		        	self.addKml(searchTxt);
@@ -445,7 +518,7 @@
 					doSearch();
 				}
 			});
-			
+
 			var searchButtonEl = $("#" + searchFormElId + " button");
 			searchButtonEl.button({
 				icons: {
@@ -454,9 +527,25 @@
 				text: false
 			});
 			searchButtonEl.click(doSearch);
+
+			var resizeSearchForm = function() {
+				var searchFormWidth = $("#" + searchFormElId).innerWidth();
+				var searchButtonWidth = searchButtonEl.outerWidth(true);
+				var searchTxtWidth = searchFormWidth - searchButtonWidth - ($("#" + searchInputElId).outerWidth(true) - $("#" + searchInputElId).outerWidth(false));
+				$("#" + searchInputElId).width(searchTxtWidth + "px");
+			};
+			resizeSearchForm();
+
+			this.element.resize(function(event) {
+				self.element.accordion("resize");
+				resizeSearchForm();
+			});
+
+
+			//this._resizeSearchForm();
 			
 			this.options.kmlDocsContainerElId = kmlDocsElId;
-			
+
 			// create kmltree object for the Google Earth Layers panel
 			var layersKmlTree = kmltree({
 				url: this.options.layersKml,
@@ -490,10 +579,11 @@
 					}
 				});
 				optionsKmlTree.load();
-				
+
 			});
 			layersKmlTree.load();
 		},
+
 		
 		resize: function() {
 			this.element.accordion("resize");
@@ -529,24 +619,24 @@
 			}
 			newKmlTree.load();
 		},
-		
+
 		_createNewKmlTreeEl: function() {
 			var el = $("#" + this.options.kmlDocsContainerElId);
 			var kmlTreeElId = core.generateId();
 			el.prepend("<div id=\"" + kmlTreeElId + "\"></div>");
 			return $("#" + kmlTreeElId);
 		},
-		
+
 		addKml: function(kmlUrl, kmlLoadedCallback) {
 			var kmlTreeEl = this._createNewKmlTreeEl();
 			this._addKmlToEl(kmlUrl, kmlTreeEl, kmlLoadedCallback);
 			kmlTreeEl.effect("slide", {}, 200, null);
 		}
-		
+
 	};
-	
+
 	$.widget("ui.kmlaccordion", KmlAccordion);
-	
+
 })(jQuery);
 
 
@@ -567,15 +657,15 @@
  *     optionsKml: Required. URL to a KML file containg GE options.
  */
 (function($) {
-	
+
 	var GEarthApp = {
-		
+
 		options: {
 			kmlDocs: [],
 			layersKml: null,
 			optionsKml: null
 		},
-		
+
 		_init: function() {
 			// write markup - left panel for KML trees and right panel for Google 
 			// Earth instance
@@ -585,6 +675,8 @@
 			var collapserElId = core.generateId();
 			var kmlAccordionElId = core.generateId();
 			var earthPanelElId = core.generateId();
+			containerEl.append("<div id=\"" + earthPanelElId + "\" class=\"gearthapp-earthpanel\"></div>");
+
 			// iframe exists to implement the "iframe shim" strategy for 
 			// overlaying elements on the GE plugin instance
 			containerEl.append("<iframe src=\"javascript:false\" frameborder=\"0\" class=\"core-controlpanel\">" +
@@ -664,7 +756,7 @@
 			expandControl.click(expandControlPanel);
 			
 			var self = this;
-			
+
 			$("#" + earthPanelElId).gearth({
 				earthLoaded: function(event, data) {
 					resizeKmlAccordion();
@@ -716,9 +808,337 @@
 				}
 			});
 		}
-		
+
 	};
-	
+
 	$.widget("ui.gearthapp", GEarthApp);
-	
+
 })(jQuery);
+
+/**
+ * GMaps jQuery plugin.
+ * 
+ * A widget containing a large right panel with a Google Maps plugin instance
+ * and a left accordion panel with KML documents, layers, and options to 
+ * control the Google Maps instance.
+ * 
+ * Options:
+ *     
+ *     kmlDocs: Optional. Array of URLs to KML files that should be displayed 
+ *         in the KML Documents pane at startup.
+ *         
+ *     layersKml: Required. URL to a KML file containing GE layers.
+ *     
+ *     optionsKml: Required. URL to a KML file containg GE options.
+ */
+(function($) {
+
+	var GMapsApp = {
+
+		options: {
+			kmlDocs: [],
+			layersKml: null,
+			optionsKml: null
+		},
+
+		_init: function() {
+			// write markup - left panel for KML trees and right panel for Google 
+			// Earth instance
+			var containerEl = this.element;
+			containerEl.addClass("gearthapp");
+			var controlPanelElId = core.generateId();
+			containerEl.append("<div id=\"" + controlPanelElId + "\" class=\"gearthapp-controlpanel\"></div>");
+			var mapsPanelElId = core.generateId();
+			containerEl.append("<div id=\"" + mapsPanelElId + "\" class=\"gearthapp-earthpanel\"></div>");
+			
+			var self = this;
+
+			$("#" + mapsPanelElId).gmaps({
+				mapsContainerElId: mapsPanelElId,
+				mapsLoaded: function(event, data) {
+					$("#" + controlPanelElId).kmlaccordion2({
+						gex: new GEarthExtensions(data.earth),
+						mapElement: event.target,
+						kmlDocs: self.options.kmlDocs,
+						layersKml: self.options.layersKml,
+						optionsKml: self.options.optionsKml
+					});
+					$("#" + controlPanelElId).resizableleftcolumn({
+						rightColumn: event.target
+					});
+					self.element.resize(function(event) {
+						if (event.target == self.element[0]) {
+							$("#" + controlPanelElId).triggerHandler("resize");
+						}
+						else {
+							event.stopImmediatePropagation();
+						}
+					});
+				}
+
+			});
+		},
+
+	};
+
+	$.widget("ui.gmapsapp", GMapsApp);
+
+})(jQuery);
+
+/**
+ * KmlAccordion jQuery plugin.
+ * 
+ * Renders an accordion panel with sections for KML Documents, Google Earth
+ * Layers, and Google Earth Options.
+ * 
+ * Options:
+ * 
+ *     gex: Required. GEarthExtensions object.
+ *     
+ *     mapElement: Required. The element containing the GE plugin instance.
+ *     
+ *     kmlDocs: Optional. Array of URLs to KML files to initially display 
+ *         in the KML Documents pane.
+ *     
+ *     layersKml: Required. URL to KML file containing GE layers.
+ *     
+ *     optionsKml: Required. URL to KML file containing GE display options.
+ *     
+ * Methods:
+ * 
+ *     addKml(kmlUrl, kmlLoadedCallback): Load a KML URL.
+ *         Parameters:
+ *             kmlUrl: Required. URL to the KML file to load.
+ *             KmlLoadedCallback: Optional. Function invoked after KML file 
+ *                 finishes loading.
+ *             
+ */
+(function($) {
+
+	var KmlAccordion2 = {
+
+		options: {
+			gex: null,
+			mapElement: null,
+			kmlDocs: [],
+			layersKml: null,
+			optionsKml: null,
+			kmlDocsContainerElId: null
+		},
+
+		_init: function() {
+			this.element.addClass("ui-widget");
+			this.element.addClass("ui-kmlaccordion");
+
+			// kmlDocsElId is the ID of the element that contains the search
+			// form and the kml trees
+			var kmlDocsElId = core.generateId();
+			// searchFormElId is the ID of the element containing the search
+			// form
+			var searchFormElId = core.generateId();
+			// searchInputElId is the ID of the search textfield element
+			var searchInputElId = core.generateId();
+			// layersElId is the ID of the kmltree element with GE layers
+			var layersElId = core.generateId();
+			// optionsElId is the ID of the kmltree element with GE options
+			var optionsElId = core.generateId();
+
+			// add markup for the skeleton of the accordion panels
+			this.element.append("<h3><a href=\"#\">KML Documents</a></h3>"
+					+ "<div>"
+					+ "<div id=\"" + searchFormElId + "\" class=\"kmlaccordion-searchform\">"
+					+ "<input class=\"kmlaccordion-searchinput\" id=\"" + searchInputElId + "\" type=\"text\" />"
+					+ "<button>Search</button>"
+					+ "</div>"
+					+ "<div class=\"ui-kmlaccordion-kmltreecontainer\" id=\"" + kmlDocsElId + "\"></div>"
+					+ "</div>"
+					+ "<h3><a href=\"#\">Google Earth Layers</a></h3>"
+					+ "<div><div id=\"" + layersElId + "\"></div></div>"
+					+ "<h3><a href=\"#\">Google Earth Options</a></h3>"
+					+ "<div><div id=\"" + optionsElId + "\"></div></div>");
+
+			this.element.accordion({
+				fillSpace: true
+			});
+
+			var self = this;
+
+			// create search box
+
+			$("#" + searchInputElId).emptytext({
+				text: "search"
+			});
+			var doSearch = function() {
+				if ($("#" + searchInputElId).emptytext("getValue").trim().length == 0) {
+					// do nothing - no search text entered
+					return;
+				}
+
+				var searchTxt = $("#" + searchInputElId).val();
+
+		        var showLoading = function(msg, el){
+		            var h = $('<div class="kmltree-loading" style=\"position:relative;\"><span style=\"white-space: nowrap; overflow: hidden\">' + 
+		                msg + '</span></div>');
+		            el.append(h).effect("slide", { }, 200, null);
+		        };
+
+				var showPrefixRegex = /^show[\s:-=]+/i;
+		        if (searchTxt.match('^http')) {
+		        	self.addKml(searchTxt);
+		        } else if (searchTxt.match(showPrefixRegex)) {
+		        	searchTxt = searchTxt.replace(showPrefixRegex, "");
+		        	var kmlTreeEl = self._createNewKmlTreeEl();
+		        	kmlTreeEl.height(95);
+		        	showLoading("Searching for " + searchTxt, kmlTreeEl);
+		        	$.ajax({
+		        		type: "GET",
+		        		url: "../search-mongo/",
+		        		data: { q: searchTxt },
+		        		success: function(response) {
+		        			// response will be a URL to a KMZ
+		        			kmlTreeEl.empty();
+		        			kmlTreeEl.css({ height: "auto" });
+		        			self._addKmlToEl(response.responseText, kmlTreeEl);
+		        		},
+		        		error: function(req, status, err) {
+		        			kmlTreeEl.html("<span>Error searching for " + searchTxt + "</span>");
+		        			kmlTreeEl.css({ height: "auto" });
+		        		}
+		        	});
+		        } else {
+		        	var kmlTreeEl = self._createNewKmlTreeEl();
+		        	kmlTreeEl.height(95);
+		        	showLoading("Searching for " + searchTxt, kmlTreeEl);
+		        	$.ajax({
+		        		type: "GET",
+		        		url: "../search-links/",
+		        		data: { q: searchTxt },
+		        		success: function(response) {
+		        			// here, the response is an HTML doc. how do we display that?
+		        			kmlTreeEl.css({ height: "auto" });
+		        			kmlTreeEl.html(response);
+		        		},
+		        		error: function(req, status, err) {
+		        			kmlTreeEl.html("<span>Error searching for " + searchTxt + "</span>");
+		        			kmlTreeEl.css({ height: "auto" });
+		        		}
+		        	});
+		        }
+
+		        $("#" + searchInputElId).emptytext("clear");
+			};
+			$("#" + searchInputElId).keypress(function(event) {
+				// perform search when return key is pressed
+				if (event.keyCode == "13") {
+					event.preventDefault();
+					doSearch();
+				}
+			});
+
+			var searchButtonEl = $("#" + searchFormElId + " button");
+			searchButtonEl.button({
+				icons: {
+					primary: "kmlaccordion-searchbutton"
+				},
+				text: false
+			});
+			searchButtonEl.click(doSearch);
+
+			var resizeSearchForm = function() {
+				var searchFormWidth = $("#" + searchFormElId).innerWidth();
+				var searchButtonWidth = searchButtonEl.outerWidth(true);
+				var searchTxtWidth = searchFormWidth - searchButtonWidth - ($("#" + searchInputElId).outerWidth(true) - $("#" + searchInputElId).outerWidth(false));
+				$("#" + searchInputElId).width(searchTxtWidth + "px");
+			};
+			resizeSearchForm();
+
+			this.element.resize(function(event) {
+				self.element.accordion("resize");
+				resizeSearchForm();
+			});
+
+
+			this.options.kmlDocsContainerElId = kmlDocsElId;
+
+		/*	// create kmltree object for the Google Earth Layers panel
+			var layersKmlTree = kmltree({
+				url: this.options.layersKml,
+				element: $("#" + layersElId),
+				gex: this.options.gex,
+				mapElement: this.options.mapElement,
+				supportItemIcon: true,
+				restoreState: true,
+				showTitle: false
+			});
+			$(layersKmlTree).bind("kmlLoaded", function(event, kmlObject) {
+				$(layersKmlTree).unbind("kmlLoaded");
+				enableGoogleLayersControl(layersKmlTree, self.options.gex.pluginInstance);
+				// create kmltree object for the Google Earth Options panel
+				var optionsKmlTree = kmltree({
+					url: self.options.optionsKml,
+					element: $("#" + optionsElId),
+					gex: self.options.gex,
+					mapElement: self.options.mapElement,
+					supportItemIcon: true,
+					restoreState: true,
+					showTitle: false
+				});
+				$(optionsKmlTree).bind("kmlLoaded", function(event, kmlObject) {
+					$(optionsKmlTree).unbind("kmlLoaded");
+					enableGoogleLayersControl(optionsKmlTree, self.options.gex.pluginInstance);
+					// create kmltree objects for the KML Documents panel
+					var kmlDocs = core.asArray(self.options.kmlDocs);
+					for (var i = 0; i < kmlDocs.length; i++) {
+						self.addKml(kmlDocs[i]);
+					}
+				});
+				optionsKmlTree.load();
+
+			});
+			layersKmlTree.load();*/
+		},
+
+	/*	_addKmlToEl: function(kmlUrl, kmlTreeEl, kmlLoadedCallback) {
+			var newKmlTree = kmltree({
+				url: kmlUrl,
+				element: kmlTreeEl,
+				gex: this.options.gex,
+				mapElement: this.options.mapElement,
+				supportItemIcon: true,
+				displayDocumentRoot: true,
+				showTitle: false,
+				visitFunction: function(kmlObject, config) {
+					config.customClass = "root-heading";
+					return config;
+				}
+			});
+			if (typeof kmlLoadedCallback == "function") {
+				var self = this;
+				var unbindAfterInvoke = function(event, kmlObject) {
+					$(newKmlTree).unbind("kmlLoaded");
+					kmlLoadedCallback.apply(self, [event, kmlObject]);
+				};
+				$(newKmlTree).bind("kmlLoaded", unbindAfterInvoke);
+			}
+			newKmlTree.load();
+		},
+
+		_createNewKmlTreeEl: function() {
+			var el = $("#" + this.options.kmlDocsContainerElId);
+			var kmlTreeElId = core.generateId();
+			el.prepend("<div id=\"" + kmlTreeElId + "\"></div>");
+			return $("#" + kmlTreeElId);
+		},*/
+
+		addKml: function(kmlUrl, kmlLoadedCallback) {
+			var kmlTreeEl = this._createNewKmlTreeEl();
+			this._addKmlToEl(kmlUrl, kmlTreeEl, kmlLoadedCallback);
+			kmlTreeEl.effect("slide", {}, 200, null);
+		}
+
+	};
+
+	$.widget("ui.kmlaccordion2", KmlAccordion2);
+
+})(jQuery);
+

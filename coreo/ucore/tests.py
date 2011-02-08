@@ -20,7 +20,7 @@ from coreo.ucore.models import *
 class LoginTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+        phone_number='9221112222')
     self.user.set_password('2pass')
     self.user.save()
 
@@ -35,7 +35,7 @@ class LoginTest(TestCase):
 class LogoutTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+        phone_number='9221112222')
     self.user.set_password('2pass')
     self.user.save()
 
@@ -51,9 +51,14 @@ class CreateLibraryTest(TestCase):
 
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+        phone_number='9221112222')
     self.user.set_password('2pass')
     self.user.save()
+
+    # clear out the auto-generated trophy cases and notifications
+    TrophyCase.objects.all().delete()
+    Notification.objects.all().delete()
+    mail.outbox = []
 
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
@@ -87,7 +92,7 @@ class TrophyTest(TestCase):
 
     print 'Passed the trophyroom url test.\n'
 
-  def test_signal_working(self):
+  def test_post_save_signal(self):
     ocean_tag = Tag.objects.get(name='Ocean', type='T')
     user = CoreUser.objects.get(pk=1)
 
@@ -102,7 +107,7 @@ class TrophyTest(TestCase):
 
     trophy_case = TrophyCase.objects.get(pk=1)
     self.assertEquals(trophy_case.trophy.name, 'Captain Blackbeard Trophy')
-    self.assertEquals(len(mail.outbox), 1)
+    self.assertEquals(trophy_case.date_earned, datetime.date.today())
 
     print '\nPassed the e-mail test'
     print '\nPassed the signal test.'
@@ -117,7 +122,6 @@ class TrophyTest(TestCase):
 
     self.assertEquals(trophy_case.user.username, 'bubba')
     self.assertEquals(trophy_case.trophy.name, 'Successful Registration Trophy')
-    self.assertEquals(len(mail.outbox), 1)
 
     print 'Passed the registration trophy test.'
 
@@ -125,7 +129,7 @@ class TrophyTest(TestCase):
 class CsvTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+        phone_number='9221112222')
     self.user.set_password('2pass')
     self.user.save()
 
@@ -142,7 +146,7 @@ class CsvTest(TestCase):
 class KmzTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+        phone_number='9221112222')
     self.user.set_password('2pass')
     self.user.save()
 
@@ -175,7 +179,7 @@ class KmzTest(TestCase):
 class ShapefileTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+        phone_number='9221112222')
     self.user.set_password('2pass')
     self.user.save()
 
@@ -206,13 +210,16 @@ class ShapefileTest(TestCase):
 class NotificationTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+        phone_number='9221112222')
     self.user.set_password('2pass')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
-
+    # delete the auto-generated notification resulting from saving a new user and add a know notification
+    Notification.objects.all().delete()
+    mail.outbox = [] # empty the outbox
     Notification.objects.create(user=self.user, type='TR', message='You won a new registration trophy')
+
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
   def test_get_notification(self):
     response = self.client.get('/notifications/')
@@ -233,12 +240,15 @@ class NotificationTest(TestCase):
     print 'The DELETE method of notifications also works.'
     print 'Poll notification test has passed.'
 
+  def test_post_save_signal(self):
+    self.assertEquals(len(mail.outbox), 1)
+
 
 class RateTest(TestCase):
   def setUp(self):
     # this could be in a fixture
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+        phone_number='9221112222')
     self.user.set_password('2pass')
     self.user.save()
 
