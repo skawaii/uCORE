@@ -420,16 +420,3 @@ def user_profile(request):
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
 
-def map(request):
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
-
-  try:
-    user = CoreUser.objects.get(username=request.user.username)
-  except CoreUser.DoesNotExist:
-    # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
-    return render_to_response('login.html', context_instance=RequestContext(request))
-  
-  return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
