@@ -27,7 +27,7 @@ def create_library(request):
       logging.error('No user retrieved by the username of %s' % request.user)
     if request.method == 'POST':
       links = request.POST['links'].strip()
-      print 'value of links is: ' + links
+      # print 'value of links is: ' + links
       name = request.POST['name'].strip()
       desc = request.POST['desc'].strip()
       linkArray = links.strip(',')
