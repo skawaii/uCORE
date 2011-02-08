@@ -542,7 +542,7 @@
 			});
 
 
-			this._resizeSearchForm();
+			//this._resizeSearchForm();
 			
 			this.options.kmlDocsContainerElId = kmlDocsElId;
 
