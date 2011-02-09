@@ -20,7 +20,6 @@ from coreo.ucore import shapefile, utils
 
 
 def create_library(request):
- 
   userperson = CoreUser.objects.get(username=request.user)
   try:
     if not userperson:
@@ -393,28 +392,20 @@ def save_user(request):
 def search_links(request):
   terms = request.GET['q'].split(' ') 
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
-  try:
+
   # search Link for matches
   # results = list(Link.objects.filter(tags__name__in=terms).distinct())
-    results = list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-    results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-    results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  results = set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+  results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
   # search LinkLibraries for matches
   # results += list(LinkLibrary.objects.filter(tags__name__in=terms).distinct())
-    results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-    results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-    results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
-    return HttpResponse(serializers.serialize('json', results))
-  except Exception, e:
-    print e.message
-    return HttpResponse()
-  #    terms = request.GET['q'].split(' ') 
-  #    logging.debug('Received terms %s in the GET of search_links\n' % terms)
-  #    links = list(Link.objects.filter(tags__name__in=terms).distinct())
-  #    links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  #    links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
-  #    return HttpResponse(serializers.serialize('json', links))
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+
+  return HttpResponse(serializers.serialize('json', results))
 
 
 def search_mongo(request):
@@ -477,3 +468,16 @@ def user_profile(request):
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
 
+def map_view(request):
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  try:
+    user = CoreUser.objects.get(username=request.user.username)
+  except CoreUser.DoesNotExist:
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  
+  return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))

@@ -675,7 +675,6 @@
 			var collapserElId = core.generateId();
 			var kmlAccordionElId = core.generateId();
 			var earthPanelElId = core.generateId();
-			containerEl.append("<div id=\"" + earthPanelElId + "\" class=\"gearthapp-earthpanel\"></div>");
 
 			// iframe exists to implement the "iframe shim" strategy for 
 			// overlaying elements on the GE plugin instance

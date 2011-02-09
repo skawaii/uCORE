@@ -1,0 +1,20 @@
+<kml xmlns="http://www.opengis.net/kml/2.2">
+	<Document>
+		<name>test document</name>
+		<open>1</open>
+		<Placemark>
+			<name>test placemark</name>
+			<open>1</open>
+			<LookAt>
+				<longitude>-90.86879847669974</longitude>
+				<latitude>48.25330383601299</latitude>
+				<range>440.8</range>
+				<tilt>8.3</tilt>
+				<heading>2.7</heading>
+			</LookAt>
+			<Point>
+				<coordinates>-90.86948943473118,48.25450093195546,0</coordinates>
+			</Point>
+		</Placemark>
+	</Document>
+</kml>
