@@ -396,7 +396,7 @@ def user_profile(request):
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
 
-def map(request):
+def map_view(request):
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
