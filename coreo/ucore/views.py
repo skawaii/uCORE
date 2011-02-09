@@ -15,8 +15,37 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils import simplejson as json
 
-from coreo.ucore.models import CoreUser, Link, LinkLibrary, Notification, Rating, RatingFK, Skin, Tag, Trophy, TrophyCase
+from coreo.ucore.models import *
 from coreo.ucore import shapefile, utils
+
+
+def create_library(request):
+ 
+  userperson = CoreUser.objects.get(username=request.user)
+  try:
+    if not userperson:
+      logging.error('No user retrieved by the username of %s' % request.user)
+    if request.method == 'POST':
+      links = request.POST['links'].strip()
+      # print 'value of links is: ' + links
+      name = request.POST['name'].strip()
+      desc = request.POST['desc'].strip()
+      linkArray = links.strip(',')
+      # library = LinkLibrary(name=name, desc=desc,
+      maintag = Tag.objects.get(name='HotButton')
+    library = LinkLibrary(name=name, desc=desc, user=userperson)
+    library.save()
+    library.tags.add(maintag)
+    for i in linkArray:
+      if i != ',':
+        link = Link.objects.get(pk=int(i))
+        library.links.add(link)
+    library.save()
+  except Exception, e:
+    print e.message
+    logging.error(e.message)
+
+  return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
 
 def earn_trophy(request):
@@ -29,7 +58,7 @@ def earn_trophy(request):
     tc.save()
     custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
     user_email = userc.email
-    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
+    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 
 
 def ge_index(request):
@@ -47,8 +76,28 @@ def ge_index(request):
   
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
-def get_csv(request):
+def gm_index(request):
+  # This is a quick hack at getting our Google Maps app integrated with Django.
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
 
+  try:
+    user = CoreUser.objects.get(username=request.user.username)
+  except CoreUser.DoesNotExist:
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  
+  return render_to_response('gmindex.html', {'user': user}, context_instance=RequestContext(request))
+
+def get_csv(request):
+  ''' get_csv is a method that will return csv to the browser.
+      It eventually will accept json input from the GE view,
+      and return it as a .csv file to the browser. 
+      Right now the filename is sample.csv but can be modified
+      as necessary.
+   '''
   response = HttpResponse(mimetype='text/csv')
   response['Content-Disposition'] = 'attachment; filename=sample.csv'
   # This will eventually handle a json object rather than static data.
@@ -98,10 +147,11 @@ def get_kmz(request):
   response['Content-Disposition'] = 'attachment; filename=download.kmz'
   response['Content-Description'] = 'a sample kmz file.'
   response['Content-Length'] = str(len(response.content))
-  return response
+  return response 
 
 
 def get_library(request, username, lib_name):
+  # XXX and try/except in case the lib_name doesn't exist
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
 
   doc = utils.build_kml_from_library(library)
@@ -109,6 +159,7 @@ def get_library(request, username, lib_name):
   #xml.dom.ext.PrettyPrint(doc, open(file_path, "w"))
 
   with open(file_path, 'w') as f:
+    # XXX try setting newl=''
     f.write(doc.toprettyxml(indent='  ', encoding='UTF-8'))
 
   uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
@@ -145,6 +196,14 @@ def index(request):
   return render_to_response('index.html', context_instance=RequestContext(request))
 
 
+def library_demo(request):
+  if not request.user.is_authenticated(): 
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  else:
+    return render_to_response('testgrid.html', context_instance=RequestContext(request))
+
+
+
 def login(request):
   if request.method == 'GET':
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -179,6 +238,12 @@ def logout(request):
 
 
 def poll_notifications(request, notification_id):
+  '''poll_notifications has two methods it supports: GET and DELETE
+     for DELETE you have to submit a notification_id which will then
+     delete the notification from the table. 
+     If you call a GET, don't send any parameters and the view will
+     return a json list of all notifications for the logged in user.
+  '''
   # notification_id is passed in on a delete request in the URL.
   if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -294,6 +359,7 @@ def save_user(request):
       newphone = phone_number
     else:
       prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+      # prog = re.compile(r"(\d+[^/d]+)")
       result = prog.match(phone_number)
       newphone = result.group(1) + result.group(2) + result.group(3)
   except Exception, e:
@@ -307,33 +373,48 @@ def save_user(request):
          'error_message': 'Please fill in all required fields.'
         }, context_instance=RequestContext(request))
 
-  # XXX currently User.phone_number is stored as an int
-  #   1. keep as an int
-  #   2. change from an int to a CharField
-  # either way, we should use regex to check before we put it into the DB
+  # create/update the user to the DB with the default skin
+  user, created = CoreUser.objects.get_or_create(sid=sid, defaults={'username': username, 'first_name': first_name,
+    'last_name': last_name, 'email': email, 'phone_number': newphone})
 
-  # save the new user to the DB with the default skin
-  default_skin = Skin.objects.get(name='Default')
-  user = CoreUser(sid=sid, username=username, first_name=first_name, last_name=last_name,
-      email=email, phone_number=newphone, skin=default_skin)
+  if not created:
+    user.first_name = first_name
+    user.last_name = last_name
+    user.email = email
+    user.phone_number = newphone
+
   user.set_password(password)
   user.save()
 
-  TrophyCase.objects.create(user=user, trophy=Trophy.objects.get(name__contains='Registration'), date_earned=datetime.datetime.now())
-  Notification.objects.create(user=user, type='TR', message='You have won a registration trophy.')
-  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user
-  # hits the back button
+  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
 
 def search_links(request):
   terms = request.GET['q'].split(' ') 
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
-  links = list(Link.objects.filter(tags__name__in=terms).distinct())
-  links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  try:
+  # search Link for matches
+  # results = list(Link.objects.filter(tags__name__in=terms).distinct())
+    results = list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+    results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+    results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
-  return HttpResponse(serializers.serialize('json', links))
+  # search LinkLibraries for matches
+  # results += list(LinkLibrary.objects.filter(tags__name__in=terms).distinct())
+    results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+    results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+    results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+    return HttpResponse(serializers.serialize('json', results))
+  except Exception, e:
+    print e.message
+    return HttpResponse()
+  #    terms = request.GET['q'].split(' ') 
+  #    logging.debug('Received terms %s in the GET of search_links\n' % terms)
+  #    links = list(Link.objects.filter(tags__name__in=terms).distinct())
+  #    links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  #    links += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  #    return HttpResponse(serializers.serialize('json', links))
 
 
 def search_mongo(request):

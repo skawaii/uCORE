@@ -2,3 +2,6 @@ To get the Django back-end setup, you may need to add your template directory to
 
 The KMZ file referenced is hard coded in core.js. You will need to point our google earth ext plugin to the KML you plan on using.
 
+Here's some KML files to use:
+http://earthatlas.info/kml/statistics/infant_mortality_rate_2005_prism.kmz
+

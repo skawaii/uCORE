@@ -1,3 +1,13 @@
+/**
+ * Namespace: core.events
+ * 
+ * Defines classes related to the Google Earth web browser plugin
+ * 
+ * Dependencies:
+ *     - core.util
+ *     - core.geo
+ */
+
 if (!window.core)
 	window.core = {};
 if (!window.core.events)
@@ -5,16 +15,19 @@ if (!window.core.events)
 	
 (function($, ns) {
 	/**
-	 * Event
+	 * Class: Event
 	 * 
 	 * Superclass for all CORE event objects.
 	 * 
 	 * Properties:
 	 * 
-	 *     publisher:
-	 *         String. Name of the component where the event originated.
-	 *     type:
-	 *         String. Name for this event type.
+	 *     publisher - (String) Name of the component where the event originated.
+	 *     type - (String) Name for this event type.
+	 */
+
+	/**
+	 * Constructor: Event
+	 * Initializes the object 
 	 */
 	var Event = function(publisher, type) {
 		this.publisher = publisher;
@@ -23,162 +36,237 @@ if (!window.core.events)
 	ns.Event = Event;
 	
 	/**
-	 * GeoDataEvent
+	 * Class: GeoDataEvent
 	 * 
+	 * SuperClass:
+	 * <Event>
+	 *
 	 * Superclass for all CORE event objects containing GeoData.
 	 * Extends Event.
 	 * 
 	 * Properties:
 	 * 
-	 *   geoData: GeoData object.
+	 *   geoData - GeoData object.
 	 */
 	var GeoDataEvent = function(publisher, geoData, type) {
 		Event.call(this, publisher, type);
 		this.geoData = geoData;
 	};
+
+	/**
+	 * Constructor: GeoDataEvent
+	 * Initializes the object 
+	 */
 	$.extend(GeoDataEvent.prototype, Event.prototype);
 	ns.GeoDataEvent = GeoDataEvent;
 	
 	/**
-	 * GeoDataLoadedEvent
+	 * Class: GeoDataLoadedEvent
 	 * 
+	 * SuperClass:
+	 * <GeoDataEvent>
+	 *
 	 * Event fired after new GeoData is loaded into some component.
-	 * Extends GeoDataEvent.
+	 * 
 	 */
 	var GeoDataLoadedEvent = function(publisher, geoData) {
 		GeoDataEvent.call(this, publisher, geoData, GeoDataLoadedEvent.type);
 	};
 	GeoDataLoadedEvent.type = "GeoDataLoadedEvent";
+
+	/**
+	 * Constructor: GeoDataLoadedEvent
+	 * Initializes the object 
+	 */
 	$.extend(GeoDataLoadedEvent.prototype, GeoDataEvent.prototype);
 	ns.GeoDataLoadedEvent = GeoDataLoadedEvent;
 
 	/**
-	 * GeoDataNodeEvent
+	 * Class: GeoDataNodeEvent
 	 * 
+	 * SuperClass:
+	 * <GeoDataEvent>
+	 *
 	 * Superclass for event objects related to a node within GeoData.
 	 * Extends GeoDataEvent.
 	 * 
 	 * Properties:
 	 * 
-	 *     node: DOM node object. Node related to this event.
-	 *     
-	 * @param publisher Name of the component where this event originated
-	 * @param geoData GeoData object
-	 * @param node Node related to this event
+	 *     node - (DOM node object) Node related to this event.
+	 * 
+	 * Parameters:    
+	 *  publisher -  Name of the component where this event originated
+	 *  geoData  - GeoData object
+	 *  node  - Node related to this event
 	 */
 	var GeoDataNodeEvent = function(publisher, geoData, node, type) {
 		GeoDataEvent.call(this, publisher, geoData, type);
 		this.node = node;
 	};
+
+	/**
+	 * Constructor: GeoDataNodeEvent
+	 * Initializes the object 
+	 */
 	$.extend(GeoDataNodeEvent.prototype, GeoDataEvent.prototype);
 	ns.GeoDataNodeEvent = GeoDataNodeEvent;
 	
 	/**
-	 * ShowNodeEvent
+	 * Class: ShowNodeEvent
 	 * 
+	 * SuperClass:
+	 * <GeoDataNodeEvent>
+	 *
 	 * Event fired when a user requests a GeoData node be displayed.
-	 * Extends GeoDataNodeEvent.
 	 */
 	var ShowNodeEvent = function(publisher, geoData, node) {
 		GeoDataNodeEvent.call(this, publisher, geoData, node, ShowNodeEvent.type);
 	};
+	/**
+	 * Constructor: ShowNodeEvent
+	 * Initializes the object 
+	 */
 	$.extend(ShowNodeEvent.prototype, GeoDataNodeEvent.prototype);
 	ShowNodeEvent.type = "ShowNodeEvent";
 	ns.ShowNodeEvent = ShowNodeEvent;
 	
 	/**
-	 * HideNodeEvent
+	 * Class: HideNodeEvent
 	 * 
+	 * SuperClass:
+	 * <GeoDataNodeEvent>
+	 *
 	 * Event fired when a user requests a GeoData node be hidden.
-	 * Extends GeoDataNodeEvent.
 	 */
 	var HideNodeEvent = function(publisher, geoData, node) {
 		GeoDataNodeEvent.call(this, publisher, geoData, node, HideNodeEvent.type);
 	};
+
+	/**
+	 * Constructor: HideNodeEvent
+	 * Initializes the object 
+	 */
 	$.extend(HideNodeEvent.prototype, GeoDataNodeEvent.prototype);
 	HideNodeEvent.type = "HideNodeEvent";
 	ns.HideNodeEvent = HideNodeEvent;
 	
 	/**
-	 * NodeInfoEvent
+	 * Class: NodeInfoEvent
 	 * 
+	 * SuperClass:
+	 * <GeoDataNodeEvent>
+	 *
 	 * Event fired when a user requests details of a GeoData node be displayed.
-	 * Extends GeoDataNodeEvent.
 	 */
 	var NodeInfoEvent = function(publisher, geoData, node) {
 		GeoDataNodeEvent.call(this, publisher, geoData, node, NodeInfoEvent.type);
 	};
+
+	/**
+	 * Constructor: NodeInfoEvent
+	 * Initializes the object 
+	 */
 	$.extend(NodeInfoEvent.prototype, GeoDataNodeEvent.prototype);
 	NodeInfoEvent.type = "NodeInfoEvent";
 	ns.NodeInfoEvent = NodeInfoEvent;
 	
 	/**
-	 * FlyToNodeEvent
+	 * Class: FlyToNodeEvent
 	 * 
+	 * SuperClass:
+	 * <GeoDataNodeEvent>
+	 *
 	 * Event fired when a user requests a map to look at a GeoData node
-	 * Extends GeoDataNodeEvent.
 	 */
 	var FlyToNodeEvent = function(publisher, geoData, node) {
 		GeoDataNodeEvent.call(this, publisher, geoData, node, FlyToNodeEvent.type);
 	};
+	/**
+	 * Constructor: FlyToNodeEvent
+	 * Initializes the object 
+	 */
 	$.extend(FlyToNodeEvent.prototype, GeoDataNodeEvent.prototype);
 	FlyToNodeEvent.type = "FlyToNodeEvent";
 	ns.FlyToNodeEvent = FlyToNodeEvent;
 	
 	/**
-	 * GeLoadedEvent
+	 * Class: GeLoadedEvent
 	 * 
+	 * SuperClass:
+	 * <Event>
+	 *
 	 * Event fired when a Google Earth instance is displayed.
-	 * Extends Event.
 	 */
 	var GeLoadedEvent = function(publisher) {
 		Event.call(this, publisher, GeLoadedEvent.type);
 	};
+	/**
+	 * Constructor: GeLoadedEvent
+	 * Initializes the object 
+	 */
 	$.extend(GeLoadedEvent.prototype, Event.prototype);
 	GeLoadedEvent.type = "GeLoadedEvent";
 	ns.GeLoadedEvent = GeLoadedEvent;
 	
 	/**
-	 * GeUnloadedEvent
+	 * Class: GeUnloadedEvent
 	 * 
+	 * SuperClass:
+	 * <Event>
+	 *
 	 * Event fired when a Google Earth instance is hidden.
-	 * Extends Event.
 	 */
 	var GeUnloadedEvent = function(publisher) {
 		Event.call(this, publisher, GeUnloadedEvent.type);
 	};
+	/**
+	 * Constructor: GeUnloadedEvent
+	 * Initializes the object 
+	 */
 	GeUnloadedEvent.type = "GeUnloadedEvent";
 	$.extend(GeUnloadedEvent.prototype, Event.prototype);
 	ns.GeUnloadedEvent = GeUnloadedEvent;
 	
 	/**
-	 * MapLoadedEvent
+	 * Class: MapLoadedEvent
 	 * 
+	 * SuperClass:
+	 * <Event>
+	 *
 	 * Event fired when a Google Map instance is displayed.
-	 * Extends Event.
 	 */
 	var MapLoadedEvent = function(publisher) {
 		Event.call(this, publisher, MapLoadedEvent.type);
 	};
 	MapLoadedEvent.type = "MapLoadedEvent";
+	/**
+	 * Constructor: MapLoadedEvent
+	 * Initializes the object 
+	 */
 	$.extend(MapLoadedEvent.prototype, Event.prototype);
 	ns.MapLoadedEvent = MapLoadedEvent;
 
 	/**
-	 * MapUnloadedEvent
+	 * Class: MapUnloadedEvent
 	 * 
+	 * SuperClass:
+	 * <Event>
+	 *
 	 * Event fired when a Google Map instance is hidden.
-	 * Extends Event.
 	 */
 	var MapUnloadedEvent = function(publisher) {
 		Event.call(this, publisher, MapUnloadedEvent.type);
 	};
 	MapUnloadedEvent.type = "MapUnloadedEvent";
+	/**
+	 * Constructor: MapUnloadedEvent
+	 * Initializes the object 
+	 */
 	$.extend(MapUnloadedEvent.prototype, Event.prototype);
 	ns.MapUnloadedEvent = MapUnloadedEvent;
 	
 	/**
-	 * EventChannel
+	 * Class: EventChannel
 	 * 
 	 * The interface between event publishers and event consumers. Consumers 
 	 * subscribe to the Event Channel to receive events of a specific type. 
@@ -191,6 +279,14 @@ if (!window.core.events)
 	EventChannel.numConsumeThreads = 2;
 	EventChannel.prototype = {
 		
+		/**
+		 * Function: Subscribe
+		 *
+		 * Parameters:
+		 *	eventType - The type of the event
+		 * 	callback - registered method for handling event occurence.
+		 * 
+		 */
 		subscribe: function(eventType, callback) {
 			var consumer = {};
 			if (typeof callback == "function") {
@@ -219,6 +315,12 @@ if (!window.core.events)
 			fn.apply(ctx, [event, arg]);
 		},
 		
+		/**
+		 * Function: publish
+		 *
+		 * Parameters:
+		 *	event - The Core Event to publish
+		 */
 		publish: function(event) {
 			var eventType = event ? event.type : undefined;
 			if (eventType && this._consumers && this._consumers[eventType]) {

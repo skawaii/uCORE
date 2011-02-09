@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <link href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" rel="stylesheet" type="text/css"/>
+    <script src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+         
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/smoothness/jquery-ui-1.8.5.custom.css" type="text/css" media="screen" charset="utf-8" />
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/examples.css" type="text/css" media="screen" charset="utf-8" />
+    <style>
+       .slick-cell-checkboxsel {
+           background: #f0f0f0;
+           border-right-color: silver;
+           border-right-style: solid;     
+         }   
+    </style>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/firebugx.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-ui-1.8.5.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.jsonp-1.1.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slick.core.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slick.remotemodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.checkboxselectcolumn.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.autotooltips.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellrangedecorator.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellcopymanager.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.rowselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slick.editors.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slick.grid.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slick.dataview.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/linklibrary.js"></script>
+       </head>
+       <body>
+         <br/>
+         <h3>Please ensure that you have logged in to uCORE before running the library demo.</h3>
+         <br/>
+         <br/>
+         <br/>
+     Search Term <input id="test"><br/> 
+     <button onclick="document.getElementById('question').style.display = 'block'; document.getElementById('myGrid').style.display='block'; searchLinks(document.getElementById('test').value); return false;">Search!</button>
+     
+         <div id='dialog' title="Search Results">
+           <div id="myGrid" style="width:100%;height:500px;">
+           </div>
+           <div id="question">
+             <label for="q1">Library Name:</label><input id="q1"/>&nbsp;&nbsp;&nbsp;&nbsp;<label for="q2">Library Description:</label><input id="q2"/>
+           </div>
+    </body>
+</html>
+
