@@ -73,7 +73,7 @@ class CreateLibraryTest(TestCase):
 class TrophyTest(TestCase):
   def  setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222',skin=Skin.objects.get(name='Default'))
+        phone_number='9221112222')
     self.user.set_password('2pass')
     self.user.save()
 
