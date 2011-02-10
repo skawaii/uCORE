@@ -19,6 +19,34 @@ from coreo.ucore.models import *
 from coreo.ucore import shapefile, utils
 
 
+def create_library(request):
+  userperson = CoreUser.objects.get(username=request.user)
+  try:
+    if not userperson:
+      logging.error('No user retrieved by the username of %s' % request.user)
+    if request.method == 'POST':
+      links = request.POST['links'].strip()
+      # print 'value of links is: ' + links
+      name = request.POST['name'].strip()
+      desc = request.POST['desc'].strip()
+      linkArray = links.strip(',')
+      # library = LinkLibrary(name=name, desc=desc,
+      maintag = Tag.objects.get(name='HotButton')
+    library = LinkLibrary(name=name, desc=desc, user=userperson)
+    library.save()
+    library.tags.add(maintag)
+    for i in linkArray:
+      if i != ',':
+        link = Link.objects.get(pk=int(i))
+        library.links.add(link)
+    library.save()
+  except Exception, e:
+    print e.message
+    logging.error(e.message)
+
+  return render_to_response('testgrid.html',  context_instance=RequestContext(request))
+
+
 def earn_trophy(request):
   if request.method == 'POST':
     user2 = request.POST['user'].strip()
@@ -29,7 +57,7 @@ def earn_trophy(request):
     tc.save()
     custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
     user_email = userc.email
-    send_mail(custom_msg, 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
+    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
 
 
 def ge_index(request):
@@ -63,7 +91,12 @@ def gm_index(request):
   return render_to_response('gmindex.html', {'user': user}, context_instance=RequestContext(request))
 
 def get_csv(request):
-
+  ''' get_csv is a method that will return csv to the browser.
+      It eventually will accept json input from the GE view,
+      and return it as a .csv file to the browser. 
+      Right now the filename is sample.csv but can be modified
+      as necessary.
+   '''
   response = HttpResponse(mimetype='text/csv')
   response['Content-Disposition'] = 'attachment; filename=sample.csv'
   # This will eventually handle a json object rather than static data.
@@ -113,7 +146,7 @@ def get_kmz(request):
   response['Content-Disposition'] = 'attachment; filename=download.kmz'
   response['Content-Description'] = 'a sample kmz file.'
   response['Content-Length'] = str(len(response.content))
-  return response
+  return response 
 
 
 def get_library(request, username, lib_name):
@@ -162,6 +195,14 @@ def index(request):
   return render_to_response('index.html', context_instance=RequestContext(request))
 
 
+def library_demo(request):
+  if not request.user.is_authenticated(): 
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  else:
+    return render_to_response('testgrid.html', context_instance=RequestContext(request))
+
+
+
 def login(request):
   if request.method == 'GET':
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -196,6 +237,12 @@ def logout(request):
 
 
 def poll_notifications(request, notification_id):
+  '''poll_notifications has two methods it supports: GET and DELETE
+     for DELETE you have to submit a notification_id which will then
+     delete the notification from the table. 
+     If you call a GET, don't send any parameters and the view will
+     return a json list of all notifications for the logged in user.
+  '''
   # notification_id is passed in on a delete request in the URL.
   if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -311,6 +358,7 @@ def save_user(request):
       newphone = phone_number
     else:
       prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+      # prog = re.compile(r"(\d+[^/d]+)")
       result = prog.match(phone_number)
       newphone = result.group(1) + result.group(2) + result.group(3)
   except Exception, e:
@@ -346,16 +394,16 @@ def search_links(request):
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
 
   # search Link for matches
-  #results = list(Link.objects.filter(tags__name__in=terms).distinct())
-  results = list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results += list(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  # results = list(Link.objects.filter(tags__name__in=terms).distinct())
+  results = set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+  results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
   # search LinkLibraries for matches
-  #results += list(LinkLibrary.objects.filter(tags__name__in=terms).distinct())
-  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results += list(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  # results += list(LinkLibrary.objects.filter(tags__name__in=terms).distinct())
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
   return HttpResponse(serializers.serialize('json', results))
 
@@ -420,3 +468,16 @@ def user_profile(request):
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
 
+def map_view(request):
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  try:
+    user = CoreUser.objects.get(username=request.user.username)
+  except CoreUser.DoesNotExist:
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  
+  return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
