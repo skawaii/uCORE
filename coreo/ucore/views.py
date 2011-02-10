@@ -372,7 +372,7 @@ def save_user(request):
          'error_message': 'Please fill in all required fields.'
         }, context_instance=RequestContext(request))
 
-  # create/update the user to the DB with the default skin
+  # create/update the user to the DB
   user, created = CoreUser.objects.get_or_create(sid=sid, defaults={'username': username, 'first_name': first_name,
     'last_name': last_name, 'email': email, 'phone_number': newphone})
 
