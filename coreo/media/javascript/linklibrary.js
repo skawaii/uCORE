@@ -141,9 +141,9 @@
                $.post("../create-library/", { name: library_name, desc: library_desc, tags: tagparameter, links: row_parameter});
                //  alert("you entered: " + document.getElementById('q1').value);
                $("#dialog").dialog("close");
-                grid = new Slick.Grid("#myGrid", null, columns, options);
-                grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
-                grid.registerPlugin(checkboxSelector);
+               document.getElementById('q1').value = '';
+               document.getElementById('q2').value = '';
+               document.getElementById('tagname').value = '';
          } 
      } 
    });
