@@ -25,7 +25,7 @@ class Tag(models.Model):
   )
 
   name = models.CharField(max_length=50, unique=True)
-  type = models.CharField(max_length=1, choices=TAG_CHOICES)
+  type = models.CharField(max_length=1, choices=TAG_CHOICES, default='P')
 
   def __unicode__(self):
     return self.name
