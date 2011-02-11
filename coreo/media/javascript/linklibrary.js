@@ -95,12 +95,7 @@
                d["pk"] = jsonstuff[i].pk;
           }
           var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
-          // }
-          // var dataView = new Slick.Data.DataView();
-          // dataView.setItems(totalTable);
           grid = new Slick.Grid("#myGrid", totalTable, columns, options);
-
-          // grid = new Slick.Grid('#myGrid', dataView, columns, options);  
           grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
           grid.registerPlugin(checkboxSelector);
               })  // document.getElementById('dialog').innerHTML = totalTable; 
@@ -146,6 +141,9 @@
                $.post("../create-library/", { name: library_name, desc: library_desc, tags: tagparameter, links: row_parameter});
                //  alert("you entered: " + document.getElementById('q1').value);
                $("#dialog").dialog("close");
+                grid = new Slick.Grid("#myGrid", null, columns, options);
+                grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
+                grid.registerPlugin(checkboxSelector);
          } 
      } 
    });
