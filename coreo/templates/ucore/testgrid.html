@@ -14,7 +14,17 @@
            background: #f0f0f0;
            border-right-color: silver;
            border-right-style: solid;     
-         }   
+         }
+        .alignCenter { text-align: center; }
+        .alignLeft { text-align: left; }
+        .alignRight { text-align: right; }
+        .alignTopLeft { text-align: left; vertical-align: top; }
+        .alignBottomLeft { text-align: left; vertical-align: bottom; }
+        .alignTop { vertical-align: top; }
+        .alignBotton { vertical-align : bottom; }
+        .alignTopLeft { text-align: left, vertical-align: top; }
+        .alignBottomLeft { text-align: left, vertical-align: bottom; }
+
     </style>
     <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/firebugx.js"></script>
     <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
@@ -47,7 +57,7 @@
            <div id="myGrid" style="width:100%;height:500px;">
            </div>
            <div id="question">
-             <label for="q1">Library Name:</label><input id="q1"/>&nbsp;&nbsp;&nbsp;&nbsp;<label for="q2">Library Description:</label><input id="q2"/>
+             <label for="q1">Library Name:</label><input id="q1"/>&nbsp;&nbsp;&nbsp;&nbsp;<label for="q2">Library Description:</label><textarea name='q2' id='q2' cols=40 rows=4 class="alignTop"></textarea>&nbsp;&nbsp;&nbsp;&nbsp;<label for="tagname">Tag Names:</label><input id="tagname"/>
            </div>
     </body>
 </html>
