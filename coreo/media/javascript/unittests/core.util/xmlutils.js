@@ -1,4 +1,4 @@
-module("core.util");
+module("core.util.XmlUtils");
 
 test("getQualifiedName", function() {
 	var doc = jQuery.parseXML("<foo id=\"1\" xmlns:ns1=\"urn:ns1\">"

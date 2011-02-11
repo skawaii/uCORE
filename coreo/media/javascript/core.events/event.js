@@ -19,7 +19,7 @@ if (!window.core)
 	window.core = {};
 if (!window.core.events)
 	window.core.events = {};
-	
+
 (function($, ns) {
 	/**
 	 * Constructor: Event
@@ -30,6 +30,5 @@ if (!window.core.events)
 		this.type = type;
 	};
 	ns.Event = Event;
-	
 	
 })(jQuery, window.core.events);
