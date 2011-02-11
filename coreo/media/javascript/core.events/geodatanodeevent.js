@@ -1,7 +1,4 @@
 /**
- * Namespace: core.events
- * 
-/**
  * Class: GeoDataNodeEvent
  * 
  * SuperClass:

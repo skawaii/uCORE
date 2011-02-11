@@ -36,7 +36,7 @@ if (!window.core.events)
 		 * 	callback - registered method for handling event occurence.
 		 * 
 		 */
-		subscribe: function(eventType, callback) {
+			subscribe: function(eventType, callback) {
 			var consumer = {};
 			if (typeof callback == "function") {
 				consumer.context = arguments.callee;
