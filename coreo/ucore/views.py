@@ -31,18 +31,23 @@ def create_library(request):
       tags = request.POST['tags'].strip()
       linkArray = links.split(',')
       tags = tags.split(',')
+      for t in tags:
+        t = t.strip()
+        retrievedtag = Tag.objects.filter(name=t)
+        if not retrievedtag:
+          newtag = Tag(name=t, type='P')
+          newtag.save()
+        
       # library = LinkLibrary(name=name, desc=desc,
       # maintag = Tag.objects.get(name='HotButton')
       library = LinkLibrary(name=name, desc=desc, user=userperson)
       library.save()
       for t in tags:
-        print 'One tag is : %s' % t
-        # t = t.strip()
+        # print 'One tag is : %s' % t
+        t = t.strip()
         retrievedtag = Tag.objects.get(name=t)
         if not retrievedtag:
-          newtag = Tag(name=t, type='P')
-          newtag.save()
-          library.tags.add(newtag)
+          print 'No retrieved tag gotten from the db.'
         else:
           library.tags.add(retrievedtag)
       for i in linkArray:
