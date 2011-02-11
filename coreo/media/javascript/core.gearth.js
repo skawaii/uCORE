@@ -13,65 +13,65 @@ if (!window.core.gearth)
 	window.core.gearth = {};
 
 (function($, ns) {
-	// map of geoData.id -> kmlObject
-	// allows us to only create KmlObjects once and then reuse them
-	var kmlObjects = {};
-
 	/**
-	 * Retrieves the KmlObject linked to a GeoData object. KmlObject is 
-	 * created for the GeoData if needed.
+	 * Class: KmlObjectStore
+	 * 
+	 * A repository of KmlObjects linked to GeoDataFeature objects. Also 
+	 * handles creation of KmlObjects from GeoDataFeatures. Used by 
+	 * GeAdapter.
 	 */
-	var getKmlObject2 = function(ge, geoData) {
-		var kmlObject = kmlObjects[geoData.id];
-		if (!kmlObject) {
-			kmlObject = ge.parseKml(geoData.getKmlString());
-			kmlObjects[geoData.id] = kmlObject;
+	var KmlObjectStore = function(ge) {
+		this.ge = ge;
+		this.datastore = {};
+	};
+	KmlObjectStore.prototype = {
+		
+		createKmlObject: function(geoDataFeature) {
+			return this.ge.parseKml(geoDataFeature.getKmlString());
+		},
+		
+		getKmlObject: function(geoDataFeature) {
+			var id = geoDataFeature.id;
+			if (!(id in this.datastore)) {
+				var kmlObject = this.createKmlObject(geoDataFeature);
+				this.datastore[id] = kmlObject;
+			}
+			return this.datastore[id];
+		},
+		
+		removeKmlObject: function(geoDataFeature) {
+			delete this.datastore[geoDataFeature.id];
 		}
-		return kmlObject;
+		
 	};
-
-	var addGetKmlObjectFn = function(geoData) {
-		if (!geoData.getKmlObject) {
-			geoData.getKmlObject = function(ge) {
-				if (!this._kmlObject) {
-					this._kmlObject = ge.parseKml(this.getKmlString());
-				}
-				return this._kmlObject;
-			};
-		}
-	};
-	
-	var getKmlObject = function(ge, geoData) {
-		addGetKmlObjectFn(geoData);
-		return geoData.getKmlObject(ge);
-	};
+	ns.KmlObjectStore = KmlObjectStore;
 	
 	/**
-	 * Creates a KmlObject from an XML DOM Node object
+	 * Class: GeAdapter
+	 * 
+	 * Interface between CORE event framework and Google Earth instance.
+	 * Consumes CORE events and handles showing/hiding features on the map 
+	 * accordingly.
 	 */
-	var createKmlObject = function(ge, xmlNode) {
-		var kmlString = core.util.getXmlString(xmlNode);
-		var kmlObject = ge.parseKml(kmlString);
-		return kmlObject;
-	};
-	
 	var GeAdapter = function(ge) {
 		this.ge = ge;
+		this.kmlObjectStore = new KmlObjectStore(this.ge);
 	};
 	GeAdapter.prototype = {
 
-		add: function(geoData) {
-			var kmlObject = getKmlObject(this.ge, geoData);
+		add: function(geoDataFeature) {
+			var kmlObject = this.kmlObjectStore.getKmlObject(geoDataFeature);
 			this.ge.getFeatures().appendChild(kmlObject);
 		},
 
-		show: function(node, geoData) {
-			var kmlObject = createKmlObject(this.ge, node);
+		show: function(geoDataFeature) {
+			var kmlObject = this.kmlObjectStore.getKmlObject(geoDataFeature);
 			this.ge.getFeatures().appendChild(kmlObject);
 		},
 
-		hide: function(node, geoData) {
-			var kmlObject = createKmlObject(this.ge, node);
+		hide: function(geoDataFeature) {
+			var kmlObject = this.kmlObjectStore.getKmlObject(geoDataFeature);
+			this.kmlObjectStore.removeKmlObject(geoDataFeature);
 			this.ge.getFeatures().removeChild(kmlObject);
 		},
 		
