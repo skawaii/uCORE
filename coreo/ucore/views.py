@@ -390,6 +390,9 @@ def save_user(request):
 
 
 def search_links(request):
+  if not request.GET['q']:
+    return HttpResponse(serializers.serialize('json', ''))
+
   terms = request.GET['q'].split(' ') 
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
 
