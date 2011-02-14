@@ -13,6 +13,9 @@ urlpatterns = patterns('',
     #(r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  '/Users/pboone/code/ucore/coreo/media/', 'show_indexes':True}),
     (r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  '/Users/pcoleman/uCORE/coreo/media', 'show_indexes':True}), 
     # (r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':   '/Users/jashot7/Code/uCORE/uCORE/coreo/media', 'show_indexes':True}),  
+    #(r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  '/Users/pcoleman/uCORE/coreo/media', 'show_indexes':True}),
+    #(r'^site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root':   '/Users/jashot7/Dropbox/Code/uCORE/uCORE/coreo/media', 'show_indexes':True}),  
+
     # Example:
     # (r'^coreo/', include('coreo.foo.urls')),
     # (r'^ucore/', include('coreo.ucore.urls')),

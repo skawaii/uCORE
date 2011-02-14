@@ -82,7 +82,7 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     '/Users/skawaii/sandbox/work/ucore/coreo/templates/ucore/',
-    '/Users/jashot7/Code/uCORE/uCORE/coreo/templates/ucore/',
+    '/Users/jashot7/Dropbox/Code/uCORE/uCORE/coreo/templates/ucore/',
     'C:/dev/Django-1.2.3/uCORE/coreo/templates/ucore/',
     '/Users/pboone/code/ucore/coreo/templates/ucore/',
     '/Users/pcoleman/uCORE/coreo/templates/ucore/',
