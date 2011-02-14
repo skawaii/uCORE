@@ -89,6 +89,7 @@ def ge_index(request):
   
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
+
 def gm_index(request):
   # This is a quick hack at getting our Google Maps app integrated with Django.
   if not request.user.is_authenticated():
@@ -103,6 +104,7 @@ def gm_index(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('gmindex.html', {'user': user}, context_instance=RequestContext(request))
+
 
 def get_csv(request):
   ''' get_csv is a method that will return csv to the browser.
@@ -202,7 +204,6 @@ def get_shapefile(request):
 
 
 def get_tags(request):
-
     if request.method == 'GET':
       term = request.GET['term'].strip()
       if ',' in term:
@@ -227,7 +228,6 @@ def library_demo(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
   else:
     return render_to_response('testgrid.html', context_instance=RequestContext(request))
-
 
 
 def login(request):
@@ -263,12 +263,36 @@ def logout(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
+def map_view(request):
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  try:
+    user = CoreUser.objects.get(username=request.user.username)
+  except CoreUser.DoesNotExist:
+    # as long as the login_user view forces them to register if they don't already 
+    # exist in the db, then we should never actually get here. Still, better safe
+    # than sorry.
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  
+  return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
+
+
+def notifytest(request):
+  if not request.user.is_authenticated():
+    logging.warning('%s was not authenticated' % request.user)
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  # userperson = CoreUser.objects.filter(username=request.user)
+  return render_to_response('notify.html', context_instance=RequestContext(request))
+
+
 def poll_notifications(request, notification_id):
-  '''poll_notifications has two methods it supports: GET and DELETE
-     for DELETE you have to submit a notification_id which will then
-     delete the notification from the table. 
-     If you call a GET, don't send any parameters and the view will
-     return a json list of all notifications for the logged in user.
+  ''' poll_notifications has two methods it supports: GET and DELETE
+      for DELETE you have to submit a notification_id which will then
+      delete the notification from the table. 
+      If you call a GET, don't send any parameters and the view will
+      return a json list of all notifications for the logged in user.
   '''
   # notification_id is passed in on a delete request in the URL.
   if not request.user.is_authenticated(): 
@@ -294,15 +318,6 @@ def poll_notifications(request, notification_id):
     record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
     record2delete.delete()
     return response
-
-
-def notifytest(request):
-  if not request.user.is_authenticated():
-    logging.warning('%s was not authenticated' % request.user)
-    return render_to_response('login.html', context_instance=RequestContext(request))
-
-  # userperson = CoreUser.objects.filter(username=request.user)
-  return render_to_response('notify.html', context_instance=RequestContext(request))
 
 
 def rate(request, ratee, ratee_id):
@@ -420,7 +435,7 @@ def search_links(request):
   if not request.GET['q']:
     return HttpResponse(serializers.serialize('json', ''))
 
-  terms = request.GET['q'].split(' ') 
+  terms = request.GET['q'].split(',') 
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
 
   # search Link for matches
@@ -497,17 +512,3 @@ def user_profile(request):
   
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
-
-def map_view(request):
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
-
-  try:
-    user = CoreUser.objects.get(username=request.user.username)
-  except CoreUser.DoesNotExist:
-    # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
-    return render_to_response('login.html', context_instance=RequestContext(request))
-  
-  return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
