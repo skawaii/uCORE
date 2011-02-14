@@ -33,11 +33,13 @@ def create_library(request):
       tags = tags.split(',')
       for t in tags:
         t = t.strip()
-        retrievedtag = Tag.objects.filter(name=t)
-        if not retrievedtag:
-          newtag = Tag(name=t, type='P')
-          newtag.save()
-        
+        if t and t != ' ' and t != '':
+          retrievedtag = Tag.objects.filter(name=t)
+          if not retrievedtag:
+            newtag = Tag(name=t, type='P')
+            newtag.save()
+        else:
+          print 'got a blank tag or an empty space tag.'
       # library = LinkLibrary(name=name, desc=desc,
       # maintag = Tag.objects.get(name='HotButton')
       library = LinkLibrary(name=name, desc=desc, user=userperson)
