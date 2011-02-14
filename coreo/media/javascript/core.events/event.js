@@ -7,8 +7,8 @@
  *	core.events
  *
  * Dependencies:
- *	- core.util.?
- *	- core.geo.? 	
+ *	- none
+ *
  * Properties:
  * 
  *     publisher - (String) Name of the component where the event originated.
@@ -30,5 +30,4 @@ if (!window.core.events)
 		this.type = type;
 	};
 	ns.Event = Event;
-	
 })(jQuery, window.core.events);

@@ -1,4 +1,4 @@
-modeul("core.events.GeoDataLoadedEvent");
+module("core.events.GeoDataLoadedEvent");
 
 test("GeoDataLoadedEvent", function() {
 	var event = new core.events.GeoDataLoadedEvent("foo", "mockgeodata");

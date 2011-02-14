@@ -17,4 +17,4 @@ if (!window.core.util)
 		}
 	};
 	ns.IdSequence = IdSequence;
-})(jQuery, window.core.geo);
+})(jQuery, window.core.util);

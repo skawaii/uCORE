@@ -10,9 +10,8 @@
  *	core.events
  *
  * Dependencies:
- *	core.events.event
+ *	- core.events.Event
  */
-
 
 if (!window.core)
 	window.core = {};
@@ -25,12 +24,11 @@ if (!window.core.events)
 	 * Initializes the object 
 	 */
 	var GeUnloadedEvent = function(publisher) {
-		Event.call(this, publisher, GeUnloadedEvent.type);
+		ns.Event.call(this, publisher, GeUnloadedEvent.type);
 	};
 
 	GeUnloadedEvent.type = "GeUnloadedEvent";
-	$.extend(GeUnloadedEvent.prototype, Event.prototype);
+	$.extend(GeUnloadedEvent.prototype, ns.Event.prototype);
 	ns.GeUnloadedEvent = GeUnloadedEvent;
-	
 		
 })(jQuery, window.core.events);

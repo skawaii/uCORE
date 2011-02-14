@@ -11,10 +11,10 @@
 *	core.events
 *
 * Dependencies:
-*	- core.events.event
-*	- ?
+*	- none
 *
 */
+
 if (!window.core)
 	window.core = {};
 if (!window.core.events)
