@@ -26,20 +26,34 @@ def create_library(request):
       logging.error('No user retrieved by the username of %s' % request.user)
     if request.method == 'POST':
       links = request.POST['links'].strip()
-      # print 'value of links is: ' + links
       name = request.POST['name'].strip()
       desc = request.POST['desc'].strip()
-      linkArray = links.strip(',')
+      tags = request.POST['tags'].strip()
+      linkArray = links.split(',')
+      tags = tags.split(',')
+      for t in tags:
+        t = t.strip()
+        retrievedtag = Tag.objects.filter(name=t)
+        if not retrievedtag:
+          newtag = Tag(name=t, type='P')
+          newtag.save()
+        
       # library = LinkLibrary(name=name, desc=desc,
-      maintag = Tag.objects.get(name='HotButton')
-    library = LinkLibrary(name=name, desc=desc, user=userperson)
-    library.save()
-    library.tags.add(maintag)
-    for i in linkArray:
-      if i != ',':
+      # maintag = Tag.objects.get(name='HotButton')
+      library = LinkLibrary(name=name, desc=desc, user=userperson)
+      library.save()
+      for t in tags:
+        # print 'One tag is : %s' % t
+        t = t.strip()
+        retrievedtag = Tag.objects.get(name=t)
+        if not retrievedtag:
+          print 'No retrieved tag gotten from the db.'
+        else:
+          library.tags.add(retrievedtag)
+      for i in linkArray:
         link = Link.objects.get(pk=int(i))
         library.links.add(link)
-    library.save()
+      library.save()
   except Exception, e:
     print e.message
     logging.error(e.message)
@@ -186,7 +200,20 @@ def get_shapefile(request):
   shp.close()
   return response
 
- 
+
+def get_tags(request):
+
+    if request.method == 'GET':
+      term = request.GET['term'].strip()
+      if ',' in term:
+         termList = term.split(',')
+         i = len(termList)
+         term = termList[i-1].strip()
+         print 'term is- %s -here' % term
+    results = Tag.objects.filter(name__contains=term, type='P')
+    return HttpResponse(serializers.serialize('json', results))
+
+
 def index(request):
   # If the user is authenticated, send them to the application.
   if request.user.is_authenticated():

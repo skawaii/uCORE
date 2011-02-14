@@ -12,6 +12,7 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^create-library/$', 'create_library'),
     (r'^getshp/$', 'get_shapefile'),
     (r'^getkmz/$', 'get_kmz'),
+    (r'^get-tags/$', 'get_tags'),
     (r'^user-profile/$', 'user_profile'), 
     (r'^userprofile/$', 'user_profile'), # for backwards compatibility
     (r'^login/$', 'login'),
