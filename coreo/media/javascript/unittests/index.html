@@ -2,7 +2,7 @@
   <head>
   	<title>CORE JS Unit Tests</title>
     <link rel="stylesheet" href="qunit.css" type="text/css"/>
-    <script type="text/javascript" src="../jQuery/jquery-1.5.min.js"></script>
+    <script type="text/javascript" src="../jQuery/jquery-1.5.js"></script>
     <script type="text/javascript" src="qunit.js"></script>
     <script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
 
@@ -38,14 +38,15 @@
 	<script type="text/javascript" src="../core.gearth/kmlobjectstore.js"></script>
 	<script type="text/javascript" src="../core.gearth/gecontroller.js"></script>
 
-    <script type="text/javascript">
+    <script type="text/javascript"><!--
     	google.load("earth", "1");
     	google.load("maps", "2");
 
        	$(document).ready(function() {
        		// dynamically load unit tests - google API's need to be loaded first
+       		$.getScript("core.util/objectutils.js");
        		$.getScript("core.util/idsequence.js");
-			$.getScript("core.util/xmlutils.js");
+       		$.getScript("core.util/xmlutils.js");
 			$.getScript("core.util/kmlutils.js");
        		
        		$.getScript("core.events/event.js");
@@ -67,7 +68,7 @@
        		
        		$.getScript("core.gearth/gecontroller.js");
        	});
-    </script>
+    --></script>
   </head>
   <body>
     <h1 id="qunit-header">CORE JS Unit Tests</h1>

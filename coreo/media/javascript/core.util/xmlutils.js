@@ -1,9 +1,24 @@
+/**
+ * Class: XmlUtils
+ * 
+ * Namespace:
+ *  core.util
+ *  
+ * Dependencies:
+ *  - jQuery
+ *  - core.util.QualifiedName
+ *  - core.util.CallbackUtils
+ */
+
 if (!window.core)
 	window.core = {};
 if (!window.core.util)
 	window.core.util = {};
 
 (function($, ns) {
+	
+	var CBUTILS = core.util.CallbackUtils;
+	var QN = core.util.QualifiedName;
 	
 	var XmlUtils = {
 		/**
@@ -22,8 +37,8 @@ if (!window.core.util)
 				if (nodeList && ("length" in nodeList) && ("item" in nodeList)) {
 					for (var i = 0; i < nodeList.length; i++) {
 						var child = nodeList.item(i);
-						if (child && ("nodeType" in child) && (child.nodeType === ELEMENT_NODE_TYPE)) {
-							invokeCallback(callback, child);
+						if (child && ("nodeType" in child) && (child.nodeType === XmlUtils.ELEMENT_NODE_TYPE)) {
+							CBUTILS.invokeCallback(callback, child);
 						}
 					}
 				}
@@ -35,10 +50,10 @@ if (!window.core.util)
 		 * also matches a set of names
 		 */
 		walkChildElementsByName: function(node, names, callback) {
-			var namesArr = asArray(names);
-			walkChildElements(node, function(element) {
+			var namesArr = $.makeArray(names);
+			XmlUtils.walkChildElements(node, function(element) {
 				if ($.inArray(element.tagName, namesArr) > -1) {
-					invokeCallback(callback, element);
+					CBUTILS.invokeCallback(callback, element);
 				}
 			});
 		},
@@ -70,7 +85,7 @@ if (!window.core.util)
 			while (keepGoing && "parentNode" in element && !("documentElement" in element)) {
 				element = element.parentNode;
 				if (!("documentElement" in element)) {
-					keepGoing = invokeCallback(callback, element);
+					keepGoing = CBUTILS.invokeCallback(callback, element);
 				}
 			}
 		},
@@ -81,7 +96,7 @@ if (!window.core.util)
 		 */
 		getAncestorAttributeValue: function(element, attributeName) {
 			var value = undefined;
-			walkParents(element, function(parent) {
+			XmlUtils.walkParents(element, function(parent) {
 				if (parent.hasAttribute(attributeName)) {
 					value = parent.getAttribute(attributeName);
 					return false;
@@ -97,7 +112,7 @@ if (!window.core.util)
 		 */
 		getDefaultNamespaceURI: function(element) {
 			// search for an "xmlns" attribute on the closest parent element
-			var ns = getAncestorAttributeValue(element, "xmlns");
+			var ns = XmlUtils.getAncestorAttributeValue(element, "xmlns");
 			return ns !== undefined ? ns : "";
 		},
 		
@@ -115,7 +130,10 @@ if (!window.core.util)
 				// find where the prefix was declared
 				var nsPrefix = element.tagName.split(":", 1)[0];
 				var xmlnsAttrName = "xmlns:" + nsPrefix;
-				var ns = getAncestorAttributeValue(element, "xmlns:" + nsPrefix);
+				if (element.hasAttribute(xmlnsAttrName)) {
+					return element.getAttribute(xmlnsAttrName);
+				}
+				var ns = XmlUtils.getAncestorAttributeValue(element, "xmlns:" + nsPrefix);
 				if (ns == undefined) {
 					throw "Namespace prefix " + nsPrefix + " is not declared";
 				}
@@ -130,7 +148,7 @@ if (!window.core.util)
 				// element is in the default namespace
 				if (defaultNs === undefined) {
 					// search for the default namespace
-					defaultNs = getDefaultNamespaceURI(element);
+					defaultNs = XmlUtils.getDefaultNamespaceURI(element);
 				}
 				return jQuery.trim(defaultNs);
 			}
@@ -142,10 +160,13 @@ if (!window.core.util)
 			if (parts.length < 1 || parts.length > 2) {
 				throw "Illegal element name - " + fullname;
 			}
-			var nsUri = getNamespaceURI(element);
-			return parts.length == 2 
-					? new QualifiedName(parts[0], nsUri, parts[1])
-					: new QualifiedName(null, nsUri, parts[0]);
+			var nsUri = XmlUtils.getNamespaceURI(element);
+			var qname = {};
+			if (parts.length == 2)
+				QN.call(qname, parts[0], nsUri, parts[1])
+			else
+				QN.call(qname, null, nsUri, parts[0]);
+			return qname;
 		}
 		
 	};
