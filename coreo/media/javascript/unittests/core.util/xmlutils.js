@@ -1,5 +1,78 @@
 module("core.util.XmlUtils");
 
+test("createXmlDoc", function() {
+	ok(core.util.XmlUtils.createXmlDoc("<foo/>"));
+	
+	try {
+		core.util.XmlUtils.createXmlDoc("foo");
+		ok(false, "expected exception when XML is invalid");
+	}
+	catch (e) {
+		strictEqual("" + e, "Invalid XML");
+	}
+	
+	var xml = "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body><parsererror style=\"display: " +
+			"block; white-space: pre; border: 2px solid #c77; padding: 0 1em 0 1em; margin: 1em; " +
+			"background-color: #fdd; color: black\"><h3>This page contains the following errors:" +
+			"</h3><div style=\"font-family:monospace;font-size:12px\">error on line 1 at column 1: " +
+			"Document is empty</div><h3>Below is a rendering of the page up to the first error.</h3>" +
+			"</parsererror></body></html>";
+	var doc = core.util.XmlUtils.createXmlDoc(xml);
+	ok(doc);
+	ok(doc.documentElement);
+	strictEqual(doc.documentElement.tagName, "html");
+});
+
+test("getNamespacePrefixForURI", function() {
+	var doc = core.util.XmlUtils.createXmlDoc(
+			  "<foo1>"
+			+ "  <foo2 xmlns:ns1=\"urn:core1\" xmlns:ns2=\"urn:core2\">"
+			+ "    <foo3 xmlns:ns3=\"urn:core3\" />"
+			+ "  </foo2>"
+			+ "  <foo4 />"
+			+ "  <foo5 xmlns=\"urn:core4\" />"
+			+ "</foo1>");
+	
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, "urn:core1"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, "urn:core2"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, "urn:core3"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, "urn:core4"), null);
+	
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo2")[0], "urn:core1"), "ns1");
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo2")[0], "urn:core2"), "ns2");
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo2")[0], "urn:core3"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo2")[0], "urn:core4"), null);
+	
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo3")[0], "urn:core1"), "ns1");
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo3")[0], "urn:core2"), "ns2");
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo3")[0], "urn:core3"), "ns3");
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo3")[0], "urn:core4"), null);
+	
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo4")[0], "urn:core1"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo4")[0], "urn:core2"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo4")[0], "urn:core3"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo4")[0], "urn:core4"), null);
+	
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo5")[0], "urn:core1"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo5")[0], "urn:core2"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo5")[0], "urn:core3"), null);
+	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo5")[0], "urn:core4"), "");
+	
+	strictEqual(null, core.util.XmlUtils.getNamespacePrefixForURI(null, "urn:core4"));
+	strictEqual(null, core.util.XmlUtils.getNamespacePrefixForURI(undefined, "urn:core4"));
+	strictEqual(null, core.util.XmlUtils.getNamespacePrefixForURI([], "urn:core4"));
+	strictEqual(null, core.util.XmlUtils.getNamespacePrefixForURI({foo: 1}, "urn:core4"));
+	strictEqual(null, core.util.XmlUtils.getNamespacePrefixForURI("foo", "urn:core4"));
+	strictEqual(null, core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, ""));
+	strictEqual(null, core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, null));
+	strictEqual(null, core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, undefined));
+	strictEqual(null, core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, []));
+});
+
+test("ELEMENT_NODE_TYPE", function() {
+	strictEqual(core.util.XmlUtils.ELEMENT_NODE_TYPE, 1, "ELEMENT_NODE_TYPE property is defined");
+});
+
 test("getQualifiedName", function() {
 	var doc = jQuery.parseXML("<foo id=\"1\" xmlns:ns1=\"urn:ns1\">"
 			+ "  <ns1:bar id=\"2\">"

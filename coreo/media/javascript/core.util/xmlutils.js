@@ -58,6 +58,35 @@ if (!window.core.util)
 			});
 		},
 		
+		createXmlDoc: function(xml) {
+			if ($.isXMLDoc(xml)) {
+				return xml;
+			}
+			var xmlDoc = $.parseXML(xml);
+			if (typeof ActiveXObject === "object") {
+				// this is IE. IE XML DOM objects have a parseError property.
+				if ("parseError" in xmlDoc
+						&& xmlDoc.parseError
+						&& "errorCode" in xmlDoc.parseError
+						&& xmlDoc.parseError.errorCode) {
+					throw "Invalid XML";
+				}
+			}
+			else {
+				// Have to inspect the XML elements (not very reliable).
+				// Assume the parse failed if there's a parsererror element
+				// in the XML DOM, but no parsererror element in the XML text.
+				// If the XML text contains a parsererror element, this will
+				// not catch XML parsing errors.
+				var errorEl = $(xmlDoc.documentElement).find("parsererror");
+				if (errorEl.length > 0
+						&& !/.*<parsererror.+/i.test(xml)) {
+					throw "Invalid XML";
+				}
+			}
+			return xmlDoc;
+		},
+		
 		/**
 		 * Returns the textual representation of an XML DOM object
 		 */
@@ -167,6 +196,59 @@ if (!window.core.util)
 			else
 				QN.call(qname, null, nsUri, parts[0]);
 			return qname;
+		},
+
+		getDeclaredNamespaces: function(element) {
+			if (!element) {
+				return {};
+			}
+			var namespaces = {};
+			if (element && "attributes" in element 
+					&& typeof element.attributes === "object") {
+				var attrs = element.attributes;
+				if (attrs && "length" in attrs && typeof attrs.length === "number"
+					&& "item" in attrs && typeof attrs.item === "function") {
+					for (var i = 0; i < attrs.length; i++) {
+						var attr = attrs.item(i);
+						if (/xmlns\:\S+/i.test(attr.name)) {
+							var prefix = attr.name.substr(6);
+							var uri = attr.nodeValue;
+							namespaces[prefix] = uri;
+						}
+					}
+				}
+			}
+			return namespaces;
+		},
+		
+		getNamespacePrefixForURI: function(element, nsUri, searchAncestors) {
+			if (!$.isXMLDoc(element))
+				return null;
+			if (!nsUri || nsUri === "" || typeof nsUri !== "string")
+				return null;
+			var defaultNs = $(element).attr("xmlns");
+			if (defaultNs === nsUri) {
+				return "";
+			}
+			var nsMap = XmlUtils.getDeclaredNamespaces(element);
+			var prefix = null;
+			for (var declaredPrefix in nsMap) {
+				if (nsMap[declaredPrefix] === nsUri) {
+					prefix = declaredPrefix;
+					break;
+				}
+			}
+			if (!prefix && searchAncestors !== false) {
+				XmlUtils.walkParents(element, function(parent) {
+					var prefixHere = XmlUtils.getNamespacePrefixForURI(parent, nsUri, false);
+					if (prefixHere) {
+						prefix = prefixHere;
+						return false;
+					}
+					return true;
+				});
+			}
+			return prefix;
 		}
 		
 	};
