@@ -1,14 +1,14 @@
-module("core.gearth");
+module("core.gearth.GeController");
 
-test("GeAdapter", function() {
+test("GeController", function() {
 	$("<div id=\"earth\"></div>").appendTo(document.body);
     
 	var earthCreated = function(ge) {
 		ge.getWindow().setVisibility(true);
 		
-		var geAdapter = new core.gearth.GeAdapter(ge);
-		ok("ge" in geAdapter, "GeAdapter has a 'ge' property");
-		strictEqual(geAdapter.ge, ge, "GeAdapter's 'ge' property was initialized correctly");
+		var geAdapter = new core.gearth.GeController(ge);
+		ok("ge" in geAdapter, "GeController has a 'ge' property");
+		strictEqual(geAdapter.ge, ge, "GeController's 'ge' property was initialized correctly");
 		
 		var kml = "<kml xmlns=\"http://www.opengis.net/kml/2.2\">"
 				+ "<Document>"

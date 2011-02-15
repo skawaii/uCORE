@@ -10,7 +10,7 @@
  *	core.events
  *
  * Dependencies:
- *	- core.events.event
+ *	- core.events.Event
  */
 
 if (!window.core)
@@ -24,11 +24,10 @@ if (!window.core.events)
 	 * Initializes the object 
 	 */		
 	var MapLoadedEvent = function(publisher) {
-		Event.call(this, publisher, MapLoadedEvent.type);
+		ns.Event.call(this, publisher, MapLoadedEvent.type);
 	};
 	MapLoadedEvent.type = "MapLoadedEvent";
-	$.extend(MapLoadedEvent.prototype, Event.prototype);
+	$.extend(MapLoadedEvent.prototype, ns.Event.prototype);
 	ns.MapLoadedEvent = MapLoadedEvent;
 
-	
 })(jQuery, window.core.events);

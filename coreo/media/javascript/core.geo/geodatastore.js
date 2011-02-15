@@ -1,18 +1,29 @@
+/**
+ * Class: GeoDataStore
+ * 
+ * A repository for <GeoDataFeature> objects.
+ * 
+ * Namespace:
+ *  core.geo
+ * 
+ * Dependencies:
+ *  - core.util.XmlUtils
+ *  - core.util.IdSequence
+ *  - jQuery
+ */
 if (!window.core)
 	window.core = {};
 if (!window.core.geo)
 	window.core.geo = {};
 
 (function($, ns) {
-	/**
-	 * GeoDataStore
-	 * 
-	 * A repository for GeoDataFeature objects.
-	 */
+	
+	var XMLUTILS = core.util.XmlUtils;
+	
+	var idSequence = new core.util.IdSequence("core-");
+	var store = {};
+	
 	var GeoDataStore = {
-		
-		CORE_NS_URI: "urn:core:client-data",
-		CORE_NS_PREFIX: "core-ext-111",
 		
 		generateId: function() {
 			var idExists = function(id) {
@@ -31,49 +42,29 @@ if (!window.core.geo)
 			return id;
 		},
 		
-		createFromKmlString: function(kmlString) {
-			if (!(typeof kmlString === "string")) {
-				throw "parameter must be a non-null string";
+		persist: function(feature) {
+			var id = feature.id;
+			if (!id) {
+				id = GeoDataStore.generateId();
+				feature.id = id;
+				if ("_postSetId" in feature
+					&& typeof feature._postSetId === "function") {
+					feature._postSetId();
+				}
+				if (!feature.owner) {
+					// this is a root-level feature
+					store[id] = feature;
+				}
+				else {
+					// persist this in the store directly if the owner isn't 
+					// in the store
+					var ownerId = feature.owner.id;
+					if (!(ownerId in store)) {
+						store[id] = feature;
+					}
+				}
 			}
-			var kmlDom = core.util.createXmlDoc(kmlString);
-			return this.createFromKmlDom(kmlDom);
-		},
-		
-		createFromKmlDom: function(kmlDom) {
-			if (!jQuery.isXMLDoc(kmlDom)) {
-				throw "parameter must be a non-null XML DOM";
-			}
-			var rootElement = null;
-			if ("documentElement" in kmlDom) {
-				rootElement = kmlDom.documentElement;
-			}
-			else if (kmlDom.nodeType === core.util.ELEMENT_NODE_TYPE) {
-				// kmlDom is an element
-				var xml = core.util.getXmlString(kmlDom);
-				kmlDom = core.util.createXmlDoc(xml);
-				rootElement = kmlDom.documentElement;
-			}
-			else {
-				throw "parameter contains invalid KML";
-			}
-			var rootElementName = rootElement.tagName;
-			if (typeof rootElementName !== "string"
-				|| (!/kml/i.test(rootElementName) 
-						&& jQuery.inArray(rootElementName, KML_FEATURE_ELEMENTS) < 0)) {
-				throw "parameter contains invalid KML";
-			}
-			var id = this.generateId();
-			// If needed, the namespace prefix can be assigned to something
-			// different if it conflicts with a namespace that already exists
-			// in the KML document. A more robust way to pick a namespace 
-			// prefix would be to search the KML document for all existing 
-			// namespace prefixes and then choose a new unique one. However, 
-			// that would be a challenge to implement because not all 
-			// browsers (IE) support namespaces. So for now, just use a prefix 
-			// that isn't likely to exist.
-			var geoData = new KmlDomGeoDataContainer(id, kmlDom, this.CORE_NS_PREFIX);
-			store[id] = geoData;
-			return geoData;
+			return feature;
 		},
 		
 		getById: function(id) {
@@ -82,9 +73,12 @@ if (!window.core.geo)
 					if (existingId === id) {
 						return store[existingId];
 					}
-					var feature = store[existingId].getFeatureById(id);
-					if (feature) {
-						return feature;
+					if ("getFeatureById" in store[existingId]
+						&& (typeof store[existingId].getFeatureById === "function")) {
+						var feature = store[existingId].getFeatureById(id);
+						if (feature) {
+							return feature;
+						}
 					}
 				}
 			}

@@ -8,6 +8,9 @@
  *
  * Namespace:
  * 	core.events 
+ * 
+ * Dependencies:
+ *  - core.events.GeoDataEvent
  */
 
 if (!window.core)
@@ -21,12 +24,11 @@ if (!window.core.events)
 	 * Initializes the object 
 	 */
 	var GeoDataLoadedEvent = function(publisher, geoData) {
-		GeoDataEvent.call(this, publisher, geoData, GeoDataLoadedEvent.type);
+		ns.GeoDataEvent.call(this, publisher, geoData, GeoDataLoadedEvent.type);
 	};
 	GeoDataLoadedEvent.type = "GeoDataLoadedEvent";
 
-	$.extend(GeoDataLoadedEvent.prototype, GeoDataEvent.prototype);
+	$.extend(GeoDataLoadedEvent.prototype, ns.GeoDataEvent.prototype);
 	ns.GeoDataLoadedEvent = GeoDataLoadedEvent;
-
 	
 })(jQuery, window.core.events);

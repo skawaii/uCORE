@@ -1,16 +1,27 @@
+/**
+ * Class: GeController
+ * 
+ * Interface between CORE event framework and Google Earth instance.
+ * Consumes CORE events and handles showing/hiding features on the map 
+ * accordingly. 
+ * 
+ * Namespace:
+ *  core.gearth
+ * 
+ * Properties:
+ *  ge - (Google Earth instance)
+ * 
+ * Dependencies:
+ *  - core.gearth.KmlObjectStore
+ *  - google earth plugin
+ */
+
 if (!window.core)
 	window.core = {};
 if (!window.core.gearth)
 	window.core.gearth = {};
 
 (function($, ns) {
-	/**
-	 * Class: GeController
-	 * 
-	 * Interface between CORE event framework and Google Earth instance.
-	 * Consumes CORE events and handles showing/hiding features on the map 
-	 * accordingly.
-	 */
 	var GeController = function(ge) {
 		this.ge = ge;
 		this.kmlObjectStore = new KmlObjectStore(this.ge);
