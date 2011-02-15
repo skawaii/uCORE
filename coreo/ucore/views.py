@@ -21,28 +21,37 @@ from coreo.ucore import shapefile, utils
 
 def create_library(request):
   user = CoreUser.objects.get(username=request.user)
+
+  # XXX why is all of this code in a try block and only the generic Exception is being caught
   try:
     if not user:
       logging.error('No user retrieved by the username of %s' % request.user)
+      # XXX so we're continuing even though there isn't a valid user?
+
     if request.method == 'POST':
       links = request.POST['links'].strip()
       name = request.POST['name'].strip()
       desc = request.POST['desc'].strip()
       tags = request.POST['tags'].strip()
+
       if tags[-1] == ',':
         length_of_tags = len(tags)
         tags = tags[0:length_of_tags-1]
+
       linkArray = links.split(',')
       tags = tags.split(',')
       library = LinkLibrary(name=name, desc=desc, user=user)
       library.save()
+
       for t in tags:
         t = t.strip()
         retrievedtag = Tag.objects.get_or_create(name=t)
         library.tags.add(retrievedtag[0])
+
       for link_object in linkArray:
         link = Link.objects.get(pk=int(link_object))
         library.links.add(link)
+
       library.save()
   except Exception, e:
     print e.message
@@ -196,12 +205,17 @@ def get_shapefile(request):
 def get_tags(request):
     if request.method == 'GET':
       term = request.GET['term'].strip()
+
       if ',' in term:
          termList = term.split(',')
          length_of_list = len(termList)
          term = termList[length_of_list-1].strip()
          # print 'term is- %s -here' % term
+
+    # XXX if the request method is something besides a GET, it'll still execute the
+    # next 2 lines of code....
     results = Tag.objects.filter(name__contains=term, type='P')
+
     return HttpResponse(serializers.serialize('json', results))
 
 
@@ -429,16 +443,15 @@ def search_links(request):
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
 
   # search Link for matches
-  # results = list(Link.objects.filter(tags__name__in=terms).distinct())
   results = set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
   results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
+  # XXX put this in its own view
   # search LinkLibraries for matches
-  # results += list(LinkLibrary.objects.filter(tags__name__in=terms).distinct())
-  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
   return HttpResponse(serializers.serialize('json', results))
 
