@@ -20,40 +20,28 @@ from coreo.ucore import shapefile, utils
 
 
 def create_library(request):
-  userperson = CoreUser.objects.get(username=request.user)
+  user = CoreUser.objects.get(username=request.user)
   try:
-    if not userperson:
+    if not user:
       logging.error('No user retrieved by the username of %s' % request.user)
     if request.method == 'POST':
       links = request.POST['links'].strip()
       name = request.POST['name'].strip()
       desc = request.POST['desc'].strip()
       tags = request.POST['tags'].strip()
+      if tags[-1] == ',':
+        length_of_tags = len(tags)
+        tags = tags[0:length_of_tags-1]
       linkArray = links.split(',')
       tags = tags.split(',')
-      for t in tags:
-        t = t.strip()
-        if t and t != ' ' and t != '':
-          retrievedtag = Tag.objects.filter(name=t)
-          if not retrievedtag:
-            newtag = Tag(name=t, type='P')
-            newtag.save()
-        else:
-          print 'got a blank tag or an empty space tag.'
-      # library = LinkLibrary(name=name, desc=desc,
-      # maintag = Tag.objects.get(name='HotButton')
-      library = LinkLibrary(name=name, desc=desc, user=userperson)
+      library = LinkLibrary(name=name, desc=desc, user=user)
       library.save()
       for t in tags:
-        # print 'One tag is : %s' % t
         t = t.strip()
-        retrievedtag = Tag.objects.get(name=t)
-        if not retrievedtag:
-          print 'No retrieved tag gotten from the db.'
-        else:
-          library.tags.add(retrievedtag)
-      for i in linkArray:
-        link = Link.objects.get(pk=int(i))
+        retrievedtag = Tag.objects.get_or_create(name=t)
+        library.tags.add(retrievedtag[0])
+      for link_object in linkArray:
+        link = Link.objects.get(pk=int(link_object))
         library.links.add(link)
       library.save()
   except Exception, e:
@@ -209,9 +197,9 @@ def get_tags(request):
       term = request.GET['term'].strip()
       if ',' in term:
          termList = term.split(',')
-         i = len(termList)
-         term = termList[i-1].strip()
-         print 'term is- %s -here' % term
+         length_of_list = len(termList)
+         term = termList[length_of_list-1].strip()
+         # print 'term is- %s -here' % term
     results = Tag.objects.filter(name__contains=term, type='P')
     return HttpResponse(serializers.serialize('json', results))
 
