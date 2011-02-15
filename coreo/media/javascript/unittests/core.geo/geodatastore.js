@@ -1,5 +1,92 @@
 module("core.geo.GeoDataStore");
 
+test("idExists", function() {
+	ok("idExists" in core.geo.GeoDataStore, "contains idExists member");
+	strictEqual(typeof core.geo.GeoDataStore.idExists, "function", "idExists is a function");
+	strictEqual(core.geo.GeoDataStore.idExists(undefined), false);
+	strictEqual(core.geo.GeoDataStore.idExists(null), false);
+	var feature = {};
+	feature = core.geo.GeoDataStore.persist(feature);
+	var id = feature.id;
+	strictEqual(core.geo.GeoDataStore.idExists(""), false);
+	strictEqual(core.geo.GeoDataStore.idExists(id), true);
+	strictEqual(core.geo.GeoDataStore.idExists("_"), false);
+});
+
+test("generateId", function() {
+	ok("generateId" in core.geo.GeoDataStore, "contains generateId member");
+	strictEqual(typeof core.geo.GeoDataStore.generateId, "function", "generateId is a function");
+	var id = core.geo.GeoDataStore.generateId();
+	ok(id, "generateId returns something");
+	same(typeof id, "string", "generateId returns a string");
+	ok(/[a-zA-Z]+-[0-9]+/.test(id), "generateId returns a string of the expected format");
+	var id2 = core.geo.GeoDataStore.generateId();
+	notEqual(id2, id, "generateId returns unique IDs");
+});
+
+test("persist", function() {
+	ok("persist" in core.geo.GeoDataStore, "contains persist member");
+	strictEqual(typeof core.geo.GeoDataStore.persist, "function", "persist is a function");
+	strictEqual(core.geo.GeoDataStore.persist(undefined), undefined);
+	strictEqual(core.geo.GeoDataStore.persist(null), null);
+	var postSaveInvokes1 = [];
+	var feature = {
+			id: null,
+			thisIsMine: true,
+			getFeatureById: function(id) {
+				return "foo";
+			},
+			postSave: function() {
+				postSaveInvokes1.push(this.id);
+			}
+	};
+	var persisted = core.geo.GeoDataStore.persist(feature);
+	strictEqual(persisted, feature);
+	notEqual(persisted.id, null);
+	strictEqual(persisted.id, feature.id);
+	strictEqual(persisted.thisIsMine, true);
+	strictEqual(postSaveInvokes1.length, 1, "postSave() was invoked");
+	strictEqual(postSaveInvokes1[0], persisted.id, "postSave() was invoked after ID was set");
+	strictEqual(core.geo.GeoDataStore.getById(persisted.id), persisted);
+	var postSaveInvokes2 = [];
+	var subfeature = {
+			owner: feature,
+			postSave: function() {
+				postSaveInvokes2.push(this.id);
+			}
+	};
+	var persisted2 = core.geo.GeoDataStore.persist(subfeature);
+	strictEqual(persisted2, subfeature);
+	ok("id" in persisted2);
+	notEqual(persisted2.id, null);
+	strictEqual(postSaveInvokes2.length, 1, "postSave() was invoked");
+	strictEqual(postSaveInvokes2[0], persisted2.id, "postSave() was invoked after ID was set");
+	strictEqual(postSaveInvokes1.length, 1, "postSave() was not invoked again on owner object");
+	// invoking getFeatureById will always return "foo" for the owner feature
+	strictEqual(core.geo.GeoDataStore.getById(persisted2.id), "foo");
+
+	// test when object to be persisted doesn't have postSave() function
+	persisted = core.geo.GeoDataStore.persist({});
+	ok(persisted.id);
+	notEqual(persisted.id, null);
+	
+	// test when object to be persisted has a postSave member, but it isn't a function
+	persisted = core.geo.GeoDataStore.persist({ postSave: "foo" });
+	ok(persisted.id);
+	notEqual(persisted.id, null);
+});
+
+test("getById", function() {
+	ok("getById" in core.geo.GeoDataStore, "contains getById member");
+	strictEqual(typeof core.geo.GeoDataStore.getById, "function", "getById is a function");	
+});
+
+test("deleteById", function() {
+	ok("deleteById" in core.geo.GeoDataStore, "contains deleteById member");
+	strictEqual(typeof core.geo.GeoDataStore.deleteById, "function", "deleteById is a function");
+});
+
+/*
 test("GeoDataStore", function() {
 	same(typeof core.geo.GeoDataStore, "object", "core.geo.GeoDataStore exists");
 	
@@ -164,3 +251,4 @@ test("GeoDataStore", function() {
 	geoData = core.geo.GeoDataStore.createFromKmlString("<k:kml xmlns:k=\"http://www.opengis.net/kml/2.2\"><k:Document></k:Document></k:kml>");
 	ok(geoData, "GeoDataContainer can be created from XML with namespaces");
 });
+*/

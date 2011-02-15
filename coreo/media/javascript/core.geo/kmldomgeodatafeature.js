@@ -31,7 +31,13 @@ if (!window.core.geo)
 	KmlDomGeoDataFeature.DEFAULT_NS_URI = "urn:core:client-data";
 	KmlDomGeoDataFeature.DEFAULT_NS_PREFIX = "core-ext-111";
 	KmlDomGeoDataFeature.getIdFromElement = function(element) {
-		return $(element).attr(KmlDomGeoDataFeature.DEFAULT_NS_PREFIX + ":id");
+		var nsPrefix = XMLUTILS.getNamespacePrefixForURI(element, KmlDomGeoDataFeature.DEFAULT_NS_URI);
+		if (nsPrefix) {
+			var id = $(element).attr(nsPrefix + ":id");
+			if (id)
+				return id;
+		}
+		return null;
 	};
 	KmlDomGeoDataFeature.setIdOnElement = function(element, id) {
 		$(element).attr(KmlDomGeoDataFeature.DEFAULT_NS_PREFIX + ":id", id);
