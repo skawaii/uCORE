@@ -39,6 +39,11 @@ class LinkLibraryTest(TestCase):
     self.assertEquals(response.status_code, 200)
     self.assertEquals(1, LinkLibrary.objects.count())
     library = LinkLibrary.objects.get(pk=1)
+    self.assertEquals(2, library.links.count())
+    print 'Two links found in the library... checking if they are the right ones.'
+    self.assertEquals('lifehacker', library.links.get(name='lifehacker').name)
+    self.assertEquals('yahoo', library.links.get(name='yahoo').name)
+    print 'Ok the two links in the library created, are correct.'
     self.assertEquals(2, library.tags.count())
     self.assertEquals('HotButton', library.tags.get(name='HotButton').name)
     self.assertEquals('WarmButton', library.tags.get(name='WarmButton').name)
