@@ -158,8 +158,8 @@ test("getParent", function() {
 
 test("walkChildren", function() {
 	var kml = "<kml randomattribute=\"junk\"><Document id=\"3\"><Placemark/></Document><NetworkLink/><NotAFeature/></kml>";
-	var dom = jQuery.parseXML(kml);
-	var documentEl = dom.documentElement.childNodes[0];
+	var dom = core.util.XmlUtils.createXmlDoc(kml);
+	var documentEl = $(dom.documentElement).find("#3")[0];
 	var owner = new core.geo.KmlDomGeoDataContainer("1", dom);
 	var feature = new core.geo.KmlDomGeoDataFeature(owner, "2", documentEl);
 	

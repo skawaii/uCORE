@@ -45,7 +45,7 @@ if (!window.core.geo)
 			throw "parameter contains invalid KML";
 		}
 		GDC.call(this, id);
-		KMLGDF.call(this, null, id, kmlDom.documentElements);
+		KMLGDF.call(this, null, id, rootElement);
 		this.kmlDom = kmlDom;
 	};
 	KmlDomGeoDataContainer.fromKmlDom = function(kmlDom) {

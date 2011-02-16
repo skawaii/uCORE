@@ -77,20 +77,16 @@ if (!window.core.geo)
 		},
 		walkChildren: function(callback) {
 			var self = this;
-			$(this.node).children().each(function(index, element) {
-				var qname = XMLUTILS.getQualifiedName(element);
-				if ($.inArray(qname.localName, KMLUTILS.KML_FEATURE_ELEMENTS) >= 0
-						&& $.inArray(qname.nsUri, KMLUTILS.KML_NS) >= 0) {
-					var owner = self.owner;
-					if (owner == null) {
-						// this is the owner
-						owner = self;
-					}
-					var id = KmlDomGeoDataFeature.getIdFromElement(element);
-					var childFeature = new KmlDomGeoDataFeature(owner, id, element);
-					GDS.persist(childFeature);
-					CBUTILS.invokeCallback(callback, childFeature);
+			KMLUTILS.iterateChildKmlElements(this.node, function(element) {
+				var owner = self.owner;
+				if (owner == null) {
+					// this is the owner
+					owner = self;
 				}
+				var id = KmlDomGeoDataFeature.getIdFromElement(element);
+				var childFeature = new KmlDomGeoDataFeature(owner, id, element);
+				GDS.persist(childFeature);
+				CBUTILS.invokeCallback(callback, childFeature);
 			});
 		},
 		getKmlString: function() {
