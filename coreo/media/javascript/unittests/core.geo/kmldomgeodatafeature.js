@@ -1,11 +1,7 @@
 module("core.geo.KmlDomGeoDataFeature");
 
-test("DEFAULT_NS_URI", function() {
-	strictEqual(core.geo.KmlDomGeoDataFeature.DEFAULT_NS_URI, "urn:core:client-data");
-});
-
-test("DEFAULT_NS_PREFIX", function() {
-	strictEqual(core.geo.KmlDomGeoDataFeature.DEFAULT_NS_PREFIX, "core-ext-111");
+test("NS_URI", function() {
+	strictEqual(core.geo.KmlDomGeoDataFeature.NS_URI, "urn:core:geo:KmlDomGeoDataFeature");
 });
 
 test("owner", function() {
@@ -25,15 +21,17 @@ test("node", function() {
 
 test("getIdFromElement", function() {
 	strictEqual(typeof core.geo.KmlDomGeoDataFeature.getIdFromElement, "function");
-	var dom = jQuery.parseXML("<foo1 ns1:id=\"1\" xmlns:ns1=\"" + core.geo.KmlDomGeoDataFeature.DEFAULT_NS_URI + "\">"
+	var xml = "<foo1 ns1:id=\"1\" xmlns:ns1=\"" + core.geo.KmlDomGeoDataFeature.NS_URI + "\">"
 			+ "<foo2 ns1:id=\"2\" />"
 			+ "<foo3>"
 			+ "  <foo4 ns1:id=\"3\"/>"
 			+ "  <foo5 ns2:id=\"4\" xmlns:ns2=\"urn:foo\"/>"
 			+ "</foo3>"
 			+ "<foo6 id=\"5\" />"
-			+ "<foo7 " + core.geo.KmlDomGeoDataFeature.DEFAULT_NS_PREFIX + ":id=\"6\" />"
-			+ "</foo1>");
+			+ "<foo7 " + core.util.XmlUtils.NS_PREFIX_PREFIX + "1:id=\"6\" "
+			+ "xmlns:" + core.util.XmlUtils.NS_PREFIX_PREFIX + "1=\"urn:foo3\"/>"
+			+ "</foo1>";
+	var dom = core.util.XmlUtils.createXmlDoc(xml);
 	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement(dom.documentElement), "1");
 	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement($(dom.documentElement).find("foo2")[0]), "2");
 	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement($(dom.documentElement).find("foo3")[0]), null);
@@ -41,29 +39,98 @@ test("getIdFromElement", function() {
 	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement($(dom.documentElement).find("foo5")[0]), null);
 	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement($(dom.documentElement).find("foo6")[0]), null);
 	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement($(dom.documentElement).find("foo7")[0]), null);
-	
-	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement(null), null);
-	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement(undefined), null);
-	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement("foo"), null);
-	strictEqual(core.geo.KmlDomGeoDataFeature.getIdFromElement([]), null);
+
+	try {
+		core.geo.KmlDomGeoDataFeature.getIdFromElement(null);
+		ok(false, "expected exception");
+	}
+	catch (e) {
+		strictEqual(e.name, "TypeError");
+	}
+	try {
+		core.geo.KmlDomGeoDataFeature.getIdFromElement(null);
+		ok(false, "expected exception");
+	}
+	catch (e) {
+		strictEqual(e.name, "TypeError");
+	}
+	try {
+		core.geo.KmlDomGeoDataFeature.getIdFromElement(undefined);
+		ok(false, "expected exception");
+	}
+	catch (e) {
+		strictEqual(e.name, "TypeError");
+	}
+	try {
+		core.geo.KmlDomGeoDataFeature.getIdFromElement("foo");
+		ok(false, "expected exception");
+	}
+	catch (e) {
+		strictEqual(e.name, "TypeError");
+	}
+	try {
+		core.geo.KmlDomGeoDataFeature.getIdFromElement([]);
+		ok(false, "expected exception");
+	}
+	catch (e) {
+		strictEqual(e.name, "TypeError");
+	}
 });
 
 test("setIdOnElement", function() {
+	var NS_URI = core.geo.KmlDomGeoDataFeature.NS_URI;
 	strictEqual(typeof core.geo.KmlDomGeoDataFeature.setIdOnElement, "function");
-	var dom = jQuery.parseXML("<foo />");
+	var dom = core.util.XmlUtils.createXmlDoc("<foo />");
 	core.geo.KmlDomGeoDataFeature.setIdOnElement(dom.documentElement, "1");
-	strictEqual($(dom.documentElement).attr("xmlns:" + core.geo.KmlDomGeoDataFeature.DEFAULT_NS_PREFIX),
-			core.geo.KmlDomGeoDataFeature.DEFAULT_NS_URI);
-	strictEqual($(dom.documentElement).attr(core.geo.KmlDomGeoDataFeature.DEFAULT_NS_PREFIX + ":id"), "1");
-	dom = jQuery.parseXML("<foo xmlns:ns1=\"" + core.geo.KmlDomGeoDataFeature.DEFAULT_NS_URI + "\"><foo id=\"blah\"/></foo>");
+	strictEqual($(dom.documentElement).attr("xmlns:" + core.util.XmlUtils.NS_PREFIX_PREFIX + "1"), NS_URI);
+	strictEqual($(dom.documentElement).attr(core.util.XmlUtils.NS_PREFIX_PREFIX + "1:id"), "1");
+	dom = core.util.XmlUtils.createXmlDoc("<foo xmlns:ns1=\"" + NS_URI + "\">"
+			+ "<foo2 id=\"blah\"/></foo>");
 	core.geo.KmlDomGeoDataFeature.setIdOnElement(dom.documentElement, "1");
-	strictEqual($(dom.documentElement).attr("xmlns:" + core.geo.KmlDomGeoDataFeature.DEFAULT_NS_PREFIX),
+	strictEqual($(dom.documentElement).attr("xmlns:" + core.util.XmlUtils.NS_PREFIX_PREFIX + "1"),
 			undefined);
 	strictEqual($(dom.documentElement).attr("ns1:id"), "1");
-	core.geo.KmlDomGeoDataFeature.setIdOnElement(dom.documentElement.childNodes[0], "2");
-	strictEqual($(dom.documentElement).attr("xmlns:" + core.geo.KmlDomGeoDataFeature.DEFAULT_NS_PREFIX),
+	core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo2")[0], "2");
+	strictEqual($(dom.documentElement).find("foo2").attr("xmlns:" + core.util.XmlUtils.NS_PREFIX_PREFIX + "1"),
 			undefined);
-	strictEqual($(dom.documentElement).attr("ns1:id"), "2");
+	strictEqual($(dom.documentElement).find("foo2").attr("ns1:id"), "2");
+	core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo2")[0], "3");
+	strictEqual($(dom.documentElement).find("foo2").attr("xmlns:" + core.util.XmlUtils.NS_PREFIX_PREFIX + "1"),
+			undefined);
+	strictEqual($(dom.documentElement).find("foo2").attr("ns1:id"), "3");
+	core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo2")[0], null);
+	strictEqual($(dom.documentElement).find("foo2").attr("ns1:id"), undefined, 
+			"setting ID to null removes the attribute");
+	core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo2")[0], undefined);
+	strictEqual($(dom.documentElement).find("foo2").attr("ns1:id"), undefined, 
+			"setting ID to undefined removes to attribute");
+	core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo2")[0], " ");
+	strictEqual($(dom.documentElement).find("foo2").attr("ns1:id"), " ");
+	core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo2")[0], "");
+	strictEqual($(dom.documentElement).find("foo2").attr("ns1:id"), "");
+	core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo2")[0], 1);
+	strictEqual($(dom.documentElement).find("foo2").attr("ns1:id"), "1");
+	core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo2")[0], []);
+	strictEqual($(dom.documentElement).find("foo2").attr("ns1:id"), "");
+	core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo2")[0], {});
+	strictEqual($(dom.documentElement).find("foo2").attr("ns1:id"), "[object Object]");
+	
+	dom = core.util.XmlUtils.createXmlDoc(
+			"<foo xmlns:" + core.util.XmlUtils.NS_PREFIX_PREFIX + "1" 
+			+ "=\"urn:foo\"></foo>");
+	core.geo.KmlDomGeoDataFeature.setIdOnElement(dom.documentElement, "1");
+	strictEqual($(dom.documentElement).attr("xmlns:" + core.util.XmlUtils.NS_PREFIX_PREFIX + "1"), "urn:foo",
+			"existing namespace prefix wasn't changed");
+	strictEqual($(dom.documentElement).attr("xmlns:" + core.util.XmlUtils.NS_PREFIX_PREFIX + "2"), NS_URI,
+			"new unique namespace prefix was created for NS_URI");
+	strictEqual($(dom.documentElement).attr(core.util.XmlUtils.NS_PREFIX_PREFIX + "2:id"), "1");
+	
+	raises(function(){core.geo.KmlDomGeoDataFeature.setIdOnElement($(dom.documentElement).find("foo")[0].attributes.item(0), "1");});
+	raises(function(){core.geo.KmlDomGeoDataFeature.setIdOnElement(null, "1");});
+	raises(function(){core.geo.KmlDomGeoDataFeature.setIdOnElement(undefined, "1");});
+	raises(function(){core.geo.KmlDomGeoDataFeature.setIdOnElement([], "1");});
+	raises(function(){core.geo.KmlDomGeoDataFeature.setIdOnElement({}, "1");});
+	raises(function(){core.geo.KmlDomGeoDataFeature.setIdOnElement("foo", "1");});
 });
 
 test("class hierarchy", function() {
@@ -72,7 +139,7 @@ test("class hierarchy", function() {
 });
 
 test("getParent", function() {
-	var dom = jQuery.parseXML("<kml xmlns:ns1=\"" + core.geo.KmlDomGeoDataFeature.DEFAULT_NS_URI + "\" ns1:id=\"1\">"
+	var dom = jQuery.parseXML("<kml xmlns:ns1=\"" + core.geo.KmlDomGeoDataFeature.NS_URI + "\" ns1:id=\"1\">"
 			+ "<Document />"
 			+ "<Document ns1:id=\"3\"><Placemark/></Document>"
 			+ "</kml>");

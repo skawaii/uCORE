@@ -8,6 +8,7 @@
  *  - jQuery
  *  - core.util.QualifiedName
  *  - core.util.CallbackUtils
+ *  - core.util.Assert
  */
 
 if (!window.core)
@@ -19,6 +20,7 @@ if (!window.core.util)
 	
 	var CBUTILS = core.util.CallbackUtils;
 	var QN = core.util.QualifiedName;
+	var ASSERT = core.util.Assert;
 	
 	var XmlUtils = {
 		/**
@@ -27,21 +29,47 @@ if (!window.core.util)
 		 * The value of the nodeType attribute of a DOM node when it is an element
 		 */
 		ELEMENT_NODE_TYPE: 1,
+		
+		/**
+		 * The prefix used when generating new namespace prefixes
+		 */
+		NS_PREFIX_PREFIX: "cns-",
 
+		isElement: function(o) {
+			return (o !== undefined && o !== null 
+					&& (typeof o === "object")
+					&& ($.isXMLDoc(o))
+					&& ("nodeType" in o)
+					&& (typeof o.nodeType === "number")
+					&& (o.nodeType === XmlUtils.ELEMENT_NODE_TYPE));
+		},
+		
+		assertElement: function(o) {
+			ASSERT.isTrue(XmlUtils.isElement(o), 
+					new TypeError("Not an XML DOM element - " + o));
+		},
+		
+		iterateElements: function(nodeList, callback) {
+			ASSERT.notNull(callback, "callback cannot be null");
+			ASSERT.notNull(nodeList, "nodeList cannot be null");
+			ASSERT.hasMember(nodeList, "length", "nodeList must be a NodeList object");
+			ASSERT.hasFunction(nodeList, "item", "nodeList must be a NodeList object");
+			for (var i = 0; i < nodeList.length; i++) {
+				var child = nodeList.item(i);
+				if (XmlUtils.isElement(child)) {
+					CBUTILS.invokeCallback(callback, child);
+				}
+			}
+		},
+		
 		/**
 		 * Invokes a callback for each child node found that is an element node
 		 */
-		walkChildElements: function(node, callback) {
-			if (node && ("childNodes" in node)) {
-				var nodeList = node.childNodes;
-				if (nodeList && ("length" in nodeList) && ("item" in nodeList)) {
-					for (var i = 0; i < nodeList.length; i++) {
-						var child = nodeList.item(i);
-						if (child && ("nodeType" in child) && (child.nodeType === XmlUtils.ELEMENT_NODE_TYPE)) {
-							CBUTILS.invokeCallback(callback, child);
-						}
-					}
-				}
+		iterateChildElements: function(element, callback) {
+			ASSERT.notNull(callback, "callback cannot be null");
+			if (element != null && element != undefined) {
+				XmlUtils.assertElement(element);
+				XmlUtils.iterateElements(element.childNodes, callback);
 			}
 		},
 
@@ -49,9 +77,9 @@ if (!window.core.util)
 		 * Invokes a callback for each child node found that is an element node and
 		 * also matches a set of names
 		 */
-		walkChildElementsByName: function(node, names, callback) {
+		iterateChildElementsByName: function(node, names, callback) {
 			var namesArr = $.makeArray(names);
-			XmlUtils.walkChildElements(node, function(element) {
+			XmlUtils.iterateChildElements(node, function(element) {
 				if ($.inArray(element.tagName, namesArr) > -1) {
 					CBUTILS.invokeCallback(callback, element);
 				}
@@ -59,9 +87,13 @@ if (!window.core.util)
 		},
 		
 		createXmlDoc: function(xml) {
+			if (xml == null || xml == undefined) {
+				return null;
+			}
 			if ($.isXMLDoc(xml)) {
 				return xml;
 			}
+			ASSERT.type(xml, "string");
 			var xmlDoc = $.parseXML(xml);
 			if (typeof ActiveXObject === "object") {
 				// this is IE. IE XML DOM objects have a parseError property.
@@ -69,7 +101,7 @@ if (!window.core.util)
 						&& xmlDoc.parseError
 						&& "errorCode" in xmlDoc.parseError
 						&& xmlDoc.parseError.errorCode) {
-					throw "Invalid XML";
+					throw new TypeError("Invalid XML");
 				}
 			}
 			else {
@@ -81,7 +113,7 @@ if (!window.core.util)
 				var errorEl = $(xmlDoc.documentElement).find("parsererror");
 				if (errorEl.length > 0
 						&& !/.*<parsererror.+/i.test(xml)) {
-					throw "Invalid XML";
+					throw new TypeError("Invalid XML. Error details: " + XmlUtils.getXmlString(xmlDoc));
 				}
 			}
 			return xmlDoc;
@@ -101,7 +133,7 @@ if (!window.core.util)
 				xml = (new XMLSerializer()).serializeToString(xmlDom);
 			}
 			else {
-				throw "Unsupported browser";
+				throw new ReferenceError("Unsupported browser");
 			}
 			return xml;
 		},
@@ -110,11 +142,13 @@ if (!window.core.util)
 		 * Invoke a callback for each parent node
 		 */
 		walkParents: function(element, callback) {
-			var keepGoing = true;
-			while (keepGoing && "parentNode" in element && !("documentElement" in element)) {
-				element = element.parentNode;
-				if (!("documentElement" in element)) {
-					keepGoing = CBUTILS.invokeCallback(callback, element);
+			ASSERT.notNull(callback, "callback cannot be null");
+			XmlUtils.assertElement(element);
+			if ("parentNode" in element) {
+				var parent = element.parentNode;
+				if (XmlUtils.isElement(parent)
+						&& (CBUTILS.invokeCallback(callback, parent) !== false)) {
+					XmlUtils.walkParents(parent, callback);
 				}
 			}
 		},
@@ -149,11 +183,7 @@ if (!window.core.util)
 		 * Get the namespace of an XML element
 		 */
 		getNamespaceURI: function(element, defaultNs) {
-			if (element === undefined || element === null
-					|| !"tagName" in element
-					|| element.tagName === undefined) {
-				return undefined;
-			}
+			XmlUtils.assertElement(element);
 			if (element.tagName.indexOf(":") > 0) {
 				// element name is prefixed with namespace prefix
 				// find where the prefix was declared
@@ -164,7 +194,7 @@ if (!window.core.util)
 				}
 				var ns = XmlUtils.getAncestorAttributeValue(element, "xmlns:" + nsPrefix);
 				if (ns == undefined) {
-					throw "Namespace prefix " + nsPrefix + " is not declared";
+					throw new ReferenceError("Namespace prefix " + nsPrefix + " is not declared");
 				}
 				return jQuery.trim(ns);
 			}
@@ -184,71 +214,109 @@ if (!window.core.util)
 		},
 
 		getQualifiedName: function(element) {
+			XmlUtils.assertElement(element);
 			var fullname = element.tagName;
 			var parts = fullname.split(":");
 			if (parts.length < 1 || parts.length > 2) {
-				throw "Illegal element name - " + fullname;
+				throw new TypeError("Illegal element name - " + fullname);
 			}
 			var nsUri = XmlUtils.getNamespaceURI(element);
-			var qname = {};
-			if (parts.length == 2)
-				QN.call(qname, parts[0], nsUri, parts[1])
-			else
-				QN.call(qname, null, nsUri, parts[0]);
-			return qname;
+			return parts.length == 2
+				? new QN(parts[0], nsUri, parts[1])
+				: new QN(null, nsUri, parts[0]);
 		},
 
-		getDeclaredNamespaces: function(element) {
-			if (!element) {
-				return {};
+		findNewNsPrefix: function(element) {
+			var allPrefixes = XmlUtils.getDeclaredNamespaces(element, true);
+			var i = 0;
+			while (++i > 0) {
+				var nsPrefix = XmlUtils.NS_PREFIX_PREFIX + i;
+				if (!(nsPrefix in allPrefixes)) {
+					return nsPrefix;
+				}
 			}
+		},
+		
+		/**
+		 * Declares a namespace prefix on an element. Returns the new prefix.
+		 * nsPrefix parameter is optional - will generate a new prefix if 
+		 * not provided.
+		 */
+		declareNamespace: function(element, nsUri, nsPrefix) {
+			XmlUtils.assertElement(element);
+			ASSERT.notNull(nsUri, "nsUri cannot be null");
+			ASSERT.type(nsUri, "string", "nsUri must be a string");
+			ASSERT.isTrue($.trim(nsUri).length > 0, "Namespace URI cannot be an empty string");
+			if (nsPrefix == undefined || nsPrefix == null) {
+				nsPrefix = XmlUtils.findNewNsPrefix(element);
+			}
+			ASSERT.type(nsPrefix, "string", "nsPrefix must be a string");
+			$(element).attr("xmlns:" + nsPrefix, nsUri);
+			return nsPrefix;
+		},
+
+		getOrDeclareNsPrefix: function(element, nsUri) {
+			var nsPrefix = XmlUtils.getNamespacePrefixForURI(element, nsUri, true);
+			if (nsPrefix == null || nsPrefix == undefined) {
+				nsPrefix = XmlUtils.declareNamespace(element, nsUri);
+			}
+			return nsPrefix;
+		},
+		
+		getDeclaredNamespaces: function(element, includeAncestors) {
+			XmlUtils.assertElement(element);
 			var namespaces = {};
-			if (element && "attributes" in element 
-					&& typeof element.attributes === "object") {
-				var attrs = element.attributes;
-				if (attrs && "length" in attrs && typeof attrs.length === "number"
-					&& "item" in attrs && typeof attrs.item === "function") {
-					for (var i = 0; i < attrs.length; i++) {
-						var attr = attrs.item(i);
-						if (/xmlns\:\S+/i.test(attr.name)) {
-							var prefix = attr.name.substr(6);
-							var uri = attr.nodeValue;
+			var attrs = element.attributes;
+			for (var i = 0; i < attrs.length; i++) {
+				var attr = attrs.item(i);
+				if (/xmlns\:\S+/i.test(attr.name)) {
+					var prefix = attr.name.substr(6);
+					var uri = attr.nodeValue;
+					namespaces[prefix] = uri;
+				}
+			}
+			if (includeAncestors === true) {
+				XmlUtils.walkParents(element, function(parent) {
+					var parentNsMap = XmlUtils.getDeclaredNamespaces(parent, false);
+					for (var prefix in parentNsMap) {
+						var uri = parentNsMap[prefix];
+						// if closer (lower-level) element hasn't already 
+						// defined this prefix, add this declaration to the 
+						// namespace map
+						if (!(prefix in namespaces)) {
 							namespaces[prefix] = uri;
 						}
 					}
-				}
+				});
 			}
 			return namespaces;
 		},
 		
 		getNamespacePrefixForURI: function(element, nsUri, searchAncestors) {
-			if (!$.isXMLDoc(element))
-				return null;
-			if (!nsUri || nsUri === "" || typeof nsUri !== "string")
-				return null;
-			var defaultNs = $(element).attr("xmlns");
-			if (defaultNs === nsUri) {
+			XmlUtils.assertElement(element);
+			if (nsUri == null || nsUri == undefined || nsUri === "")
+				return undefined;
+			ASSERT.type(nsUri, "string");
+			if ($(element).attr("xmlns") === nsUri) {
 				return "";
 			}
-			var nsMap = XmlUtils.getDeclaredNamespaces(element);
-			var prefix = null;
-			for (var declaredPrefix in nsMap) {
-				if (nsMap[declaredPrefix] === nsUri) {
-					prefix = declaredPrefix;
-					break;
+			searchAncestors = searchAncestors === false ? false : true;
+			var nsMap = XmlUtils.getDeclaredNamespaces(element, searchAncestors);
+			for (var prefix in nsMap) {
+				if (nsMap[prefix] === nsUri) {
+					return prefix;
 				}
 			}
-			if (!prefix && searchAncestors !== false) {
-				XmlUtils.walkParents(element, function(parent) {
-					var prefixHere = XmlUtils.getNamespacePrefixForURI(parent, nsUri, false);
-					if (prefixHere) {
-						prefix = prefixHere;
-						return false;
-					}
-					return true;
-				});
-			}
-			return prefix;
+			return undefined;
+		},
+		
+		getNamespaceURIForPrefix: function(element, nsPrefix, searchAncestors) {
+			XmlUtils.assertElement(element);
+			ASSERT.notNull(nsPrefix, "nsPrefix cannot be null");
+			ASSERT.type(nsPrefix, "string", "nsPrefix must be a string");
+			var searchAncestors = searchAncestors === false ? false : true;
+			var nsMap = XmlUtils.getDeclaredNamespaces(element, searchAncestors);
+			return (nsPrefix in nsMap) ? nsMap[nsPrefix] : undefined;
 		}
 		
 	};

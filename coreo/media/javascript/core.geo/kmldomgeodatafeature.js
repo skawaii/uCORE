@@ -11,6 +11,7 @@
  *  - core.util.XmlUtils
  *  - core.geo.GeoDataStore
  *  - core.util.CallbackUtils
+ *  - core.util.Assert
  */
 if (!window.core)
 	window.core = {};
@@ -23,24 +24,30 @@ if (!window.core.geo)
 	var XMLUTILS = core.util.XmlUtils;
 	var GDS = core.geo.GeoDataStore;
 	var CBUTILS = core.util.CallbackUtils;
+	var ASSERT = core.util.Assert;
 	
 	var KmlDomGeoDataFeature = function(owner, id, node) {
 		GDF.call(this, owner, id);
 		this.node = node;
 	};
-	KmlDomGeoDataFeature.DEFAULT_NS_URI = "urn:core:client-data";
-	KmlDomGeoDataFeature.DEFAULT_NS_PREFIX = "core-ext-111";
+	KmlDomGeoDataFeature.NS_URI = "urn:core:geo:KmlDomGeoDataFeature";
 	KmlDomGeoDataFeature.getIdFromElement = function(element) {
-		var nsPrefix = XMLUTILS.getNamespacePrefixForURI(element, KmlDomGeoDataFeature.DEFAULT_NS_URI);
-		if (nsPrefix) {
+		var nsPrefix = XMLUTILS.getNamespacePrefixForURI(element, KmlDomGeoDataFeature.NS_URI, true);
+		if (nsPrefix != null && nsPrefix != undefined) {
 			var id = $(element).attr(nsPrefix + ":id");
-			if (id)
+			if (id != undefined)
 				return id;
 		}
 		return null;
 	};
 	KmlDomGeoDataFeature.setIdOnElement = function(element, id) {
-		$(element).attr(KmlDomGeoDataFeature.DEFAULT_NS_PREFIX + ":id", id);
+		var nsPrefix = XMLUTILS.getOrDeclareNsPrefix(element, KmlDomGeoDataFeature.NS_URI);
+		if (id == null || id == undefined) {
+			$(element).removeAttr(nsPrefix + ":id");
+		}
+		else {
+			$(element).attr(nsPrefix + ":id", "" + id);			
+		}
 	};
 	$.extend(KmlDomGeoDataFeature.prototype, GDF.prototype, {
 		getParent: function() {
