@@ -8,6 +8,7 @@
 
     <script type="text/javascript" src="core.testutils.js"></script>
 
+	<script type="text/javascript" src="../core.util/assert.js"></script>
     <script type="text/javascript" src="../core.util/idsequence.js"></script>
     <script type="text/javascript" src="../core.util/callbackutils.js"></script>
     <script type="text/javascript" src="../core.util/objectutils.js"></script>
@@ -44,11 +45,11 @@
 
        	$(document).ready(function() {
        		// dynamically load unit tests - google API's need to be loaded first
+       		$.getScript("core.util/assert.js");
        		$.getScript("core.util/objectutils.js");
        		$.getScript("core.util/idsequence.js");
        		$.getScript("core.util/xmlutils.js");
 		$.getScript("core.util/kmlutils.js");
-       		
        		$.getScript("core.events/event.js");
        		$.getScript("core.events/eventchannel.js");
        		$.getScript("core.events/flytofeatureevent.js");
@@ -64,7 +65,7 @@
        		
        		$.getScript("core.geo/geodatastore.js");
        		$.getScript("core.geo/kmldomgeodatafeature.js");
-       		// $.getScript("core.geo/kmldomgeodatacontainer.js");
+       		$.getScript("core.geo/kmldomgeodatacontainer.js");
        		
        		$.getScript("core.gearth/gecontroller.js");
        	});
