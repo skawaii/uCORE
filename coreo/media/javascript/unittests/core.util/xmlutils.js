@@ -1,75 +1,7 @@
 module("core.util.XmlUtils");
 
-test("walkParents", function() {
-	var doc = core.util.XmlUtils.createXmlDoc("<foo a=\"b\"><bar a=\"b\"><baz a=\"b\"/></bar></foo>");
-	var parents = [];
-	core.util.XmlUtils.walkParents($(doc.documentElement).find("baz")[0], function(parent) {
-		ok(parent != null && parent != undefined);
-		ok("tagName" in parent);
-		ok("nodeType" in parent);
-		strictEqual(parent.nodeType, core.util.XmlUtils.ELEMENT_NODE_TYPE);
-		parents.push(parent.tagName);
-	});
-	strictEqual(parents.length, 2, "callback was invoked for 2 parent elements");
-	strictEqual(parents[0], "bar");
-	strictEqual(parents[1], "foo");
-});
-
-test("getOrDeclareNsPrefix", function() {
-	var doc = core.util.XmlUtils.createXmlDoc("<foo><bar xmlns:" 
-			+ core.util.XmlUtils.NS_PREFIX_PREFIX 
-			+ "1=\"urn:foo2\"><baz/></bar></foo>");
-	var prefix = core.util.XmlUtils.getOrDeclareNsPrefix(doc.documentElement, "urn:foo");
-	strictEqual(prefix, core.util.XmlUtils.NS_PREFIX_PREFIX + "1", "generated prefix - didn't find any conflicts");
-	strictEqual($(doc.documentElement).attr("xmlns:" + prefix), "urn:foo", "prefix was declared");
-	strictEqual(core.util.XmlUtils.getOrDeclareNsPrefix(doc.documentElement, "urn:foo"), prefix, 
-			"same prefix is used for future URI requests");
-	
-	strictEqual(core.util.XmlUtils.getOrDeclareNsPrefix($(doc.documentElement).find("bar")[0], "urn:foo"),
-			core.util.XmlUtils.NS_PREFIX_PREFIX + "2", "re-declared prefix isn't used");
-	prefix = core.util.XmlUtils.getOrDeclareNsPrefix($(doc.documentElement).find("bar")[0], "urn:foo2");
-	strictEqual(prefix, core.util.XmlUtils.NS_PREFIX_PREFIX + "1", "re-declared prefix is used with correct URI");
-	
-	strictEqual(core.util.XmlUtils.getOrDeclareNsPrefix($(doc.documentElement).find("baz")[0], "urn:foo"), 
-			core.util.XmlUtils.NS_PREFIX_PREFIX + "2",
-			"parent element's (not root's) prefix declaration is used");
-});
-
-test("findNewNsPrefix", function() {
-	var doc = core.util.XmlUtils.createXmlDoc("<foo><bar xmlns:" 
-			+ core.util.XmlUtils.NS_PREFIX_PREFIX 
-			+ "1=\"urn:foo\"><baz/></bar></foo>");
-	var prefix = core.util.XmlUtils.findNewNsPrefix(doc.documentElement);
-	strictEqual(prefix, core.util.XmlUtils.NS_PREFIX_PREFIX + "1");
-	prefix = core.util.XmlUtils.findNewNsPrefix($(doc.documentElement).find("bar")[0]);
-	strictEqual(prefix, core.util.XmlUtils.NS_PREFIX_PREFIX + "2");
-	prefix = core.util.XmlUtils.findNewNsPrefix($(doc.documentElement).find("baz")[0]);
-	strictEqual(prefix, core.util.XmlUtils.NS_PREFIX_PREFIX + "2");
-	raises(function(){core.util.XmlUtils.findNewNsPrefix(undefined);});
-	raises(function(){core.util.XmlUtils.findNewNsPrefix(null);});
-	raises(function(){core.util.XmlUtils.findNewNsPrefix([]);});
-	raises(function(){core.util.XmlUtils.findNewNsPrefix({});});
-	raises(function(){core.util.XmlUtils.findNewNsPrefix("");});
-});
-
-test("declareNamespace", function() {
-	var doc = core.util.XmlUtils.createXmlDoc("<foo a=\"b\"><bar/></foo>");
-	var prefix = core.util.XmlUtils.declareNamespace(doc.documentElement, "urn:foo", "f");
-	strictEqual(prefix, "f");
-	strictEqual($(doc.documentElement).attr("xmlns:f"), "urn:foo");
-	prefix = core.util.XmlUtils.declareNamespace(doc.documentElement, "urn:foo2");
-	ok(prefix);
-	strictEqual(typeof prefix, "string");
-	strictEqual($(doc.documentElement).attr("xmlns:" + prefix), "urn:foo2");
-	raises(function(){core.util.XmlUtils.declareNamespace(undefined, "urn:foo3", "f");});
-	raises(function(){core.util.XmlUtils.declareNamespace(null, "urn:foo3", "f");});
-	raises(function(){core.util.XmlUtils.declareNamespace({}, "urn:foo3", "f");});
-	raises(function(){core.util.XmlUtils.declareNamespace([], "urn:foo3", "f");});
-	raises(function(){core.util.XmlUtils.declareNamespace("", "urn:foo3", "f");});
-	raises(function(){core.util.XmlUtils.declareNamespace(doc.documentElement, null, "f");});
-	raises(function(){core.util.XmlUtils.declareNamespace(doc.documentElement, undefined, "f");});
-	raises(function(){core.util.XmlUtils.declareNamespace(doc.documentElement, "", "f");});
-	raises(function(){core.util.XmlUtils.declareNamespace(doc.documentElement, " \t", "f");});
+test("ELEMENT_NODE_TYPE", function() {
+	strictEqual(core.util.XmlUtils.ELEMENT_NODE_TYPE, 1, "ELEMENT_NODE_TYPE property is defined");
 });
 
 test("isElement", function() {
@@ -100,87 +32,6 @@ test("assertElement", function() {
 	}
 });
 
-test("getNamespaceURIForPrefix", function() {
-	var doc = core.util.XmlUtils.createXmlDoc(
-			  "<foo1>"
-			+ "  <foo2 xmlns:ns1=\"urn:core1\" xmlns:ns2=\"urn:core2\">"
-			+ "    <foo3 xmlns:ns3=\"urn:core3\" />"
-			+ "  </foo2>"
-			+ "  <foo4 />"
-			+ "  <foo5 xmlns=\"urn:core4\" />"
-			+ "</foo1>");
-	
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix(doc.documentElement, "ns1"), undefined);
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix(doc.documentElement, "ns2"), undefined);
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix(doc.documentElement, "ns3"), undefined);
-	
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo2")[0], "ns1"), "urn:core1");
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo2")[0], "ns2"), "urn:core2");
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo2")[0], "ns3"), undefined);
-	
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo3")[0], "ns1"), "urn:core1");
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo3")[0], "ns2"), "urn:core2");
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo3")[0], "ns3"), "urn:core3");
-
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo4")[0], "ns1"), undefined);
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo4")[0], "ns2"), undefined);
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo4")[0], "ns3"), undefined);
-	
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo5")[0], "ns1"), undefined);
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo5")[0], "ns2"), undefined);
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo5")[0], "ns3"), undefined);
-	
-	try {
-		core.util.XmlUtils.getNamespaceURIForPrefix(null, "ns1");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	try {
-		core.util.XmlUtils.getNamespaceURIForPrefix(undefined, "ns1");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	try {
-		core.util.XmlUtils.getNamespaceURIForPrefix("", "ns1");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	try {
-		core.util.XmlUtils.getNamespaceURIForPrefix([], "ns1");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	try {
-		core.util.XmlUtils.getNamespaceURIForPrefix({}, "ns1");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	try {
-		var attr = $(doc.documentElement).find("foo2")[0].attributes.item(0);
-		core.util.XmlUtils.getNamespaceURIForPrefix(attr, "ns1");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	
-	raises(function(){core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo2")[0], undefined);});
-	raises(function(){core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo2")[0], null);});
-	strictEqual(core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo2")[0], ""), undefined);
-	raises(function(){core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo2")[0], []);});
-	raises(function(){core.util.XmlUtils.getNamespaceURIForPrefix($(doc.documentElement).find("foo2")[0], {});});
-});
-
 test("createXmlDoc", function() {
 	ok(core.util.XmlUtils.createXmlDoc("<foo/>"));
 	
@@ -204,102 +55,19 @@ test("createXmlDoc", function() {
 	strictEqual(doc.documentElement.tagName, "html");
 });
 
-test("getNamespacePrefixForURI", function() {
-	var doc = core.util.XmlUtils.createXmlDoc(
-			  "<foo1>"
-			+ "  <foo2 xmlns:ns1=\"urn:core1\" xmlns:ns2=\"urn:core2\">"
-			+ "    <foo3 xmlns:ns3=\"urn:core3\" />"
-			+ "    <foo6 xmlns:ns1=\"urn:core4\" />"
-			+ "  </foo2>"
-			+ "  <foo4 />"
-			+ "  <foo5 xmlns=\"urn:core4\" />"
-			+ "</foo1>");
+test("getXmlString", function() {
+	same(core.util.XmlUtils.getXmlString(undefined), undefined, "handles undefined as expected");
+	same(core.util.XmlUtils.getXmlString(null), undefined, "handles null as expected");
 	
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, "urn:core1"), undefined);
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, "urn:core2"), undefined);
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, "urn:core3"), undefined);
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, "urn:core4"), undefined);
+	var xmlDoc = jQuery.parseXML("<foo><bar>baz</bar></foo>");
+	var str = core.util.XmlUtils.getXmlString(xmlDoc);
+	same(typeof str, "string", "returns a string");
+	same(str.toLowerCase(), "<foo><bar>baz</bar></foo>", "returns correct string representation");
 	
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo2")[0], "urn:core1"), "ns1", "foo2");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo2")[0], "urn:core2"), "ns2", "foo2");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo2")[0], "urn:core3"), undefined, "foo2");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo2")[0], "urn:core4"), undefined, "foo2");
-	
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo3")[0], "urn:core1"), "ns1", "foo3");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo3")[0], "urn:core2"), "ns2", "foo3");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo3")[0], "urn:core3"), "ns3", "foo3");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo3")[0], "urn:core4"), undefined, "foo3");
-	
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo4")[0], "urn:core1"), undefined, "foo4");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo4")[0], "urn:core2"), undefined, "foo4");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo4")[0], "urn:core3"), undefined, "foo4");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo4")[0], "urn:core4"), undefined, "foo4");
-	
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo5")[0], "urn:core1"), undefined, "foo5");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo5")[0], "urn:core2"), undefined, "foo5");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo5")[0], "urn:core3"), undefined, "foo5");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo5")[0], "urn:core4"), "", "foo5");
-
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo6")[0], "urn:core1"), undefined, "foo6");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo6")[0], "urn:core2"), "ns2", "foo6");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo6")[0], "urn:core3"), undefined, "foo6");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("foo6")[0], "urn:core4"), "ns1", "foo6");
-	
-	try {
-		core.util.XmlUtils.getNamespacePrefixForURI(null, "urn:core4");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	try {
-		core.util.XmlUtils.getNamespacePrefixForURI(undefined, "urn:core4");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	try {
-		core.util.XmlUtils.getNamespacePrefixForURI([], "urn:core4");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	try {
-		core.util.XmlUtils.getNamespacePrefixForURI({foo: 1}, "urn:core4");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	try {
-		core.util.XmlUtils.getNamespacePrefixForURI("foo", "urn:core4");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	var attr = $(doc.documentElement).find("foo2")[0].attributes.item(0);
-	try {
-		core.util.XmlUtils.getNamespacePrefixForURI(attr, "urn:core4");
-		ok(false, "expected exception when element parameter is not an element");
-	}
-	catch (e) {
-		strictEqual(e.name, "TypeError");
-	}
-	
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, ""), undefined);
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, null), undefined);
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, undefined), undefined);
-	raises(function(){core.util.XmlUtils.getNamespacePrefixForURI(doc.documentElement, []);});
-	
-	doc = core.util.XmlUtils.createXmlDoc("<foo xmlns:ns1=\"urn:foo\"><bar><baz/></bar></foo>");
-	strictEqual(core.util.XmlUtils.getNamespacePrefixForURI($(doc.documentElement).find("baz")[0], "urn:foo"), "ns1");
-});
-
-test("ELEMENT_NODE_TYPE", function() {
-	strictEqual(core.util.XmlUtils.ELEMENT_NODE_TYPE, 1, "ELEMENT_NODE_TYPE property is defined");
+	var node = xmlDoc.documentElement.childNodes.item(0);
+	str = core.util.XmlUtils.getXmlString(node);
+	same(typeof str, "string", "returns a string");
+	same(str.toLowerCase(), "<bar>baz</bar>", "converts XML node to a string");
 });
 
 test("getQualifiedName", function() {
@@ -330,6 +98,37 @@ test("getQualifiedName", function() {
 	strictEqual(qname.nsUri, "urn:ns2");
 });
 
+test("declareNamespace", function() {
+	var doc = core.util.XmlUtils.createXmlDoc("<foo a=\"b\"><bar/></foo>");
+	var prefix = core.util.XmlUtils.declareNamespace(doc.documentElement, "urn:foo", "f");
+	strictEqual(prefix, "f");
+	strictEqual($(doc.documentElement).attr("xmlns:f"), "urn:foo");
+	prefix = core.util.XmlUtils.declareNamespace(doc.documentElement, "urn:foo2");
+	ok(prefix);
+	strictEqual(typeof prefix, "string");
+	strictEqual($(doc.documentElement).attr("xmlns:" + prefix), "urn:foo2");
+	raises(function(){core.util.XmlUtils.declareNamespace(undefined, "urn:foo3", "f");});
+	raises(function(){core.util.XmlUtils.declareNamespace(null, "urn:foo3", "f");});
+	raises(function(){core.util.XmlUtils.declareNamespace({}, "urn:foo3", "f");});
+	raises(function(){core.util.XmlUtils.declareNamespace([], "urn:foo3", "f");});
+	raises(function(){core.util.XmlUtils.declareNamespace("", "urn:foo3", "f");});
+	raises(function(){core.util.XmlUtils.declareNamespace(doc.documentElement, null, "f");});
+	raises(function(){core.util.XmlUtils.declareNamespace(doc.documentElement, undefined, "f");});
+	raises(function(){core.util.XmlUtils.declareNamespace(doc.documentElement, "", "f");});
+	raises(function(){core.util.XmlUtils.declareNamespace(doc.documentElement, " \t", "f");});
+});
+
+test("iterateElements", function() {
+	var doc = core.util.XmlUtils.createXmlDoc("<foo a=\"b\"><bar/><baz/></foo>");
+	var elements = [];
+	core.util.XmlUtils.iterateElements(doc.documentElement.childNodes, function(element) {
+		elements.push(element);
+	});
+	strictEqual(elements.length, 2);
+	strictEqual(elements[0].tagName, "bar");
+	strictEqual(elements[1].tagName, "baz");
+});
+
 test("getNamespaceURI", function() {
 	var doc = jQuery.parseXML("<foo id=\"1\" xmlns:ns1=\"urn:ns1\">"
 							+ "  <ns1:bar id=\"2\">"
@@ -345,136 +144,111 @@ test("getNamespaceURI", function() {
 	raises(function(){core.util.XmlUtils.getNamespaceURI(undefined);}, "passing undefined to getNamespaceURI() raises an exception");
 	raises(function(){core.util.XmlUtils.getNamespaceURI(null)}, "passing null to getNamespaceURI() raises an exception");
 	strictEqual(core.util.XmlUtils.getNamespaceURI(doc.documentElement), "");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"2\"]")[0]), "urn:ns1");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"2\"]")[0], "foo"), "urn:ns1");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"3\"]")[0]), "");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"3\"]")[0], "foo"), "foo");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"4\"]")[0]), "urn:ns1");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"4\"]")[0], "foo"), "urn:ns1");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"5\"]")[0]), "urn:ns2");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"5\"]")[0], "foo"), "urn:ns2");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"6\"]")[0]), "urn:ns2");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"6\"]")[0], "foo"), "foo");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"7\"]")[0]), "urn:ns3");
-	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement, doc).find("[id=\"7\"]")[0], "foo"), "urn:ns3");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"2\"]")[0]), "urn:ns1");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"2\"]")[0], 
+			new core.util.NamespaceContext({"":"foo", "ns1":"urn:ns2"})), "urn:ns2");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"3\"]")[0]), "");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"3\"]")[0], 
+			new core.util.NamespaceContext({"":"foo"})), "foo");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"4\"]")[0]), "urn:ns1");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"4\"]")[0], 
+			new core.util.NamespaceContext({"":"foo", "ns1":"urn:ns2"})), "urn:ns2");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"5\"]")[0]), "urn:ns2");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"5\"]")[0], 
+			new core.util.NamespaceContext({"":"foo", "ns2":"urn:ns3"})), "foo");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"6\"]")[0]), "urn:ns2");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"6\"]")[0], 
+			new core.util.NamespaceContext({"":"foo"})), "foo");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"7\"]")[0]), "urn:ns3");
+	strictEqual(core.util.XmlUtils.getNamespaceURI($(doc.documentElement).find("[id=\"7\"]")[0], 
+			new core.util.NamespaceContext({"":"foo"})), "foo");
 
 	doc = jQuery.parseXML("<ns1:foo id=\"1\" xmlns:ns1=\"urn:ns1\"><ns1:bar/></ns1:foo>");
 	strictEqual(core.util.XmlUtils.getNamespaceURI(doc.documentElement), "urn:ns1", "found correct namespace for root element");
 	strictEqual(core.util.XmlUtils.getNamespaceURI(doc.documentElement.childNodes[0]), "urn:ns1", "found namespace for child element");
 });
 
-test("getXmlString", function() {
-	same(core.util.XmlUtils.getXmlString(undefined), undefined, "handles undefined as expected");
-	same(core.util.XmlUtils.getXmlString(null), undefined, "handles null as expected");
-	
-	var xmlDoc = jQuery.parseXML("<foo><bar>baz</bar></foo>");
-	var str = core.util.XmlUtils.getXmlString(xmlDoc);
-	same(typeof str, "string", "returns a string");
-	same(str.toLowerCase(), "<foo><bar>baz</bar></foo>", "returns correct string representation");
-	
-	var node = xmlDoc.documentElement.childNodes.item(0);
-	str = core.util.XmlUtils.getXmlString(node);
-	same(typeof str, "string", "returns a string");
-	same(str.toLowerCase(), "<bar>baz</bar>", "converts XML node to a string");
+test("findNewNsPrefix", function() {
+	var doc = core.util.XmlUtils.createXmlDoc("<foo><bar xmlns:" 
+			+ core.util.XmlUtils.NS_PREFIX_PREFIX 
+			+ "1=\"urn:foo\"><baz/></bar></foo>");
+	var prefix = core.util.XmlUtils.findNewNsPrefix(doc.documentElement);
+	strictEqual(prefix, core.util.XmlUtils.NS_PREFIX_PREFIX + "2");
+	prefix = core.util.XmlUtils.findNewNsPrefix($(doc.documentElement).find("bar")[0]);
+	strictEqual(prefix, core.util.XmlUtils.NS_PREFIX_PREFIX + "2");
+	prefix = core.util.XmlUtils.findNewNsPrefix($(doc.documentElement).find("baz")[0]);
+	strictEqual(prefix, core.util.XmlUtils.NS_PREFIX_PREFIX + "2");
+	raises(function(){core.util.XmlUtils.findNewNsPrefix(undefined);});
+	raises(function(){core.util.XmlUtils.findNewNsPrefix(null);});
+	raises(function(){core.util.XmlUtils.findNewNsPrefix([]);});
+	raises(function(){core.util.XmlUtils.findNewNsPrefix({});});
+	raises(function(){core.util.XmlUtils.findNewNsPrefix("");});
 });
 
-test("iterateChildElementsByName", function() {
-	var doc = jQuery.parseXML("<foo><bar>1</bar><baz/><foo2/></foo>");
-	
-	var count = 0;
-	var names = "bar baz".split(" ");
-	core.util.XmlUtils.iterateChildElementsByName(doc.documentElement, names, function(node) {
-		count++;
-		same(node.tagName, names[count - 1], "invoked with correct node");
-	});
-	same(count, 2, "callback was invoked for 2 child nodes");
-	
-	core.util.XmlUtils.iterateChildElementsByName(doc.documentElement, "foo 123".split(" "), function(node) {
-		ok(false, "callback not invoked when child nodes don't match");
-	});
-	
-	count = 0;
-	core.util.XmlUtils.iterateChildElementsByName(doc.documentElement, "bar", function(node) {
-		count++;
-		same(node.tagName, "bar", "callback invoked with correct node");
-	});	
-	same(count, 1, "callback was invoked for one child node");
+test("escapeJquerySelectorValue", function() {
+	strictEqual(core.util.XmlUtils.escapeJquerySelectorValue("!\"#$%&'()*+,./:;?@[\\]^`{|}~"),
+			"\\!\\\"\\#\\$\\%\\&\\'\\(\\)\\*\\+\\,\\.\\/\\:\\;\\?\\@\\[\\\\\\]\\^\\`\\{\\|\\}\\~");
 });
 
-test("iterateChildElements", function() {
-	var doc = jQuery.parseXML("<foo><bar>1</bar><baz/></foo>");
-	
-	raises(function() { core.util.XmlUtils.iterateChildElements(doc.documentElement, undefined) });
-	
-	raises(function() { core.util.XmlUtils.iterateChildElements(doc.documentElement, null); });
+test("getAncestorAttributeValue", function() {
+	var xml = "<foo xmlns:a=\"urn:foo\"><foo1 a:b=\"1\" c=\"2\">"
+		+ "<foo2 a:b=\"3\"></foo2></foo1></foo>";
+	var dom = core.util.XmlUtils.createXmlDoc(xml);
+	var el = $(dom.documentElement).find("foo2")[0];
+	strictEqual(core.util.XmlUtils.getAncestorAttributeValue(el, "a:b"), "1");
+	strictEqual(core.util.XmlUtils.getAncestorAttributeValue(el, "c"), "2");
+});
 
-	var childNodeInvokes = 0;
-	var expectedChildNodeNames = ["bar", "baz"];
-	core.util.XmlUtils.iterateChildElements(doc.documentElement,
-			function(node) {
-				same(typeof node, "object", "node argument is an object");
-				ok(childNodeInvokes++ <= expectedChildNodeNames.length, "haven't received too many notifications of child nodes");
-				same(node.nodeName, expectedChildNodeNames[childNodeInvokes - 1], "");
-			}
-	);
-	same(childNodeInvokes, expectedChildNodeNames.length);
-	
-	try {
-		core.util.XmlUtils.iterateChildElements(doc.documentElement, {});
-		ok(false, "expected exception - callback was an invalid object type");
-	}
-	catch (e) {
-		same("" + e, "Invalid callback - expected to be a function or an " +
-				"object with a \"callback\" property that is a function", 
-				"correct exception was thrown");
-	}
+test("getDefaultNamespaceURI", function() {
+	var dom = core.util.XmlUtils.createXmlDoc("<foo1><foo2 xmlns=\"urn:foo2\">"
+			+ "<foo3 xmlns=\"urn:foo3\"><foo4 /></foo3></foo2><foo5 /></foo1>");
+	strictEqual(core.util.XmlUtils.getDefaultNamespaceURI($(dom.documentElement)[0]), "");
+	strictEqual(core.util.XmlUtils.getDefaultNamespaceURI($(dom.documentElement).find("foo2")[0]), "urn:foo2");
+	strictEqual(core.util.XmlUtils.getDefaultNamespaceURI($(dom.documentElement).find("foo3")[0]), "urn:foo3");
+	strictEqual(core.util.XmlUtils.getDefaultNamespaceURI($(dom.documentElement).find("foo4")[0]), "urn:foo3");
+	strictEqual(core.util.XmlUtils.getDefaultNamespaceURI($(dom.documentElement).find("foo5")[0]), "");
+});
 
-	try {
-		core.util.XmlUtils.iterateChildElements(doc.documentElement, []);
-		ok(false, "expected exception - callback was an invalid object type");
-	}
-	catch (e) {
-		same("" + e, "Invalid callback - expected to be a function or an " +
-				"object with a \"callback\" property that is a function", 
-				"correct exception was thrown");
-	}
-	
-	doc = jQuery.parseXML("<foo>bar</foo>");
-	core.util.XmlUtils.iterateChildElements(doc.documentElement,
-			function() {
-				ok(false, "parent node has no children");
-			}
-	);
+test("childDeclaresNsPrefix", function() {
+	var dom = core.util.XmlUtils.createXmlDoc("<foo1><foo2 xmlns:a=\"urn:foo\">"
+			+ "<foo3 xmlns:b=\"urn:foo2\" /></foo2><foo4 /></foo1>");
+	strictEqual(core.util.XmlUtils.childDeclaresNsPrefix($(dom.documentElement)[0], "a"), true);
+	strictEqual(core.util.XmlUtils.childDeclaresNsPrefix($(dom.documentElement).find("foo2")[0], "a"), false);
+	strictEqual(core.util.XmlUtils.childDeclaresNsPrefix($(dom.documentElement)[0], "b"), true);
+	strictEqual(core.util.XmlUtils.childDeclaresNsPrefix($(dom.documentElement)[0], "c"), false);
+});
 
-	core.util.XmlUtils.iterateChildElements(undefined,
-		{
-			callback: function(node) {
-				ok(false, "no child nodes should exist in an undefined parent node");
-			}
-		});
-
-	core.util.XmlUtils.iterateChildElements(null,
-		{
-			callback: function(node) {
-				ok(false, "no child nodes should exist in an undefined parent node");
-			}
-		});
+test("getNamespaceContext", function() {
+	var dom = core.util.XmlUtils.createXmlDoc("<foo1 xmlns=\"urn:defaultns\"><foo2 xmlns:a=\"urn:foo\" xmlns:b=\"urn:foo4\">"
+			+ "<foo3 xmlns:b=\"urn:foo2\" xmlns:abc=\"urn:foo3\"/></foo2><foo4 /></foo1>");
+	var nsContext = core.util.XmlUtils.getNamespaceContext($(dom.documentElement).find("foo3")[0], true);
+	ok(nsContext);
 	
-	raises(function() {
-		core.util.XmlUtils.iterateChildElements([],
-				{
-					callback: function(node) {
-						ok(false, "no child nodes should exist in an undefined parent node");
-					}
-				});
+	strictEqual(nsContext.getDefault(), "urn:defaultns");
+
+	strictEqual(nsContext.getPrefix("urn:foo2"), "b");
+	strictEqual(nsContext.getUri("b"), "urn:foo2");
+
+	strictEqual(nsContext.getPrefix("urn:foo3"), "abc");
+	strictEqual(nsContext.getUri("abc"), "urn:foo3");
+
+	strictEqual(nsContext.getPrefix("urn:foo"), "a");
+	strictEqual(nsContext.getUri("a"), "urn:foo");
+
+	strictEqual(nsContext.getPrefix("urn:foo4"), undefined);
+});
+
+test("walkParents", function() {
+	var doc = core.util.XmlUtils.createXmlDoc("<foo a=\"b\"><bar a=\"b\"><baz a=\"b\"/></bar></foo>");
+	var parents = [];
+	core.util.XmlUtils.walkParents($(doc.documentElement).find("baz")[0], function(parent) {
+		ok(parent != null && parent != undefined);
+		ok("tagName" in parent);
+		ok("nodeType" in parent);
+		strictEqual(parent.nodeType, core.util.XmlUtils.ELEMENT_NODE_TYPE);
+		parents.push(parent.tagName);
 	});
-	
-	raises(function() {
-		core.util.XmlUtils.iterateChildElements({},
-				{
-					callback: function(node) {
-						ok(false, "no child nodes should exist in an undefined parent node");
-					}
-				});
-	});
+	strictEqual(parents.length, 2, "callback was invoked for 2 parent elements");
+	strictEqual(parents[0], "bar");
+	strictEqual(parents[1], "foo");
 });

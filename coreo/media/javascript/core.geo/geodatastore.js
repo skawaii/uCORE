@@ -1,7 +1,7 @@
 /**
  * Class: GeoDataStore
  * 
- * A repository for <GeoDataFeature> objects.
+ * A repository for <GeoData> objects.
  * 
  * Namespace:
  *  core.geo

@@ -1,13 +1,17 @@
 /**
  * Class: GmapsController
  * 
- * This is a stub currently.
+ * Interface between Google Maps and the Core maps implementation. 
+ * This class handles events from the core events framework for 
+ * interacting with Google Maps.
  *
  * Namespace: 
- *	core.gmaps
+ *  core.gmaps
  * 
+ * Properties:
+ * 	gmaps - The google maps instance.
  * Dependencies:
- *	- Will have many...
+ *	- Google Maps instance
  * 
  */
 if (!window.core)
@@ -17,8 +21,8 @@ if (!window.core.gmaps)
 
 (function(ns) {
 	
-	var GmapsController = function(gm) {
-		this.gm = gm;
+	var GmapsController = function(gmaps) {
+		this.gmaps = gmaps;
 	};
 	GmapsController.prototype = {
 

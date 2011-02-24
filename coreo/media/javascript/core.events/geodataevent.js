@@ -15,7 +15,7 @@
  * 
  * Properties:
  * 
- *   geoData - GeoDataFeature object.
+ *   geoData - GeoData object.
  */
 
 if (!window.core)

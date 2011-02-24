@@ -4,7 +4,7 @@
  * SuperClass:
  * <GeoDataEvent>
  *
- * Event fired when a user requests a GeoDataFeature be hidden.
+ * Event fired when a user requests a feature be hidden.
  *
  * Namespace:
  *	core.events

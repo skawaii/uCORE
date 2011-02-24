@@ -4,7 +4,7 @@
  * SuperClass:
  * <GeoDataEvent>
  *
- * Event fired when a user requests a map to pan/fly to a GeoDataFeature
+ * Event fired when a user requests a map to pan/fly to a feature
  *
  * Namespace:
  * 	core.events

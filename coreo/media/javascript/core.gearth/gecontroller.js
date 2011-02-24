@@ -9,11 +9,18 @@
  *  core.gearth
  * 
  * Properties:
- *  ge - (Google Earth instance)
+ *  - ge - <GEPlugin>
+ *  - kmlObjectStore - <KmlObjectStore> 
+ * 
+ * Functions:
+ *  - add
+ *  - show
+ *  - hide
+ *  - showInfo
+ *  - flyTo
  * 
  * Dependencies:
  *  - core.gearth.KmlObjectStore
- *  - google earth plugin
  */
 
 if (!window.core)
@@ -21,37 +28,39 @@ if (!window.core)
 if (!window.core.gearth)
 	window.core.gearth = {};
 
-(function($, ns) {
+(function(ns) {
+	var KmlObjectStore = core.gearth.KmlObjectStore;
+
 	var GeController = function(ge) {
 		this.ge = ge;
 		this.kmlObjectStore = new KmlObjectStore(this.ge);
 	};
 	GeController.prototype = {
 
-		add: function(geoDataFeature) {
-			var kmlObject = this.kmlObjectStore.getKmlObject(geoDataFeature);
+		add: function(geoData) {
+			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
 			this.ge.getFeatures().appendChild(kmlObject);
 		},
 
-		show: function(geoDataFeature) {
-			var kmlObject = this.kmlObjectStore.getKmlObject(geoDataFeature);
+		show: function(geoData) {
+			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
 			this.ge.getFeatures().appendChild(kmlObject);
 		},
 
-		hide: function(geoDataFeature) {
-			var kmlObject = this.kmlObjectStore.getKmlObject(geoDataFeature);
-			this.kmlObjectStore.removeKmlObject(geoDataFeature);
+		hide: function(geoData) {
+			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
+			this.kmlObjectStore.removeKmlObject(geoData);
 			this.ge.getFeatures().removeChild(kmlObject);
 		},
 		
-		showNodeInfo: function(node, geoData) {
-			
+		info: function(geoData) {
+			throw "Not implemented";
 		},
 		
-		flyToNode: function(node, geoData) {
-			
+		flyTo: function(geoData) {
+			throw "Not implemented";
 		}
 		
 	};
 	ns.GeController = GeController;
-})(jQuery, window.core.gearth);
+})(window.core.gearth);

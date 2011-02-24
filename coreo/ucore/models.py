@@ -9,7 +9,6 @@ from django.db.models.signals import post_save
 
 # from coreo.ucore.managers import InheritanceManager
 
-
 class Skin(models.Model):
   name = models.CharField(max_length=50)
   file_path = models.FilePathField('path to CSS file', path=settings.MEDIA_ROOT + 'skins')
