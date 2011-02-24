@@ -4,7 +4,7 @@
  * SuperClass:
  * <GeoDataEvent>
  *
- * Event fired when a user requests a GeoDataFeature be displayed.
+ * Event fired when a user requests a feature be displayed.
  *
  * Namespace:
  * 	core.events

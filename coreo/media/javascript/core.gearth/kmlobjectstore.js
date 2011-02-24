@@ -1,39 +1,55 @@
+/**
+ * Class: KmlObjectStore
+ * 
+ * A repository of KmlObjects linked to GeoData objects. Also 
+ * handles creation of KmlObjects from GeoData. Used by 
+ * GeController.
+ * 
+ * Properties:
+ *  - ge <GEPlugin>
+ *  - datastore Map where key is a GeoData ID and value is a KmlObject
+ * 
+ * Functions:
+ *  - createKmlObject
+ *  - getKmlObject
+ *  - removeKmlObject
+ * 
+ * Namespace:
+ *  core.gearth
+ * 
+ * Dependencies:
+ *  None
+ */
+
 if (!window.core)
 	window.core = {};
 if (!window.core.gearth)
 	window.core.gearth = {};
 
-(function($, ns) {
-	/**
-	 * Class: KmlObjectStore
-	 * 
-	 * A repository of KmlObjects linked to GeoDataFeature objects. Also 
-	 * handles creation of KmlObjects from GeoDataFeatures. Used by 
-	 * GeAdapter.
-	 */
+(function(ns) {
 	var KmlObjectStore = function(ge) {
 		this.ge = ge;
 		this.datastore = {};
 	};
 	KmlObjectStore.prototype = {
-		
-		createKmlObject: function(geoDataFeature) {
-			return this.ge.parseKml(geoDataFeature.getKmlString());
+
+		createKmlObject: function(geoData) {
+			return this.ge.parseKml(geoData.getKmlString());
 		},
-		
-		getKmlObject: function(geoDataFeature) {
-			var id = geoDataFeature.id;
+
+		getKmlObject: function(geoData) {
+			var id = geoData.id;
 			if (!(id in this.datastore)) {
-				var kmlObject = this.createKmlObject(geoDataFeature);
+				var kmlObject = this.createKmlObject(geoData);
 				this.datastore[id] = kmlObject;
 			}
 			return this.datastore[id];
 		},
 		
-		removeKmlObject: function(geoDataFeature) {
-			delete this.datastore[geoDataFeature.id];
+		removeKmlObject: function(geoData) {
+			delete this.datastore[geoData.id];
 		}
 		
 	};
 	ns.KmlObjectStore = KmlObjectStore;
-})(jQuery, window.core.gearth);
+})(window.core.gearth);

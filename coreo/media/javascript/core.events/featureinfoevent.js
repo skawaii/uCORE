@@ -4,7 +4,7 @@
  * SuperClass:
  * <GeoDataEvent>
  *
- * Event fired when a user requests details of a GeoDataFeature be displayed.
+ * Event fired when a user requests details of a feature be displayed.
  *
  * Namespace:
  *	core.events
@@ -19,7 +19,7 @@ if (!window.core.events)
 	window.core.events = {};
 	
 (function($, ns) {
-	
+
 	/**
 	 * Constructor: FeatureInfoEvent
 	 * Initializes the object 

@@ -59,10 +59,12 @@ if (!window.core.util)
 		},
 		
 		type: function(o, expectedType, error) {
-			Assert.same(typeof o, expectedType,
+			var actualType = typeof o;
+			Assert.same(actualType, expectedType,
 					defaultIfNull(error, 
-							new TypeError("Expected object of type " 
-									+ expectedType)));
+							new TypeError("Expected object of type '" 
+									+ expectedType + "', not '" 
+									+ actualType + "'")));
 		},
 		
 		

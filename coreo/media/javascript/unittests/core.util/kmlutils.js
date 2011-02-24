@@ -1,5 +1,17 @@
 module("core.util.KmlUtils");
 
+test("iterateChildKmlElements", function() {
+	var dom = core.util.XmlUtils.createXmlDoc("<kml xmlns=\"http://www.opengis.net/kml/2.2\">"
+			+ "<Document/><NetworkLink/><NotAFeature/></kml>");
+	var children = [];
+	core.util.KmlUtils.iterateChildKmlElements(dom.documentElement, function(child) {
+		children.push(child);
+	});
+	strictEqual(children.length, 2);
+	strictEqual(children[0].tagName, "Document");
+	strictEqual(children[1].tagName, "NetworkLink");
+});
+
 test("KML_FEATURE_ELEMENTS", function() {
 	ok("KML_FEATURE_ELEMENTS" in core.util.KmlUtils, "KmlUtils contains KML_FEATURE_ELEMENTS property");
 	same(typeof core.util.KmlUtils, "object", "type of KML_FEATURE_ELEMENTS property is object");
