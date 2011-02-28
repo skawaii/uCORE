@@ -10,7 +10,7 @@
  *	core.events
  *
  * Dependencies:
- *	- core.events.event
+ *	- core.events.Event
  */
 
 if (!window.core)
@@ -24,11 +24,10 @@ if (!window.core.events)
 	 * Initializes the object 
 	 */
 	var GeLoadedEvent = function(publisher) {
-	Event.call(this, publisher, GeLoadedEvent.type);
+		ns.Event.call(this, publisher, GeLoadedEvent.type);
 	};
-	$.extend(GeLoadedEvent.prototype, Event.prototype);
+	$.extend(GeLoadedEvent.prototype, ns.Event.prototype);
 	GeLoadedEvent.type = "GeLoadedEvent";
 	ns.GeLoadedEvent = GeLoadedEvent;
-	
-	
+
 })(jQuery, window.core.events);

@@ -6,7 +6,7 @@ if (!window.core.util)
 (function($, ns) {
 
 	var ObjectUtils = {
-
+		
 		asArray: function(obj) {
 			var arr = [];
 			if (jQuery.isArray(obj)) {
