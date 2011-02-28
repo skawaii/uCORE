@@ -52,15 +52,34 @@ if (!window.core.gearth)
 			this.kmlObjectStore.removeKmlObject(geoData);
 			this.ge.getFeatures().removeChild(kmlObject);
 		},
-		
+
 		info: function(geoData) {
-			throw "Not implemented";
+			this.ge.setBalloon(null);
+			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
+			if (kmlObject) {
+				var balloon = this.ge.createHtmlStringBalloon('');
+				balloon.setFeature(kmlObject);
+				// balloon.setMinWidth(400);
+				// balloon.setMaxHeight(400);
+				balloon.setCloseButtonEnabled(true);
+				this.ge.setBalloon(balloon);
+			}
 		},
-		
+
 		flyTo: function(geoData) {
-			throw "Not implemented";
+			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
+			if (kmlObject) {
+				if ("getAbstractView" in kmlObject 
+						&& typeof kmlObject.getAbstractView === "function") {
+					var lookAt = kmlObject.getAbstractView();
+					this.ge.getView().setAbstractView(lookAt);
+				}
+				else {
+					throw "Unsupported KML object type - " + kmlObject;
+				}
+			}
 		}
-		
+
 	};
 	ns.GeController = GeController;
 })(window.core.gearth);
