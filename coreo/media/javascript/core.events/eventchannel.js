@@ -13,6 +13,8 @@
 * Dependencies:
 *	- none
 *
+* See Also:
+*   <Event>
 */
 
 if (!window.core)
@@ -20,8 +22,13 @@ if (!window.core)
 if (!window.core.events)
 	window.core.events = {};
 	
-(function($, ns) {
+(function(ns) {
 	
+	/**
+	 * Constructor: EventChannel
+	 * 
+	 * Initializes the object.
+	 */
 	var EventChannel = function() {
 		this._consumers = {};
 	};
@@ -29,14 +36,14 @@ if (!window.core.events)
 	EventChannel.prototype = {
 		
 		/**
-		 * Function: Subscribe:Change me to new documentation format.
+		 * Function: subscribe
 		 *
 		 * Parameters:
-		 *	eventType - The type of the event
-		 * 	callback - registered method for handling event occurence.
+		 *	eventType - String. The type (name) of the event.
+		 * 	callback - Function. Registered method for handling event occurrence.
 		 * 
 		 */
-			subscribe: function(eventType, callback) {
+		subscribe: function(eventType, callback) {
 			var consumer = {};
 			if (typeof callback == "function") {
 				consumer.context = arguments.callee;
@@ -68,7 +75,7 @@ if (!window.core.events)
 		 * Function: publish
 		 *
 		 * Parameters:
-		 *	event - The Core Event to publish
+		 *	event - <Event>. The Core Event to send to all registered consumers.
 		 */
 		publish: function(event) {
 			var eventType = event ? event.type : undefined;
@@ -91,4 +98,4 @@ if (!window.core.events)
 	};
 	ns.EventChannel = EventChannel;
 	
-})(jQuery, window.core.events);
+})(window.core.events);
