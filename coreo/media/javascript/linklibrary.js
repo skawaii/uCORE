@@ -92,13 +92,14 @@
                var d = (totalTable[i] = {}); 
                d["name"] = jsonstuff[i].fields.name;
                d["description"] = jsonstuff[i].fields.desc;
-              //  d["urlfield"] = jsonstuff[i].fields.url;
+               d["urlfield"] = jsonstuff[i].fields.url;
                d["pk"] = jsonstuff[i].pk;
           }
           var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
           grid = new Slick.Grid("#myGrid", totalTable, columns, options);
           grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
           grid.registerPlugin(checkboxSelector);
+          grid.registerPlugin(new Slick.Autotooltip());
               })  // document.getElementById('dialog').innerHTML = totalTable; 
          } });
            
