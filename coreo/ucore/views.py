@@ -435,6 +435,19 @@ def save_user(request):
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
 
+def search_libraries(request):
+  if not request.GET['q']:
+    return HttpResponse(serializers.serialize('json', ''))
+
+  terms = request.GET['q'].split(',') 
+
+  results = set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+
+  return HttpResponse(serializers.serialize('json', results))
+
+
 def search_links(request):
   if not request.GET['q']:
     return HttpResponse(serializers.serialize('json', ''))
@@ -442,16 +455,9 @@ def search_links(request):
   terms = request.GET['q'].split(',') 
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
 
-  # search Link for matches
   results = set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
   results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
-
-  # XXX put this in its own view
-  # search LinkLibraries for matches
-  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
   return HttpResponse(serializers.serialize('json', results))
 
