@@ -84,9 +84,9 @@
           columns.push({ id: "desc", name: "desc", field: "description", width:300,
                editor: TextCellEditor
            });
-        //  columns.push({ id: "url", name: "url", field: "urlfield", width:500,
-        //       editor: TextCellEditor
-        //   });
+          columns.push({ id: "url", name: "url", field: "urlfield", width:500,
+               editor: TextCellEditor
+           });
            for (var i=0; i < jsonstuff.length; i++)
            {
                var d = (totalTable[i] = {}); 
@@ -99,7 +99,6 @@
           grid = new Slick.Grid("#myGrid", totalTable, columns, options);
           grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
           grid.registerPlugin(checkboxSelector);
-          grid.registerPlugin(new Slick.Autotooltip());
               })  // document.getElementById('dialog').innerHTML = totalTable; 
          } });
            
@@ -126,8 +125,6 @@
                for (var j = 0; j < selectedRows.length; j++)
                {
                  var rowNum = selectedRows[j];
-                 // alert("You selected:  " + totalTable[rowNum]["name"] + " | " + totalTable[rowNum]["pk"]);
-                 // alert("you entered: " + document.getElementById('q1').value); 
                  if (j == 0)
                  {
                    row_parameter = totalTable[rowNum]["pk"];
@@ -143,6 +140,8 @@
                $.post("../create-library/", { name: library_name, desc: library_desc, tags: tagparameter, links: row_parameter});
                //  alert("you entered: " + document.getElementById('q1').value);
                $("#dialog").dialog("close");
+               totalTable = [];
+               grid = new Slick.Grid("#myGrid", totalTable, columns, options);
                document.getElementById('q1').value = '';
                document.getElementById('q2').value = '';
                document.getElementById('tagname').value = '';
