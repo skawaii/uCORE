@@ -12,7 +12,7 @@
  */
 if (!window.core)
 	window.core = {};
-if (!window.core.gearth)
+if (!window.core.gmaps)
 	window.core.gmaps = {};
 
 (function(ns) {
@@ -20,7 +20,7 @@ if (!window.core.gearth)
 	var GmapsController = function(gm) {
 		this.gm = gm;
 	};
-	GmaosController.prototype = {
+	GmapsController.prototype = {
 
 		add: function(geoData) {
 
