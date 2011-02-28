@@ -22,14 +22,32 @@ class LinkLibraryTest(TestCase):
     self.client.login(username='testuser', password='2pass')
     response = self.client.get('/library-demo/')
     self.assertEquals(response.status_code, 200)
-    # Link.create(
-    # response = self.client.post('/create-library/', { 'name': 'test library', 'desc': 'test description', 'links': '1,3,5'})
-    # self.assertEquals(response.status_code, 200)
-    # self.assertEquals(LinkLibrary.objects.all().count(), 1)
-    # library = LinkLibrary.objects.get(pk=1)
-    # self.assertEquals(library.name, 'test library')
-    # self.assertEquals(library.links.all().count(), 3)
-    #print 'Passed the create link library test.'
+    tag2 = Tag(name='WarmButton', type='P')
+    tag2.save()
+    poc = POC(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
+    poc.save()
+    link = Link(name='yahoo', desc='search site', url='www.yahoo.com', poc=poc)
+    link.save()
+    tag = Tag.objects.get(name='HotButton')
+    link.tags.add(tag)
+    link.save()
+    link = Link(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=poc)
+    link.save()
+    link.tags.add(tag)
+    link.save()
+    response = self.client.post('/create-library/', { 'name': 'test library', 'desc': 'test description', 'links': '1,2', 'tags':'HotButton, WarmButton,'})
+    self.assertEquals(response.status_code, 200)
+    self.assertEquals(1, LinkLibrary.objects.count())
+    library = LinkLibrary.objects.get(pk=1)
+    self.assertEquals(2, library.links.count())
+    # print 'Two links found in the library... checking if they are the right ones.'
+    self.assertEquals('lifehacker', library.links.get(name='lifehacker').name)
+    self.assertEquals('yahoo', library.links.get(name='yahoo').name)
+    # print 'Ok the two links in the library created, are correct.'
+    self.assertEquals(2, library.tags.count())
+    self.assertEquals('HotButton', library.tags.get(name='HotButton').name)
+    self.assertEquals('WarmButton', library.tags.get(name='WarmButton').name)
+    # print 'Passed the create link library test.'
 
 
 class LinkSearchTest(TestCase):
