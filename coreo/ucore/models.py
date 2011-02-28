@@ -9,7 +9,9 @@ from django.db.models.signals import post_save
 
 # from coreo.ucore.managers import InheritanceManager
 
-
+""" The skin field.  Allows a user to specify a css file that represents
+    the way they want his/her account to display
+"""
 class Skin(models.Model):
   name = models.CharField(max_length=50)
   file_path = models.FilePathField('path to CSS file', path=settings.MEDIA_ROOT + 'skins')
@@ -17,7 +19,9 @@ class Skin(models.Model):
   def __unicode__(self):
     return self.name
 
-
+""" The Tag model.  This will be associated with either a Trophy or a Link.
+    Two values are available : Trophy Tags and Public Tags.  
+"""
 class Tag(models.Model):
   TAG_CHOICES = (
       ('T', 'Trophy'),
@@ -30,7 +34,9 @@ class Tag(models.Model):
   def __unicode__(self):
     return self.name
 
-
+""" The Trophy model. This is a table that represents trophies available to 
+    earn. 
+"""
 class Trophy(models.Model):
   name = models.CharField(max_length=50)
   desc = models.CharField('short description', max_length=100, help_text='Include details on how to earn this trophy.')
@@ -199,12 +205,12 @@ class SearchLog(models.Model):
 
 
 ### Signal Registration ###
-from django.db.models.signals import post_delete, post_save
-from coreo.ucore import signals
+# from django.db.models.signals import post_delete, post_save
+# from coreo.ucore import signals
 
-post_delete.connect(signals.delete_user_settings, sender=CoreUser)
-post_save.connect(signals.check_for_trophy, sender=SearchLog)
-post_save.connect(signals.send_notification_email, sender=Notification)
-post_save.connect(signals.check_trophy_conditions, sender=TrophyCase)
-post_save.connect(signals.initialize_new_user, sender=CoreUser)
+# post_delete.connect(signals.delete_user_settings, sender=CoreUser)
+# post_save.connect(signals.check_for_trophy, sender=SearchLog)
+# post_save.connect(signals.send_notification_email, sender=Notification)
+# post_save.connect(signals.check_trophy_conditions, sender=TrophyCase)
+# post_save.connect(signals.initialize_new_user, sender=CoreUser)
 
