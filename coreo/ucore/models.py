@@ -25,7 +25,7 @@ class Tag(models.Model):
   )
 
   name = models.CharField(max_length=50, unique=True)
-  type = models.CharField(max_length=1, choices=TAG_CHOICES)
+  type = models.CharField(max_length=1, choices=TAG_CHOICES, default='P')
 
   def __unicode__(self):
     return self.name
@@ -79,11 +79,16 @@ class Settings(models.Model):
       that the user will see.
   '''
   wants_emails = models.BooleanField(default=True, help_text='Would you like to be notified of events via email?')
-  #skin = models.ForeignKey(Skin, default=Skin.objects.get(name='Default'),
-  #skin = models.ForeignKey(Skin, help_text='Customize the look and feel with skins.')
+  # default value for skin set in save()
+  skin = models.ForeignKey(Skin, blank=True, null=True, help_text='Customize the look and feel with skins.')
 
   def __unicode__(self):
     return 'settings %s' % self.pk
+
+  def save(self, *args, **kwargs):
+    if not self.skin: self.skin = Skin.objects.get(name='Default')
+
+    super(Settings, self).save(*args, **kwargs)
 
   class Meta:
     verbose_name_plural = 'settings'
@@ -92,7 +97,6 @@ class Settings(models.Model):
 class CoreUser(auth.models.User):
   sid = models.CharField(max_length=20, unique=True)
   phone_number = models.PositiveSmallIntegerField()
-  skin = models.ForeignKey(Skin, null=True, blank=True)
   settings = models.OneToOneField(Settings, null=True, blank=True)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
   # links = models.ManyToManyField(Link, through='LinkLibrary')
@@ -102,7 +106,7 @@ class CoreUser(auth.models.User):
 
   def save(self, *args, **kwargs):
     if not self.settings: self.settings = Settings.objects.create()
-    if not self.skin: self.skin = Skin.objects.get(name='Default')
+    #if not self.skin: self.skin = Skin.objects.get(name='Default')
 
     super(CoreUser, self).save(*args, **kwargs)
 
