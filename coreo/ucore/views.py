@@ -476,21 +476,16 @@ def save_user(request):
   password = request.POST['password'].strip()
   email = request.POST['email'].strip()
   phone_number = request.POST['phone_number'].strip()
-  newphone = ''
-
   try:
-    if (len(phone_number) == 10):
-      newphone = phone_number
-    else:
+    if (len(phone_number) != 10): 
       prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
-      # prog = re.compile(r"(\d+[^/d]+)")
       result = prog.match(phone_number)
-      newphone = result.group(1) + result.group(2) + result.group(3)
+      phone_number = result.group(1) + result.group(2) + result.group(3)
   except Exception, e:
     logging.error(e.message)
     logging.error('Exception parsing phone number. Phone number not set.')
 
-  if not (sid and username and first_name and last_name and password and email and newphone and phone_number):
+  if not (sid and username and first_name and last_name and password and email and phone_number):
     # redisplay the registration page
     return render_to_response('register.html',
         {'sid': sid,
@@ -499,13 +494,13 @@ def save_user(request):
 
   # create/update the user to the DB
   user, created = CoreUser.objects.get_or_create(sid=sid, defaults={'username': username, 'first_name': first_name,
-    'last_name': last_name, 'email': email, 'phone_number': newphone})
+    'last_name': last_name, 'email': email, 'phone_number': phone_number})
 
   if not created:
     user.first_name = first_name
     user.last_name = last_name
     user.email = email
-    user.phone_number = newphone
+    user.phone_number = phone_number 
 
   user.set_password(password)
   user.save()
