@@ -6,15 +6,6 @@
  * Namespace:
  *  core.util
  * 
- * Properties:
- *  - KML_NS - (array) All namespace URI's defined in KML schemas
- *  - KML_FEATURE_ELEMENTS - (array) Tag names (local names) of elements 
- *        defined in the KML schema
- *        
- * Functions:
- *  - isKmlElement
- *  - findNextKmlElementParent
- *  
  * Dependencies:
  *  - jQuery
  *  - core.util.XmlUtils
@@ -31,11 +22,33 @@ if (!window.core.util)
 	var CallbackUtils = core.util.CallbackUtils;
 
 	var KmlUtils = {
+		/**
+		 * Constant: KML_NS
+		 * 
+		 * Array. All KML namespace URIs defined in KML schemas.
+		 */
 		KML_NS: ["http://www.opengis.net/kml/2.2", "http://www.opengis.net/kml/2.2/", 
 			     "http://earth.google.com/kml/2.1", "http://earth.google.com/kml/2.1/"],
 
+		/**
+		 * Constant: KML_FEATURE_ELEMENTS
+		 * 
+		 * Array. Tag names of elements defined in the KML schema for features.
+		 */
 		KML_FEATURE_ELEMENTS: "kml NetworkLink Placemark PhotoOverlay ScreenOverlay GroundOverlay Folder Document".split(" "),
 
+		/**
+		 * Function: isKmlElement
+		 * 
+		 * Determins if an XML DOM node is a KML feature element.
+		 * 
+		 * Parameters:
+		 *   node - XML DOM node.
+		 *   
+		 * Returns:
+		 *   true if "node" is an element node with a tag name contained 
+		 *   in KML_FEATURE_ELEMENTS and a namespace contained in KML_NS.
+		 */
 		isKmlElement: function(node) {
 			if (XmlUtils.isElement(node)) {
 				var qname = XmlUtils.getQualifiedName(node);
@@ -45,6 +58,18 @@ if (!window.core.util)
 			return false;
 		},
 
+		/**
+		 * Function: findNextKmlElementParent
+		 * 
+		 * Identifies the closest ancestor that is a KML feature element.
+		 * 
+		 * Parameters:
+		 *   node - XML DOM node. Child element of starting point for search.
+		 *   
+		 * Returns:
+		 *   XML DOM element. Closest ancestor that is a KML feature element, 
+		 *   or null if none found.
+		 */
 		findNextKmlElementParent: function(node) {
 			node = $(node);
 			while (node.length > 0) {
@@ -56,6 +81,18 @@ if (!window.core.util)
 			return null;
 		},
 
+		/**
+		 * Function: iterateChildKmlElements
+		 * 
+		 * Iterates children of an XML element node that are KML 
+		 * features.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node. Parent node.
+		 *   callback - Function or Object. Callback to invoke with each 
+		 *         child KML feature element. Function will be invoked 
+		 *         with one parameter - the child XML DOM element.
+		 */
 		iterateChildKmlElements: function(element, callback) {
 			XmlUtils.assertElement(element);
 			// don't retrieve all children with jQuery.children() - might 

@@ -1,6 +1,8 @@
 /**
  * Class: XmlUtils
  * 
+ * Utility functions related to XML.
+ * 
  * Namespace:
  *  core.util
  *  
@@ -24,28 +26,33 @@ if (!window.core.util)
 	var Assert = core.util.Assert;
 	var NamespaceContext = core.util.NamespaceContext;
 
-	/*
-	 * declareNamespace
-	 * - createXmlDoc
-	 * - getXmlString
-	 * - assertElement
-	 * - isElement
-	 * - getQualifiedName
-	 */
-
 	var XmlUtils = {
 		/**
-		 * ELEMENT_NODE_TYPE
+		 * Constant: ELEMENT_NODE_TYPE
 		 * 
-		 * The value of the nodeType attribute of a DOM node when it is an element
+		 * Number. The value of the nodeType attribute of a DOM node when 
+		 * it is an element
 		 */
 		ELEMENT_NODE_TYPE: 1,
 	
 		/**
-		 * The prefix used when generating new namespace prefixes
+		 * Constant: NS_PREFIX_PREFIX
+		 * 
+		 * String. The prefix used when generating new namespace prefixes.
 		 */
 		NS_PREFIX_PREFIX: "cns-",
 
+		/**
+		 * Function: isElement
+		 * 
+		 * Determines if an object is an XML DOM element node.
+		 * 
+		 * Parameters:
+		 *   o - Object.
+		 *   
+		 * Returns:
+		 *   Boolean. True if the object is an XML DOM element node.
+		 */
 		isElement: function(o) {
 			return (o !== undefined && o !== null 
 					&& (typeof o === "object")
@@ -55,11 +62,32 @@ if (!window.core.util)
 					&& (o.nodeType === XmlUtils.ELEMENT_NODE_TYPE));
 		},
 
+		/**
+		 * Function: assertElement
+		 * 
+		 * Raises an exception if an object is not an XML DOM element node.
+		 * 
+		 * Parameters:
+		 *   o - Object.
+		 */
 		assertElement: function(o) {
 			Assert.isTrue(XmlUtils.isElement(o), 
 					new TypeError("Not an XML DOM element - " + o));
 		},
 
+		/**
+		 * Function: createXmlDoc
+		 * 
+		 * Creates an XML DOM object from an XML string. Raises an exception 
+		 * if a parsing error occurs that prevents the XML DOM object from 
+		 * being created.
+		 * 
+		 * Parameters:
+		 *   xml - String. XML text.
+		 *   
+		 * Returns:
+		 *   XML DOM.
+		 */
 		createXmlDoc: function(xml) {
 			if (xml == null || xml == undefined) {
 				return null;
@@ -94,7 +122,15 @@ if (!window.core.util)
 		},
 		
 		/**
-		 * Returns the textual representation of an XML DOM object
+		 * Function: getXmlString
+		 * 
+		 * Returns the textual representation of an XML DOM object.
+		 * 
+		 * Parameters:
+		 *   xmlDom - XML DOM node.
+		 *   
+		 * Returns:
+		 *   String.
 		 */
 		getXmlString: function(xmlDom) {
 			if (!xmlDom)
@@ -112,6 +148,18 @@ if (!window.core.util)
 			return xml;
 		},
 		
+		/**
+		 * Function: getQualifiedName
+		 * 
+		 * Gets the fully-qualified name of an XML DOM element node.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node. Required.
+		 *   nsContext - core.util.NamespaceContext. Optional.
+		 *   
+		 * Returns:
+		 *   core.util.QualifiedName.
+		 */
 		getQualifiedName: function(element, nsContext) {
 			XmlUtils.assertElement(element);
 			var fullname = element.tagName;
@@ -126,9 +174,21 @@ if (!window.core.util)
 		},
 		
 		/**
+		 * Function: declareNamespace
+		 * 
 		 * Declares a namespace prefix on an element. Returns the new prefix.
 		 * nsPrefix parameter is optional - will generate a new prefix if 
 		 * not provided.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node. Required. XML element where 
+		 *         namespace will be declared.
+		 *   nsUri - String. Required. Namespace URI.
+		 *   nsPrefix - String. Optional. Namespace prefix. If null or
+		 *         undefined, a new namespace prefix will be generated.
+		 *         
+		 * Returns:
+		 *   String. Namespace prefix.
 		 */
 		declareNamespace: function(element, nsUri, nsPrefix) {
 			XmlUtils.assertElement(element);
@@ -143,6 +203,18 @@ if (!window.core.util)
 			return nsPrefix;
 		},
 		
+		/**
+		 * Function: iterateElements
+		 * 
+		 * Iterates over the nodes in a NodeList that are element nodes.
+		 * Ignores nodes that are not elements.
+		 * 
+		 * Parameters:
+		 *   nodeList - NodeList.
+		 *   callback - Function or Object. Invoked for each element node. 
+		 *         The element node is provided to the callback function 
+		 *         as an argument.
+		 */
 		iterateElements: function(nodeList, callback) {
 			Assert.notNull(callback, "callback cannot be null");
 			Assert.notNull(nodeList, "nodeList cannot be null");
@@ -157,7 +229,16 @@ if (!window.core.util)
 		},
 		
 		/**
-		 * Get the namespace of an XML element
+		 * Function: getNamespaceURI
+		 * 
+		 * Get the namespace URI of an XML element.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node.
+		 *   nsContext - core.util.NamespaceContext. Optional.
+		 *   
+		 * Returns:
+		 *   String. Namespace URI.
 		 */
 		getNamespaceURI: function(element, nsContext) {
 			XmlUtils.assertElement(element);
@@ -197,6 +278,18 @@ if (!window.core.util)
 			}
 		},
 
+		/**
+		 * Function: findNewNsPrefix
+		 * 
+		 * Generates a new unique namespace prefix.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node. Required.
+		 *   nsContext - core.util.NamesapaceContext. Optional.
+		 *   
+		 * Returns:
+		 *   String. Namespace prefix.
+		 */
 		findNewNsPrefix: function(element, nsContext) {
 			if (!nsContext) {
 				nsContext = XmlUtils.getNamespaceContext(element, true);
@@ -211,6 +304,18 @@ if (!window.core.util)
 			}
 		},
 
+		/**
+		 * Function: escapeJquerySelectorValue
+		 * 
+		 * Quotes/escapes special characters within a string to be used as 
+		 * a jQuery selector.
+		 * 
+		 * Parameters:
+		 *   str - String. jQuery selector string.
+		 *   
+		 * Returns:
+		 *   String.
+		 */
 		escapeJquerySelectorValue: function(str) {
 			var specialChars = "!\"#$%&'()*+,./:;?@[\\]^`{|}~]";
 			var escapedStr = "";
@@ -225,8 +330,17 @@ if (!window.core.util)
 		},
 
 		/**
-		 * Gets the value of an ancestor's attribute. Value used will be from the 
-		 * nearest ancestor containing the attribute.
+		 * Function: getAncestorAttributeValue
+		 * 
+		 * Gets the value of an ancestor's attribute. Value used will be 
+		 * from the nearest ancestor containing the attribute.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node.
+		 *   attributeName - String.
+		 *   
+		 * Returns:
+		 *   String. Value of ancestor's attribute.
 		 */
 		getAncestorAttributeValue: function(element, attributeName) {
 			element = $(element);
@@ -243,8 +357,16 @@ if (!window.core.util)
 		},
 
 		/**
-		 * Gets the namespace of an element that is used if the element doesn't 
-		 * declare its namespace
+		 * Function: getDefaultNamespaceURI
+		 * 
+		 * Gets the namespace of an element that is used if the element 
+		 * doesn't declare its namespace.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node.
+		 *   
+		 * Returns:
+		 *   String. Namespace URI.
 		 */
 		getDefaultNamespaceURI: function(element) {
 			// search for an "xmlns" attribute on the closest parent element
@@ -252,10 +374,36 @@ if (!window.core.util)
 			return xmlns ? xmlns : "";
 		},
 
+		/**
+		 * Function: childDeclaresNsPrefix
+		 * 
+		 * Determines if a child XML element declares a namespace prefix.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node.
+		 *   nsPrefix - String.
+		 * 
+		 * Returns:
+		 *   Boolean.
+		 */
 		childDeclaresNsPrefix: function(element, nsPrefix) {
 			return $(element).find("[xmlns\\:" + nsPrefix + "]").length > 0;
 		},
 
+		/**
+		 * Function: getNamespaceContext
+		 * 
+		 * Builds the NamespaceContext for an XML element.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node.
+		 *   searchAncestors - Boolean. Optional. Defaults to true.
+		 *         Determines if ancestor node namespace declarations
+		 *         are added to the namespace context.
+		 *         
+		 * Returns:
+		 *   core.util.NamespaceContext.
+		 */
 		getNamespaceContext: function(element, searchAncestors) {
 			XmlUtils.assertElement(element);
 			var namespaces = {};
@@ -289,7 +437,15 @@ if (!window.core.util)
 		},
 
 		/**
-		 * Invoke a callback for each parent node
+		 * Function: walkParents
+		 * 
+		 * Invoke a callback for each parent node.
+		 * 
+		 * Parameters:
+		 *   element - XML DOM element node.
+		 *   callback - Function or Object. Invoked for each ancestor XML 
+		 *         element node. Ancestor element is provided as the 
+		 *         argument to the callback function.
 		 */
 		walkParents: function(element, callback) {
 			Assert.notNull(callback, "callback cannot be null");
@@ -301,95 +457,8 @@ if (!window.core.util)
 					XmlUtils.walkParents(parent, callback);
 				}
 			}
-		},
+		}
 		
-//		/**
-//		 * Invokes a callback for each child node found that is an element node
-//		 */
-//		iterateChildElements: function(element, callback) {
-//			Assert.notNull(callback, "callback cannot be null");
-//			if (element != null && element != undefined) {
-//				XmlUtils.assertElement(element);
-//				XmlUtils.iterateElements(element.childNodes, callback);
-//			}
-//		},
-//
-//		/**
-//		 * Invokes a callback for each child node found that is an element node and
-//		 * also matches a set of names
-//		 */
-//		iterateChildElementsByName: function(node, names, callback) {
-//			var namesArr = $.makeArray(names);
-//			XmlUtils.iterateChildElements(node, function(element) {
-//				if ($.inArray(element.tagName, namesArr) > -1) {
-//					CallbackUtils.invokeCallback(callback, element);
-//				}
-//			});
-//		},
-//		
-//		getOrDeclareNsPrefix: function(element, nsUri, nsContext) {
-//			var nsPrefix = XmlUtils.getNamespacePrefixForURI(element, nsUri, true);
-//			if (nsPrefix == null || nsPrefix == undefined) {
-//				nsPrefix = XmlUtils.declareNamespace(element, nsUri);
-//			}
-//			return nsPrefix;
-//		},
-//		
-//		getDeclaredNamespaces: function(element, includeAncestors) {
-//			XmlUtils.assertElement(element);
-//			var namespaces = {};
-//			var attrs = element.attributes;
-//			for (var i = 0; i < attrs.length; i++) {
-//				var attr = attrs.item(i);
-//				if (/xmlns\:\S+/i.test(attr.name)) {
-//					var prefix = attr.name.substr(6);
-//					var uri = attr.nodeValue;
-//					namespaces[prefix] = uri;
-//				}
-//			}
-//			if (includeAncestors === true) {
-//				XmlUtils.walkParents(element, function(parent) {
-//					var parentNsMap = XmlUtils.getDeclaredNamespaces(parent, false);
-//					for (var prefix in parentNsMap) {
-//						var uri = parentNsMap[prefix];
-//						// if closer (lower-level) element hasn't already 
-//						// defined this prefix, add this declaration to the 
-//						// namespace map
-//						if (!(prefix in namespaces)) {
-//							namespaces[prefix] = uri;
-//						}
-//					}
-//				});
-//			}
-//			return namespaces;
-//		},
-//		
-//		getNamespacePrefixForURI: function(element, nsUri, searchAncestors) {
-//			XmlUtils.assertElement(element);
-//			if (nsUri == null || nsUri == undefined || nsUri === "")
-//				return undefined;
-//			Assert.type(nsUri, "string");
-//			if ($(element).attr("xmlns") === nsUri) {
-//				return "";
-//			}
-//			searchAncestors = searchAncestors === false ? false : true;
-//			var nsMap = XmlUtils.getDeclaredNamespaces(element, searchAncestors);
-//			for (var prefix in nsMap) {
-//				if (nsMap[prefix] === nsUri) {
-//					return prefix;
-//				}
-//			}
-//			return undefined;
-//		},
-//		
-//		getNamespaceURIForPrefix: function(element, nsPrefix, searchAncestors) {
-//			XmlUtils.assertElement(element);
-//			Assert.notNull(nsPrefix, "nsPrefix cannot be null");
-//			Assert.type(nsPrefix, "string", "nsPrefix must be a string");
-//			var searchAncestors = searchAncestors === false ? false : true;
-//			var nsMap = XmlUtils.getDeclaredNamespaces(element, searchAncestors);
-//			return (nsPrefix in nsMap) ? nsMap[nsPrefix] : undefined;
-//		}
 	};
 	ns.XmlUtils = XmlUtils;
 

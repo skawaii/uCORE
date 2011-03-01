@@ -3,12 +3,13 @@
  * 
  * Utility functions related to callbacks.
  * 
- * Functions:
- *  - invokeCallback
- *  
+ * Namespace:
+ *   core.util
+ * 
  * Dependencies:
- *  - jQuery
+ *   - jQuery
  */
+
 if (!window.core)
 	window.core = {};
 if (!window.core.util)
@@ -16,6 +17,21 @@ if (!window.core.util)
 
 (function($, ns) {
 	var CallbackUtils = {
+		/**
+		 * Function: invokeCallback
+		 * 
+		 * Invokes a callback function or object. If the callback is an object
+		 * rather than a function, it should contain the following members:
+		 * - callback - Function. Required. Will be invoked with provided 
+		 *       arguments.
+		 * - context - Object. Optional. Context used when invoking the 
+		 *       callback function. 
+		 * 
+		 * Parameters:
+		 *   callback - Function or Object. If an object, must contain a 
+		 *         "callback" function and optionally may contain a "context" property.
+		 *   args - Array or Object. Arguments to pass to the callback function.
+		 */
 		invokeCallback: function(callback, args) {
 			if (!callback) {
 				return;
