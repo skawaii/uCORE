@@ -62,6 +62,33 @@
 
       function searchLinks(term)
        {
+        // document.getElementById('q1').value = '';
+        // document.getElementById('tagname').value = '';
+        // document.getElementById('q2').value = '';
+        //var nullcolumns = [ {id:"name", name:"name", field:"name"},
+        //     {id:"desc", name:"desc", field:"desc"}];
+        //var options = { enableCellNavigation: true, enableColumnReorder: false};
+        //var data = [];
+        //for (var i=0; i<10; i++)
+        //{
+        //  var d = (data[i] = {});
+        //  d[0] = "";
+        // }
+        // librarygrid = new Slick.Grid("#libraryGrid", data, nullcolumns, options);
+       // grid = new Slick.Grid("#myGrid", data, nullcolumns, options);
+       //  librarygrid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
+       //  grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
+       //  librarygrid.setSelectedRows(null);
+       //  grid.setSelectedRows(null)a
+       // ;
+       //if (grid != null)
+       //{
+       //  grid = null;
+       // }
+      // if (librarygrid != null)
+      //  {
+      //   librarygrid = null;
+      //   }
          $.getJSON('../search-links/', { q : term },
          function(jsonstuff)
          { 
@@ -104,9 +131,9 @@
          } });
            
          $.getJSON('../search-libraries/', { q : term },
-         function(jsonstuff2)
+         function(libraryjson)
          { 
-           if (!jQuery.isEmptyObject(jsonstuff2))
+           if (!jQuery.isEmptyObject(libraryjson))
            {
    
           var columns = [];
@@ -122,16 +149,16 @@
           columns.push({ id: "desc", name: "desc", field: "description", width:300,
                editor: TextCellEditor
            });
-          columns.push({ id: "url", name: "url", field: "urlfield", width:500,
-               editor: TextCellEditor
-           });
-           for (var i=0; i < jsonstuff2.length; i++)
+ // columns.push({ id: "url", name: "url", field: "urlfield", width:500,
+ //              editor: TextCellEditor
+ //          });
+           for (var i=0; i < libraryjson.length; i++)
            {
                var d2 = (librarytable[i] = {}); 
-               d2["name"] = jsonstuff2[i].fields.name;
-               d2["description"] = jsonstuff2[i].fields.desc;
-               d2["urlfield"] = jsonstuff2[i].fields.url;
-               d2["pk"] = jsonstuff2[i].pk;
+               d2["name"] = libraryjson[i].fields.name;
+               d2["description"] = libraryjson[i].fields.desc;
+               // d2["urlfield"] = jsonstuff2[i].fields.url;
+               d2["pk"] = libraryjson[i].pk;
           }
           var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
           librarygrid = new Slick.Grid("#libraryGrid", librarytable, columns, options);
