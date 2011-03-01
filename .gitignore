@@ -5,3 +5,10 @@
 .pydevproject
 local_settings.py
 ucore.log
+conf.py
+testbackup.html
+testgrid.bak
+testgrid2.html
+search_data.json
+index.rst
+

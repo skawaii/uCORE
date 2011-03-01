@@ -10,7 +10,8 @@ from coreo.ucore.models import *
 
 # XXX in every setUp(), a CoreUser is being created. This should be put into a fixture
 
-
+#Function: LinkLibraryTest
+#      tests to make sure that a link library can be created.
 class LinkLibraryTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',

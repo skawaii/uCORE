@@ -1,5 +1,9 @@
+"""Views provide the views (or the controllers in a MVC applications)
+   for the Django project.  This file was created and maintained by:
+   Jason Cooper, Jason Hotelling, Paul Coleman, and Paul Boone.
+"""
+
 import csv, datetime, logging, os, re, time, urllib2, zipfile
-#import xml.dom.minidom
 from cStringIO import StringIO
 
 from django.core.mail import send_mail
@@ -20,9 +24,30 @@ from coreo.ucore import shapefile, utils
 
 
 def create_library(request):
+  """
+  This view when called will create a link library. It won't
+  work properly unless you are already logged in to the webapp
+  in a legitimate way.
+ 
+  Parameters:
+   links - a comma-delimited list of the primary keys of the links you want
+           to add to the created link library. They are passed in from
+           request object via POST.
+   name -  the name you wish to call the created link library.  Passed in
+           from the request object via POST.
+   desc -  The description you want to use for the link library.
+   tags -  Another comma-delimited list of the names of the tags you want
+           to associate with the link library you are creating. If the tags
+           are not found within the Tag table, they will be created.
+
+   Returns:
+    This view should return the same page that called it, which is testgrid.
+    We may need to modify this when it is more smoothly integrated into our
+    existing webapp.
+  """
   user = CoreUser.objects.get(username=request.user)
 
-  # XXX why is all of this code in a try block and only the generic Exception is being caught
+ # why is all of this code in a try block and only the generic Exception is being caught
   try:
     if not user:
       logging.error('No user retrieved by the username of %s' % request.user)
@@ -106,12 +131,21 @@ def gm_index(request):
 
 
 def get_csv(request):
-  ''' get_csv is a method that will return csv to the browser.
-      It eventually will accept json input from the GE view,
-      and return it as a .csv file to the browser. 
-      Right now the filename is sample.csv but can be modified
-      as necessary.
-   '''
+  """
+  Function: get_csv view
+  
+   The purpose of this view is to return a csv file that represents the 
+   data on a GE view.  As of now, we don't have anything on the client
+   side to work with this view.
+
+  Parameters:
+  Currently no parameters are passed in, but soon we hope to have JSON
+  p assed in from the client that represents the data from a GE view.
+
+  Returns: 
+  this should return an attachment of type text/csv that will be csv
+  from the view.  Right now it returns static data.
+  """
   response = HttpResponse(mimetype='text/csv')
   response['Content-Disposition'] = 'attachment; filename=sample.csv'
   # This will eventually handle a json object rather than static data.
@@ -134,6 +168,22 @@ def get_csv(request):
 
 
 def get_kmz(request):
+  """
+  Function: get_kmz view
+
+   The purpose of get_kmz is to return a KML zipped file (KMZ) 
+   that represents the data from a GE view in our webapp.
+
+  Parameters:
+    No parameters have yet been accepted, but eventually the client will
+   be submitting a JSON object that represents the data from the GE view
+   that we wish to convert to KMZ.
+
+  Returns:
+   This view will return a file attachment that is KMZ to the client.
+   Right now we return static data. when the user requests /get-kmz/.
+  """
+
   # I must say I used some of : http://djangosnippets.org/snippets/709/
   # for this part. - PRC
   # I know this will be replaced once I have a sample JSON from the client
@@ -201,9 +251,22 @@ def get_shapefile(request):
   shp.close()
   return response
 
-
 def get_tags(request):
-    if request.method == 'GET':
+  """
+  get_tags view
+
+           The purpose of this view is to respond to an AJAX call for all
+          the public tags in our Tag table.
+
+  Parameters:
+           term -  represents the keyboard input of the user while
+                  waiting for the auto-complete list to be returned.
+
+  Returns:
+          This view returns a list of all the public tags that match the
+           parameter submitted.
+  """           
+  if request.method == 'GET':
       term = request.GET['term'].strip()
 
       if ',' in term:
@@ -214,9 +277,8 @@ def get_tags(request):
 
     # XXX if the request method is something besides a GET, it'll still execute the
     # next 2 lines of code....
-    results = Tag.objects.filter(name__contains=term, type='P')
-
-    return HttpResponse(serializers.serialize('json', results))
+  results = Tag.objects.filter(name__contains=term, type='P')
+  return HttpResponse(serializers.serialize('json', results))
 
 
 def index(request):
@@ -228,6 +290,18 @@ def index(request):
 
 
 def library_demo(request):
+  """
+  library_demo
+           This view exists to demonstrate the ability to select multiple
+          links from our search results and then select the ones you want
+          to create a link-library.
+
+  Returns:
+          If the user requesting this view is authenticated already, this
+          view will return the HTML page that goes with it : testgrid.html
+          . Otherwise, it will take the request and redirect to the login
+          page.
+  """
   if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
   else:
@@ -259,8 +333,9 @@ def login(request):
 
 
 def logout(request):
-  ''' Log the user out, terminating the session
-  '''
+  """
+    Log the user out, terminating the session
+  """
   if request.user.is_authenticated():
     auth.logout(request)
 
@@ -292,12 +367,13 @@ def notifytest(request):
 
 
 def poll_notifications(request, notification_id):
-  ''' poll_notifications has two methods it supports: GET and DELETE
+  """
+      poll_notifications has two methods it supports: GET and DELETE
       for DELETE you have to submit a notification_id which will then
       delete the notification from the table. 
       If you call a GET, don't send any parameters and the view will
       return a json list of all notifications for the logged in user.
-  '''
+  """ 
   # notification_id is passed in on a delete request in the URL.
   if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -325,10 +401,11 @@ def poll_notifications(request, notification_id):
 
 
 def rate(request, ratee, ratee_id):
-  ''' Rate either a ``Link`` or ``LinkLibrary``.
+  """
+      Rate either a ``Link`` or ``LinkLibrary``.
       ``ratee`` must either be 'link' or 'library', with ``ratee_id`` being the respective id.
       The value of ``ratee`` is ensured in urls.py.
-  '''
+  """ 
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
@@ -373,9 +450,10 @@ def rate(request, ratee, ratee_id):
 
 
 def register(request, sid):
-  ''' Pull out the user's sid, name, email, and phone number from the user's certs.
+  """
+   Pull out the user's sid, name, email, and phone number from the user's certs.
       Return a pre-filled registration form with this info so the user can create an account.
-  '''
+  """
   # get the sid and name from the cert
   #name_sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')
   #name = ' '.join(name_sid[:-1])
@@ -388,8 +466,9 @@ def register(request, sid):
 
 
 def save_user(request):
-  ''' Create/update the user's record in the DB.
-  '''
+  """
+   Create/update the user's record in the DB.
+  """ 
   sid = request.POST['sid'].strip()
   username = request.POST['username'].strip()
   first_name = request.POST['first_name'].strip()
@@ -397,21 +476,16 @@ def save_user(request):
   password = request.POST['password'].strip()
   email = request.POST['email'].strip()
   phone_number = request.POST['phone_number'].strip()
-  newphone = ''
-
   try:
-    if (len(phone_number) == 10):
-      newphone = phone_number
-    else:
+    if (len(phone_number) != 10): 
       prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
-      # prog = re.compile(r"(\d+[^/d]+)")
       result = prog.match(phone_number)
-      newphone = result.group(1) + result.group(2) + result.group(3)
+      phone_number = result.group(1) + result.group(2) + result.group(3)
   except Exception, e:
     logging.error(e.message)
     logging.error('Exception parsing phone number. Phone number not set.')
 
-  if not (sid and username and first_name and last_name and password and email and newphone and phone_number):
+  if not (sid and username and first_name and last_name and password and email and phone_number):
     # redisplay the registration page
     return render_to_response('register.html',
         {'sid': sid,
@@ -420,13 +494,13 @@ def save_user(request):
 
   # create/update the user to the DB
   user, created = CoreUser.objects.get_or_create(sid=sid, defaults={'username': username, 'first_name': first_name,
-    'last_name': last_name, 'email': email, 'phone_number': newphone})
+    'last_name': last_name, 'email': email, 'phone_number': phone_number})
 
   if not created:
     user.first_name = first_name
     user.last_name = last_name
     user.email = email
-    user.phone_number = newphone
+    user.phone_number = phone_number 
 
   user.set_password(password)
   user.save()
@@ -434,24 +508,42 @@ def save_user(request):
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
-
-def search_links(request):
+def search_libraries(request):
   if not request.GET['q']:
     return HttpResponse(serializers.serialize('json', ''))
 
   terms = request.GET['q'].split(',') 
+
+  results = set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+
+  return HttpResponse(serializers.serialize('json', results))
+
+
+def search_links(request):
+  """
+   search_links
+            The purpose of this view is to take in a GET request with q 
+           being the search parameter, and return a list of links that 
+           match the search parameter.
+ 
+   Parameters: 
+          q - this will equal whatever the user has submitted to search on.
+
+   Returns: 
+        This view returns a json list of all the Links that match the 
+        search parameter submitted.
+  """           
+  if not request.GET['q']:
+   return HttpResponse(serializers.serialize('json', ''))
+
+  terms = request.GET['q'].split(',') 
   logging.debug('Received terms %s in the GET of search_links\n' % terms)
 
-  # search Link for matches
   results = set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
   results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
   results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
-
-  # XXX put this in its own view
-  # search LinkLibraries for matches
-  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
 
   return HttpResponse(serializers.serialize('json', results))
 
@@ -496,21 +588,24 @@ def upload_csv(request):
 
 
 def user_profile(request):
-  # XXX the django dev server can't use ssl, so fake getting the sid from the cert
-  # XXX pull out the name as well. pass it to register() and keep things DRY
-  # sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
-  #sid = 'jlcoope'
-  #if not sid: return render_to_response('install_certs.html')
-
+  """
+  XXX the django dev server can't use ssl, so fake getting the sid from the cert
+  XXX pull out the name as well. pass it to register() and keep things DRY
+  sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
+  sid = 'jlcoope'
+  if not sid: return render_to_response('install_certs.html')
+  """
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
-    # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+  
+  # as long as the login_user view forces them to register if they
+  # don't already exist in the db, then we should never actually get here.
+  # Still, better safe than sorry.
+ 
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
