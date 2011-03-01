@@ -1,7 +1,7 @@
       var totalTable = [];
-      var totalTable2 = [];
+      var librarytable = [];
       var grid;
-      var grid2;
+      var librarygrid;
       
       function split( val ) {
          return val.split( /,\s*/ );
@@ -62,7 +62,6 @@
 
       function searchLinks(term)
        {
-         // alert('Got to searchLinks and passed in : ' + term);
          $.getJSON('../search-links/', { q : term },
          function(jsonstuff)
          { 
@@ -117,10 +116,6 @@
                  cssClass: "slick-cell-checkboxsel"
           });
           columns.push(checkboxSelector.getColumnDefinition());
-          // for (var i = 0; i < jsonstuff.length; i++) {
-          //  columns.push({ id: i, name: String.fromCharCode("A".charCodeAt(0) + i), field: i, width: 100,
-          //          editor: TextCellEditor
-          // });
           columns.push({ id: "name", name: "name", field: "name", width:300,
                editor: TextCellEditor
            });
@@ -132,16 +127,16 @@
            });
            for (var i=0; i < jsonstuff2.length; i++)
            {
-               var d2 = (totalTable2[i] = {}); 
+               var d2 = (librarytable[i] = {}); 
                d2["name"] = jsonstuff2[i].fields.name;
                d2["description"] = jsonstuff2[i].fields.desc;
                d2["urlfield"] = jsonstuff2[i].fields.url;
                d2["pk"] = jsonstuff2[i].pk;
           }
           var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
-          grid2 = new Slick.Grid("#libraryGrid", totalTable2, columns, options);
-          grid2.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
-          grid2.registerPlugin(checkboxSelector);
+          librarygrid = new Slick.Grid("#libraryGrid", librarytable, columns, options);
+          librarygrid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
+          librarygrid.registerPlugin(checkboxSelector);
               })   
          } });
 
@@ -163,18 +158,6 @@
                  alert("Please check some links before continuing..");
                  return false;
                }
-               //name = document.getElementById('q1').value;
-               //if (name == null || name == '')
-               //{
-               //  alert("Please enter a value for library name.");
-               //  return false;
-               // }
-               // description = document.getElementById('q2').value;
-               //if (description == null || description == '')
-               // {
-               //   alert("Please enter a value for library description.");
-               //   return false;
-               // }
                var row_parameter;
                for (var j = 0; j < selectedRows.length; j++)
                {
@@ -188,18 +171,6 @@
                    row_parameter = row_parameter + "," + totalTable[rowNum]["pk"];
                  }
                }
-               //var library_name = document.getElementById('q1').value;
-               //var library_desc = document.getElementById('q2').value;
-               //var tagparameter = document.getElementById('tagname').value;
-               //$.post("../create-library/", { name: library_name, desc: library_desc, tags: tagparameter, links: row_parameter});
-               //  alert("you entered: " + document.getElementById('q1').value);
-               //totalTable = [];
-               //totalTable2 = [];
-               //grid = new Slick.Grid("#myGrid", totalTable, columns, options);
-               //grid2 = new Slick.Grid("#libraryGrid", totalTable2, columns, options);
-               //document.getElementById('q1').value = '';
-               //document.getElementById('q2').value = '';
-               //document.getElementById('tagname').value = '';
          } 
      } 
    });
