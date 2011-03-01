@@ -100,7 +100,6 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'coreo.ucore',
-    'compress',
 )
 
 SITE_ROOT = 'http://localhost:8080/'
