@@ -1,5 +1,7 @@
       var totalTable = [];
+      var totalTable2 = [];
       var grid;
+      var grid2;
       
       function split( val ) {
          return val.split( /,\s*/ );
@@ -11,8 +13,8 @@
 
       $(document).ready(function()
       {
-        document.getElementById('question').style.display='none';
-        document.getElementById('myGrid').style.display='none';
+        document.getElementById('dialog').style.display='none';
+        document.getElementById('questionDialog').style.display='none';
         $("input#tagname").bind( "keydown", function( event ) {
               if ( event.keyCode === $.ui.keyCode.TAB &&
                 $( this ).data( "autocomplete" ).menu.active ) {
@@ -102,25 +104,77 @@
               })  // document.getElementById('dialog').innerHTML = totalTable; 
          } });
            
-         $("#dialog").dialog({ width: 1000, buttons: { "Save Link Library": function() {
+         $.getJSON('../search-libraries/', { q : term },
+         function(jsonstuff2)
+         { 
+           if (!jQuery.isEmptyObject(jsonstuff2))
+           {
+   
+          var columns = [];
+          $(function()
+          {
+          var checkboxSelector = new Slick.CheckboxSelectColumn({
+                 cssClass: "slick-cell-checkboxsel"
+          });
+          columns.push(checkboxSelector.getColumnDefinition());
+          // for (var i = 0; i < jsonstuff.length; i++) {
+          //  columns.push({ id: i, name: String.fromCharCode("A".charCodeAt(0) + i), field: i, width: 100,
+          //          editor: TextCellEditor
+          // });
+          columns.push({ id: "name", name: "name", field: "name", width:300,
+               editor: TextCellEditor
+           });
+          columns.push({ id: "desc", name: "desc", field: "description", width:300,
+               editor: TextCellEditor
+           });
+          columns.push({ id: "url", name: "url", field: "urlfield", width:500,
+               editor: TextCellEditor
+           });
+           for (var i=0; i < jsonstuff2.length; i++)
+           {
+               var d2 = (totalTable2[i] = {}); 
+               d2["name"] = jsonstuff2[i].fields.name;
+               d2["description"] = jsonstuff2[i].fields.desc;
+               d2["urlfield"] = jsonstuff2[i].fields.url;
+               d2["pk"] = jsonstuff2[i].pk;
+          }
+          var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
+          grid2 = new Slick.Grid("#libraryGrid", totalTable2, columns, options);
+          grid2.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
+          grid2.registerPlugin(checkboxSelector);
+              })   
+         } });
+
+         $("#dialog").dialog({ width: 1000, buttons: { "Continue": function() {
+               $("#dialog").dialog("close");
+               $("#questionDialog").dialog({ width: 1000, buttons: { "Continue" : function() {
+               var library_name = document.getElementById('q1').value;
+               var library_desc = document.getElementById('q2').value;
+               var tagparameter = document.getElementById('tagname').value;
+               $.post("../create-library/", { name: library_name, desc: library_desc, tags: tagparameter, links: row_parameter});
+               $("#questionDialog").dialog("close");  
+                 }
+               }
+               });
+               document.getElementById('questionDialog').style.display='block';
                var selectedRows = grid.getSelectedRows();
                if (selectedRows == 0)
                {
                  alert("Please check some links before continuing..");
                  return false;
                }
-               name = document.getElementById('q1').value;
-               if (name == null || name == '')
-               {
-                 alert("Please enter a value for library name.");
-                 return false;
-               }
-               description = document.getElementById('q2').value;
-               if (description == null || description == '')
-               {
-                 alert("Please enter a value for library description.");
-                 return false;
-               }
+               //name = document.getElementById('q1').value;
+               //if (name == null || name == '')
+               //{
+               //  alert("Please enter a value for library name.");
+               //  return false;
+               // }
+               // description = document.getElementById('q2').value;
+               //if (description == null || description == '')
+               // {
+               //   alert("Please enter a value for library description.");
+               //   return false;
+               // }
                var row_parameter;
                for (var j = 0; j < selectedRows.length; j++)
                {
@@ -134,17 +188,18 @@
                    row_parameter = row_parameter + "," + totalTable[rowNum]["pk"];
                  }
                }
-               var library_name = document.getElementById('q1').value;
-               var library_desc = document.getElementById('q2').value;
-               var tagparameter = document.getElementById('tagname').value;
-               $.post("../create-library/", { name: library_name, desc: library_desc, tags: tagparameter, links: row_parameter});
+               //var library_name = document.getElementById('q1').value;
+               //var library_desc = document.getElementById('q2').value;
+               //var tagparameter = document.getElementById('tagname').value;
+               //$.post("../create-library/", { name: library_name, desc: library_desc, tags: tagparameter, links: row_parameter});
                //  alert("you entered: " + document.getElementById('q1').value);
-               $("#dialog").dialog("close");
-               totalTable = [];
-               grid = new Slick.Grid("#myGrid", totalTable, columns, options);
-               document.getElementById('q1').value = '';
-               document.getElementById('q2').value = '';
-               document.getElementById('tagname').value = '';
+               //totalTable = [];
+               //totalTable2 = [];
+               //grid = new Slick.Grid("#myGrid", totalTable, columns, options);
+               //grid2 = new Slick.Grid("#libraryGrid", totalTable2, columns, options);
+               //document.getElementById('q1').value = '';
+               //document.getElementById('q2').value = '';
+               //document.getElementById('tagname').value = '';
          } 
      } 
    });
