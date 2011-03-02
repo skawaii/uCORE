@@ -1,6 +1,7 @@
-"""Views provide the views (or the controllers in a MVC applications)
-   for the Django project.  This file was created and maintained by:
-   Jason Cooper, Jason Hotelling, Paul Coleman, and Paul Boone.
+"""
+  Views provide the views (or the controllers in a MVC applications)
+  for the Django project.  This file was created and maintained by:
+  Jason Cooper, Jason Hotelling, Paul Coleman, and Paul Boone.
 """
 
 import csv, datetime, logging, os, re, time, urllib2, zipfile
@@ -25,29 +26,28 @@ from coreo.ucore import shapefile, utils
 
 def create_library(request):
   """
-  This view when called will create a link library. It won't
-  work properly unless you are already logged in to the webapp
-  in a legitimate way.
+  This view when called will create a link library. It won't work properly unless you are
+  already logged in to the webapp in a legitimate way.
  
   Parameters:
-   links - a comma-delimited list of the primary keys of the links you want
-           to add to the created link library. They are passed in from
-           request object via POST.
-   name -  the name you wish to call the created link library.  Passed in
-           from the request object via POST.
-   desc -  The description you want to use for the link library.
-   tags -  Another comma-delimited list of the names of the tags you want
-           to associate with the link library you are creating. If the tags
-           are not found within the Tag table, they will be created.
+    ``links`` - a comma-delimited list of the primary keys of the links you want
+                to add to the created link library. They are passed in from
+                request object via POST.
+    ``name`` -  the name you wish to call the created link library.  Passed in
+                from the request object via POST.
+    ``desc`` -  The description you want to use for the link library.
+    ``tags`` -  Another comma-delimited list of the names of the tags you want
+                to associate with the link library you are creating. If the tags
+                are not found within the Tag table, they will be created.
 
-   Returns:
+  Returns:
     This view should return the same page that called it, which is testgrid.
     We may need to modify this when it is more smoothly integrated into our
     existing webapp.
   """
   user = CoreUser.objects.get(username=request.user)
 
- # why is all of this code in a try block and only the generic Exception is being caught
+ # XXX why is all of this code in a try block and only the generic Exception is being caught
   try:
     if not user:
       logging.error('No user retrieved by the username of %s' % request.user)
@@ -107,8 +107,7 @@ def ge_index(request):
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
     # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+    # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
@@ -123,8 +122,7 @@ def gm_index(request):
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
     # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+    # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('gmindex.html', {'user': user}, context_instance=RequestContext(request))
@@ -132,19 +130,17 @@ def gm_index(request):
 
 def get_csv(request):
   """
-  Function: get_csv view
-  
-   The purpose of this view is to return a csv file that represents the 
-   data on a GE view.  As of now, we don't have anything on the client
-   side to work with this view.
+  The purpose of this view is to return a csv file that represents the 
+  data on a GE view.  As of now, we don't have anything on the client
+  side to work with this view.
 
   Parameters:
-  Currently no parameters are passed in, but soon we hope to have JSON
-  p assed in from the client that represents the data from a GE view.
+    Currently no parameters are passed in, but soon we hope to have JSON
+    passed in from the client that represents the data from a GE view.
 
   Returns: 
-  this should return an attachment of type text/csv that will be csv
-  from the view.  Right now it returns static data.
+    This should return an attachment of type text/csv that will be csv
+    from the view.  Right now it returns static data.
   """
   response = HttpResponse(mimetype='text/csv')
   response['Content-Disposition'] = 'attachment; filename=sample.csv'
@@ -164,26 +160,23 @@ def get_csv(request):
   writer.writerow(['First', '1', '2', '3'])
   writer.writerow(['Second', '4', '5', '6'])
   writer.writerow(['Third', '7', '8', '9'])
+
   return response
 
 
 def get_kmz(request):
   """
-  Function: get_kmz view
-
-   The purpose of get_kmz is to return a KML zipped file (KMZ) 
-   that represents the data from a GE view in our webapp.
+  Return a KMZ file that represents the data from a GE view in our webapp.
 
   Parameters:
     No parameters have yet been accepted, but eventually the client will
-   be submitting a JSON object that represents the data from the GE view
-   that we wish to convert to KMZ.
+    be submitting a JSON object that represents the data from the GE view
+    that we wish to convert to KMZ.
 
   Returns:
-   This view will return a file attachment that is KMZ to the client.
-   Right now we return static data. when the user requests /get-kmz/.
+    This view will return a file attachment that is KMZ to the client.
+    Right now we return static data. when the user requests /get-kmz/.
   """
-
   # I must say I used some of : http://djangosnippets.org/snippets/709/
   # for this part. - PRC
   # I know this will be replaced once I have a sample JSON from the client
@@ -211,6 +204,7 @@ def get_kmz(request):
   response['Content-Disposition'] = 'attachment; filename=download.kmz'
   response['Content-Description'] = 'a sample kmz file.'
   response['Content-Length'] = str(len(response.content))
+
   return response 
 
 
@@ -249,35 +243,35 @@ def get_shapefile(request):
   response['Content-Disposition'] = 'attachment; filename=sample1.shp'
   response.content = shp.getvalue()
   shp.close()
+
   return response
+
 
 def get_tags(request):
   """
-  get_tags view
-
-           The purpose of this view is to respond to an AJAX call for all
-          the public tags in our Tag table.
+  The purpose of this view is to respond to an AJAX call for all
+  the public tags in our Tag table.
 
   Parameters:
-           term -  represents the keyboard input of the user while
-                  waiting for the auto-complete list to be returned.
+    ``term`` - represents the keyboard input of the user while
+               waiting for the auto-complete list to be returned.
 
   Returns:
-          This view returns a list of all the public tags that match the
-           parameter submitted.
+    This view returns a list of all the public tags that match the
+    parameter submitted.
   """           
   if request.method == 'GET':
-      term = request.GET['term'].strip()
+    term = request.GET['term'].strip()
 
-      if ',' in term:
-         termList = term.split(',')
-         length_of_list = len(termList)
-         term = termList[length_of_list-1].strip()
-         # print 'term is- %s -here' % term
+    if ',' in term:
+      termList = term.split(',')
+      length_of_list = len(termList)
+      term = termList[length_of_list-1].strip()
+      # print 'term is- %s -here' % term
 
-    # XXX if the request method is something besides a GET, it'll still execute the
-    # next 2 lines of code....
+  # XXX if the request method is something besides a GET, it'll still execute the next 2 lines of code....
   results = Tag.objects.filter(name__contains=term, type='P')
+
   return HttpResponse(serializers.serialize('json', results))
 
 
@@ -285,22 +279,21 @@ def index(request):
   # If the user is authenticated, send them to the application.
   if request.user.is_authenticated():
     return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+
   # If the user is not authenticated, show them the main page.
   return render_to_response('index.html', context_instance=RequestContext(request))
 
 
 def library_demo(request):
   """
-  library_demo
-           This view exists to demonstrate the ability to select multiple
-          links from our search results and then select the ones you want
-          to create a link-library.
+  This view exists to demonstrate the ability to select multiple
+  links from our search results and then select the ones you want
+  to create a link library.
 
   Returns:
-          If the user requesting this view is authenticated already, this
-          view will return the HTML page that goes with it : testgrid.html
-          . Otherwise, it will take the request and redirect to the login
-          page.
+    If the user requesting this view is authenticated already, this
+    view will return the HTML page that goes with it : testgrid.html.
+    Otherwise, it will take the request and redirect to the login page.
   """
   if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -334,7 +327,7 @@ def login(request):
 
 def logout(request):
   """
-    Log the user out, terminating the session
+  Log the user out, terminating the session
   """
   if request.user.is_authenticated():
     auth.logout(request)
@@ -350,8 +343,7 @@ def map_view(request):
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
     # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+    # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
@@ -362,49 +354,57 @@ def notifytest(request):
     logging.warning('%s was not authenticated' % request.user)
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  # userperson = CoreUser.objects.filter(username=request.user)
+  # user = CoreUser.objects.filter(username=request.user)
   return render_to_response('notify.html', context_instance=RequestContext(request))
 
 
 def poll_notifications(request, notification_id):
   """
-      poll_notifications has two methods it supports: GET and DELETE
-      for DELETE you have to submit a notification_id which will then
-      delete the notification from the table. 
-      If you call a GET, don't send any parameters and the view will
-      return a json list of all notifications for the logged in user.
+  poll_notifications has two methods it supports: GET and DELETE.
+  For DELETE you have to submit a ``notification_id``, which will then
+  delete the notification from the DB. 
+
+  If you call a GET, don't send any parameters and the view will
+  return a JSON list of all notifications for the logged-in user.
   """ 
   # notification_id is passed in on a delete request in the URL.
   if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  userperson = CoreUser.objects.filter(username=request.user)
-  if not userperson: 
+  user = CoreUser.objects.filter(username=request.user)
+
+  if not user: 
     logging.debug('No user retrieved by the username of %s' % request.user)
   response = HttpResponse(mimetype='application/json')
+
   if request.method == "GET":
     # print 'request user is %s' % request.user
     try:
-      json_serializer = serializers.get_serializer("json")()
-      notify_list = Notification.objects.filter(user=userperson)
+      json_serializer = serializers.get_serializer('json')()
+      notify_list = Notification.objects.filter(user=user)
       json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
     except Exception, e:
       logging.error(e.message)
       print e.message 
+
     return response
   elif request.method == "DELETE":
     primaryKey = notification_id 
     logging.debug('Received the following id to delete from notifications : %s' % primaryKey)
-    record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
+    record2delete = Notification.objects.filter(user=user, pk=primaryKey)
     record2delete.delete()
+
     return response
 
 
 def rate(request, ratee, ratee_id):
   """
-      Rate either a ``Link`` or ``LinkLibrary``.
-      ``ratee`` must either be 'link' or 'library', with ``ratee_id`` being the respective id.
-      The value of ``ratee`` is ensured in urls.py.
+  Rate either a ``Link`` or ``LinkLibrary``.
+
+  Parameters:
+    ``ratee`` - a string, whose value must be either 'link' or 'library'. The value of ``ratee`` is
+                guaranteed by the project's URL conf file.
+    ``ratee_id`` - the ID of the ``Link`` or ``LinkLibrary`` to be rated
   """ 
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -451,8 +451,8 @@ def rate(request, ratee, ratee_id):
 
 def register(request, sid):
   """
-   Pull out the user's sid, name, email, and phone number from the user's certs.
-      Return a pre-filled registration form with this info so the user can create an account.
+  Pull out the user's sid, name, email, and phone number from the user's certs.
+  Return a pre-filled registration form with this info so the user can create an account.
   """
   # get the sid and name from the cert
   #name_sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')
@@ -467,7 +467,7 @@ def register(request, sid):
 
 def save_user(request):
   """
-   Create/update the user's record in the DB.
+  Create/update the user's record in the DB.
   """ 
   sid = request.POST['sid'].strip()
   username = request.POST['username'].strip()
@@ -476,6 +476,7 @@ def save_user(request):
   password = request.POST['password'].strip()
   email = request.POST['email'].strip()
   phone_number = request.POST['phone_number'].strip()
+
   try:
     if (len(phone_number) != 10): 
       prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
@@ -508,6 +509,7 @@ def save_user(request):
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
+
 def search_libraries(request):
   if not request.GET['q']:
     return HttpResponse(serializers.serialize('json', ''))
@@ -523,17 +525,16 @@ def search_libraries(request):
 
 def search_links(request):
   """
-   search_links
-            The purpose of this view is to take in a GET request with q 
-           being the search parameter, and return a list of links that 
-           match the search parameter.
+  The purpose of this view is to take in a GET request with q 
+  being the search parameter, and return a list of links that 
+  match the search parameter.
  
-   Parameters: 
-          q - this will equal whatever the user has submitted to search on.
+  Parameters: 
+    ``q`` - the user-submitted search string
 
-   Returns: 
-        This view returns a json list of all the Links that match the 
-        search parameter submitted.
+  Returns: 
+    This view returns a json list of all the Links that match the 
+    search parameter submitted.
   """           
   if not request.GET['q']:
    return HttpResponse(serializers.serialize('json', ''))
@@ -569,8 +570,7 @@ def trophy_room(request):
     trophy_case_list = TrophyCase.objects.all() 
   except CoreUser.DoesNotExist: 
     # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+    # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
     
   return render_to_response('trophyroom.html',
@@ -588,13 +588,11 @@ def upload_csv(request):
 
 
 def user_profile(request):
-  """
-  XXX the django dev server can't use ssl, so fake getting the sid from the cert
-  XXX pull out the name as well. pass it to register() and keep things DRY
-  sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
-  sid = 'jlcoope'
-  if not sid: return render_to_response('install_certs.html')
-  """
+  #XXX the django dev server can't use ssl, so fake getting the sid from the cert
+  #XXX pull out the name as well. pass it to register() and keep things DRY
+  #sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
+  #sid = 'jlcoope'
+  #if not sid: return render_to_response('install_certs.html')
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 

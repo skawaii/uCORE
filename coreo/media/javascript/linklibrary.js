@@ -62,9 +62,15 @@
 
       function searchLinks(term)
        {
-        // document.getElementById('q1').value = '';
-        // document.getElementById('tagname').value = '';
-        // document.getElementById('q2').value = '';
+        // document.getElementById('myGrid').value = '';
+        //  document.getElementById('libraryGrid').value = '';
+        document.getElementById('tagname').value = '';
+        document.getElementById('q2').value = '';
+        document.getElementById('q1').value = '';
+        // alert("Right before emptying out the grid contents.");
+        //myGrid.invalidate();
+        //libraryGrid.invalidate();
+
         //var nullcolumns = [ {id:"name", name:"name", field:"name"},
         //     {id:"desc", name:"desc", field:"desc"}];
         //var options = { enableCellNavigation: true, enableColumnReorder: false};
@@ -81,53 +87,49 @@
        //  librarygrid.setSelectedRows(null);
        //  grid.setSelectedRows(null)a
        // ;
-       //if (grid != null)
-       //{
-       //  grid = null;
+       // if (grid != null)
+       // {
+       //  grid.destroy();
        // }
-      // if (librarygrid != null)
-      //  {
-      //   librarygrid = null;
-      //   }
+       // if (librarygrid != null)
+       // {
+       //  librarygrid.destroy();
+       // }
          $.getJSON('../search-links/', { q : term },
          function(jsonstuff)
          { 
            if (!jQuery.isEmptyObject(jsonstuff))
            {
    
-          var columns = [];
-          $(function()
-          {
-          var checkboxSelector = new Slick.CheckboxSelectColumn({
+              var columns = [];
+              $(function()
+              {
+                var checkboxSelector = new Slick.CheckboxSelectColumn({
                  cssClass: "slick-cell-checkboxsel"
-          });
-          columns.push(checkboxSelector.getColumnDefinition());
-          // for (var i = 0; i < jsonstuff.length; i++) {
-          //  columns.push({ id: i, name: String.fromCharCode("A".charCodeAt(0) + i), field: i, width: 100,
-          //          editor: TextCellEditor
-          // });
-          columns.push({ id: "name", name: "name", field: "name", width:300,
+                });
+                columns.push(checkboxSelector.getColumnDefinition());
+                columns.push({ id: "name", name: "name", field: "name", width:300,
+                editor: TextCellEditor
+               });
+               columns.push({ id: "desc", name: "desc", field: "description", width:300,
                editor: TextCellEditor
-           });
-          columns.push({ id: "desc", name: "desc", field: "description", width:300,
+               });
+               columns.push({ id: "url", name: "url", field: "urlfield", width:500,
                editor: TextCellEditor
-           });
-          columns.push({ id: "url", name: "url", field: "urlfield", width:500,
-               editor: TextCellEditor
-           });
-           for (var i=0; i < jsonstuff.length; i++)
-           {
-               var d = (totalTable[i] = {}); 
-               d["name"] = jsonstuff[i].fields.name;
-               d["description"] = jsonstuff[i].fields.desc;
-               d["urlfield"] = jsonstuff[i].fields.url;
-               d["pk"] = jsonstuff[i].pk;
-          }
-          var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
-          grid = new Slick.Grid("#myGrid", totalTable, columns, options);
-          grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
-          grid.registerPlugin(checkboxSelector);
-              })  // document.getElementById('dialog').innerHTML = totalTable; 
+               });
+               for (var i=0; i < jsonstuff.length; i++)
+               {
+                  var d = (totalTable[i] = {}); 
+                  d["name"] = jsonstuff[i].fields.name;
+                  d["description"] = jsonstuff[i].fields.desc;
+                  d["urlfield"] = jsonstuff[i].fields.url;
+                  d["pk"] = jsonstuff[i].pk;
+               }
+               var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
+               grid = new Slick.Grid("#myGrid", totalTable, columns, options);
+               grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
+               grid.registerPlugin(checkboxSelector);
+              })   
          } });
            
          $.getJSON('../search-libraries/', { q : term },
@@ -149,9 +151,6 @@
           columns.push({ id: "desc", name: "desc", field: "description", width:300,
                editor: TextCellEditor
            });
- // columns.push({ id: "url", name: "url", field: "urlfield", width:500,
- //              editor: TextCellEditor
- //          });
            for (var i=0; i < libraryjson.length; i++)
            {
                var d2 = (librarytable[i] = {}); 
@@ -174,7 +173,10 @@
                var library_desc = document.getElementById('q2').value;
                var tagparameter = document.getElementById('tagname').value;
                $.post("../create-library/", { name: library_name, desc: library_desc, tags: tagparameter, links: row_parameter});
-               $("#questionDialog").dialog("close");  
+               $("#questionDialog").dialog("close");
+                // testing to see if this will work.
+                librarygrid.invalidate();
+                grid.invalidate();  
                  }
                }
                });
