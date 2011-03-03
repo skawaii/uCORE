@@ -62,39 +62,11 @@
 
       function searchLinks(term)
        {
-        // document.getElementById('myGrid').value = '';
-        //  document.getElementById('libraryGrid').value = '';
         document.getElementById('tagname').value = '';
         document.getElementById('q2').value = '';
         document.getElementById('q1').value = '';
-        // alert("Right before emptying out the grid contents.");
-        //myGrid.invalidate();
-        //libraryGrid.invalidate();
-
-        //var nullcolumns = [ {id:"name", name:"name", field:"name"},
-        //     {id:"desc", name:"desc", field:"desc"}];
-        //var options = { enableCellNavigation: true, enableColumnReorder: false};
-        //var data = [];
-        //for (var i=0; i<10; i++)
-        //{
-        //  var d = (data[i] = {});
-        //  d[0] = "";
-        // }
-        // librarygrid = new Slick.Grid("#libraryGrid", data, nullcolumns, options);
-       // grid = new Slick.Grid("#myGrid", data, nullcolumns, options);
-       //  librarygrid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
-       //  grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
-       //  librarygrid.setSelectedRows(null);
-       //  grid.setSelectedRows(null)a
-       // ;
-       // if (grid != null)
-       // {
-       //  grid.destroy();
-       // }
-       // if (librarygrid != null)
-       // {
-       //  librarygrid.destroy();
-       // }
+        $("#myGrid").empty();
+        $("#libraryGrid").empty();
          $.getJSON('../search-links/', { q : term },
          function(jsonstuff)
          { 
@@ -130,7 +102,13 @@
                grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
                grid.registerPlugin(checkboxSelector);
               })   
-         } });
+         } 
+         
+         //   alert("empty JSON is returned.");
+          
+        
+        
+         });
            
          $.getJSON('../search-libraries/', { q : term },
          function(libraryjson)
@@ -174,9 +152,11 @@
                var tagparameter = document.getElementById('tagname').value;
                $.post("../create-library/", { name: library_name, desc: library_desc, tags: tagparameter, links: row_parameter});
                $("#questionDialog").dialog("close");
-                // testing to see if this will work.
-                librarygrid.invalidate();
-                grid.invalidate();  
+                $("#myGrid").empty();
+                $("#libraryGrid").empty();
+                document.getElementById('tagname').value = '';
+                document.getElementById('q2').value = '';
+                document.getElementById('q1').value = '';
                  }
                }
                });
