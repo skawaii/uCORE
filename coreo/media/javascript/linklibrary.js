@@ -65,6 +65,16 @@
         document.getElementById('tagname').value = '';
         document.getElementById('q2').value = '';
         document.getElementById('q1').value = '';
+        if (grid !== null)
+        {
+          grid.invalidateAllRows();
+          grid.render();
+        }
+        if (librarygrid !== null)
+        {
+          librarygrid.invalidateAllRows();
+          librarygrid.render();
+        }
         $("#myGrid").empty();
         $("#libraryGrid").empty();
          $.getJSON('../search-links/', { q : term },
@@ -72,7 +82,6 @@
          { 
            if (!jQuery.isEmptyObject(jsonstuff))
            {
-   
               var columns = [];
               $(function()
               {
@@ -143,9 +152,26 @@
           librarygrid.registerPlugin(checkboxSelector);
               })   
          } });
-
-         $("#dialog").dialog({ width: 1000, buttons: { "Continue": function() {
-               $("#dialog").dialog("close");
+         var continueClick = false;
+         $("#dialog").dialog({ width: 1000, hide: 'slide', close: function(event, ui)
+             { if (grid !== null){
+               grid.invalidateAllRows();
+               grid.render();
+               }
+               if (librarygrid !== null)
+               {
+               librarygrid.invalidateAllRows();
+               librarygrid.render();
+               }
+               $("#myGrid").empty();
+               $("#libraryGrid").empty();
+               if (!continueClick)
+               {
+                 window.location.reload(true);
+               }  
+             }, buttons: { "Continue": function() {
+               continueClick = true;
+               $("#dialog").dialog( "close" );
                $("#questionDialog").dialog({ width: 1000, buttons: { "Continue" : function() {
                var library_name = document.getElementById('q1').value;
                var library_desc = document.getElementById('q2').value;
