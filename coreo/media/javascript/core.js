@@ -392,11 +392,11 @@
 (function($) {
 
 	var SEARCH_FORM_CLASS = "kmlaccordion-searchform";
-	
+
 	var SEARCH_INPUT_CLASS = "kmlaccordion-searchinput";
-	
+
 	var KMLTREE_CONTAINER_CLASS = "ui-kmlaccordion-kmltreecontainer";
-	
+
 	var KmlAccordion = {
 
 		options: {
