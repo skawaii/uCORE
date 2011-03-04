@@ -362,7 +362,7 @@ class RateTest(TestCase):
     self.link.tags.add(self.link_tags[0])
     self.link.tags.add(self.link_tags[1])
 
-    self.link_library = LinkLibrary.objects.create(name='Test LL', desc='Just a test', user=self.user)
+    self.link_library = LinkLibrary.objects.create(name='Test LL', desc='Just a test', creator=self.user)
     self.link_library.tags.add(self.link_library_tags[0])
     self.link_library.tags.add(self.link_library_tags[1])
     self.link_library.links.add(self.link)

@@ -9,20 +9,23 @@ from django.db.models.signals import post_save
 
 # from coreo.ucore.managers import InheritanceManager
 
-""" The skin field.  Allows a user to specify a css file that represents
-    the way they want his/her account to display
-"""
 class Skin(models.Model):
+  """
+  The skin field.  Allows a user to specify a css file that represents
+  the way they want his/her account to display
+  """
   name = models.CharField(max_length=50)
   file_path = models.FilePathField('path to CSS file', path=settings.MEDIA_ROOT + 'skins')
 
   def __unicode__(self):
     return self.name
 
-""" The Tag model.  This will be associated with either a Trophy or a Link.
-    Two values are available : Trophy Tags and Public Tags.  
-"""
+
 class Tag(models.Model):
+  """
+  The Tag model.  This will be associated with either a Trophy or a Link.
+  Two values are available : Trophy Tags and Public Tags.  
+  """
   TAG_CHOICES = (
       ('T', 'Trophy'),
       ('P', 'Public')
@@ -34,10 +37,11 @@ class Tag(models.Model):
   def __unicode__(self):
     return self.name
 
-""" The Trophy model. This is a table that represents trophies available to 
-    earn. 
-"""
+
 class Trophy(models.Model):
+  """
+  The Trophy model. This is a table that represents trophies available to earn. 
+  """
   name = models.CharField(max_length=50)
   desc = models.CharField('short description', max_length=100, help_text='Include details on how to earn this trophy.')
   tag = models.ForeignKey(Tag)
@@ -61,7 +65,7 @@ class POC(models.Model):
     return self.get_full_name()
 
   def get_full_name(self):
-    return ' '.join((self.first_name, self.last_name))
+    return '%s %s' % (self.first_name, self.last_name)
 
   class Meta:
     verbose_name_plural = 'POCs'
@@ -79,11 +83,12 @@ class Link(models.Model):
 
 
 class Settings(models.Model):
-  ''' All fields in this model should contain a ``default`` value and a ``help_text``.
-      Providing a ``default`` value allows us to save a new CoreUser without bugging the user for their
-      settings upon registering. The ``help_text`` is what will be the description on the settings page
-      that the user will see.
-  '''
+  """
+  All fields in this model should contain a ``default`` value and a ``help_text``.
+  Providing a ``default`` value allows us to save a new CoreUser without bugging the user for their
+  settings upon registering. The ``help_text`` is what will be the description on the settings page
+  that the user will see.
+  """
   wants_emails = models.BooleanField(default=True, help_text='Would you like to be notified of events via email?')
   # default value for skin set in save()
   skin = models.ForeignKey(Skin, blank=True, null=True, help_text='Customize the look and feel with skins.')
@@ -105,14 +110,14 @@ class CoreUser(auth.models.User):
   phone_number = models.PositiveSmallIntegerField()
   settings = models.OneToOneField(Settings, null=True, blank=True)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
-  # links = models.ManyToManyField(Link, through='LinkLibrary')
+  libraries = models.ManyToManyField('LinkLibrary')
 
   def __unicode__(self):
-    return ' '.join((self.username, self.sid))
+    return '%s %s' % (self.username, self.sid)
 
   def save(self, *args, **kwargs):
+    # create settings for newly created users
     if not self.settings: self.settings = Settings.objects.create()
-    #if not self.skin: self.skin = Skin.objects.get(name='Default')
 
     super(CoreUser, self).save(*args, **kwargs)
 
@@ -138,7 +143,7 @@ class RatingFK(models.Model):
   link_library = models.ForeignKey('LinkLibrary', null=True, blank=True)
 
   def __unicode__(self):
-    return ' '.join((self.user.username, self.link.name if self.link else self.link_library.name))
+    return '%s %s' % (self.user.username, self.link.name if self.link else self.link_library.name)
 
   # override the save method so that we can make sure there isn't a
   # Link and LinkLibrary FK (can only 1 or the other)
@@ -177,18 +182,18 @@ class TrophyCase(models.Model):
   date_earned = models.DateField(blank=True, null=True)
 
   def __unicode__(self):
-     return ' '.join((self.user.sid, self.trophy.name))
+     return '%s %s' % (self.user.sid, self.trophy.name)
 
 
 class LinkLibrary(models.Model):
   name = models.CharField(max_length=128)
   desc = models.CharField(max_length=256) # completely arbitrary max_length
   tags = models.ManyToManyField(Tag, verbose_name='user-specified tags')
-  user = models.ForeignKey(CoreUser)
+  creator = models.ForeignKey(CoreUser)
   links = models.ManyToManyField(Link)
 
   def __unicode__(self):
-    return ' '.join((self.user.username, self.name))
+    return '%s %s' % (self.user.username, self.name)
 
   class Meta:
     verbose_name_plural = 'link libraries'
@@ -201,7 +206,7 @@ class SearchLog(models.Model):
   search_tags = models.ManyToManyField(Tag)
 
   def __unicode__(self):
-    return ' '.join((self.user.username, self.search_terms))
+    return '%s %s' % (self.user.username, self.search_terms)
 
 
 ### Signal Registration ###
