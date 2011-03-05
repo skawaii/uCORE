@@ -24,6 +24,30 @@ from coreo.ucore.models import *
 from coreo.ucore import shapefile, utils
 
 
+def add_library(request):
+  """
+  Add ``LinkLibrary``s to the user's ``LinkLibrary`` collection (i.e. the ``CoreUser.libraries`` field).
+  This view accepts only POST requests. The request's ``library_id`` parameter should contain the
+  ``LinkLibrary`` IDs to be added to the user's collection.
+  """
+  if request.method != 'POST':
+    return HttpResponse('Only POST is supported!')
+
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  user = CoreUser.objects.get(username=request.user.username)
+  library_ids = request.POST.getlist('library_id')
+
+  try:
+    for library_id in library_ids:
+      user.libraries.add(LinkLibrary.objects.get(pk=library_id))
+  except LinkLibrary.DoesNotExist as e:
+    return HttpResponse(e.message)
+
+  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+
+
 def create_library(request):
   """
   This view when called will create a link library. It won't work properly unless you are
