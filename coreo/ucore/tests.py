@@ -10,8 +10,6 @@ from coreo.ucore.models import *
 
 # XXX in every setUp(), a CoreUser is being created. This should be put into a fixture
 
-#Function: LinkLibraryTest
-#      tests to make sure that a link library can be created.
 class LinkLibraryTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
@@ -19,36 +17,62 @@ class LinkLibraryTest(TestCase):
     self.user.set_password('2pass')
     self.user.save()
 
-  def test_create(self):
-    self.client.login(username='testuser', password='2pass')
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
+    Tag.objects.create(name='WarmButton', type='P')
+    self.poc = POC.objects.create(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
+
+    self.link1 = Link.objects.create(name='yahoo', desc='search site', url='www.yahoo.com', poc=self.poc)
+    self.link1.tags.add(Tag.objects.get(name='HotButton'))
+
+    self.link2 = Link.objects.create(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=self.poc)
+    self.link2.tags.add(Tag.objects.get(name='HotButton'))
+
+  def test_library_demo(self):
     response = self.client.get('/library-demo/')
     self.assertEquals(response.status_code, 200)
-    tag2 = Tag(name='WarmButton', type='P')
-    tag2.save()
-    poc = POC(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
-    poc.save()
-    link = Link(name='yahoo', desc='search site', url='www.yahoo.com', poc=poc)
-    link.save()
-    tag = Tag.objects.get(name='HotButton')
-    link.tags.add(tag)
-    link.save()
-    link = Link(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=poc)
-    link.save()
-    link.tags.add(tag)
-    link.save()
-    response = self.client.post('/create-library/', { 'name': 'test library', 'desc': 'test description', 'links': '1,2', 'tags':'HotButton, WarmButton,'})
+
+  def test_create(self):
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': '1,2', 'tags':'HotButton, WarmButton,'})
     self.assertEquals(response.status_code, 200)
-    self.assertEquals(1, LinkLibrary.objects.count())
+    self.assertEquals(LinkLibrary.objects.count(), 1)
+
     library = LinkLibrary.objects.get(pk=1)
-    self.assertEquals(2, library.links.count())
+    self.assertEquals(library.links.count(), 2)
     # print 'Two links found in the library... checking if they are the right ones.'
-    self.assertEquals('lifehacker', library.links.get(name='lifehacker').name)
-    self.assertEquals('yahoo', library.links.get(name='yahoo').name)
+
+    self.assertEquals(library.links.get(name='lifehacker').name, 'lifehacker')
+    self.assertEquals(library.links.get(name='yahoo').name, 'yahoo')
     # print 'Ok the two links in the library created, are correct.'
-    self.assertEquals(2, library.tags.count())
-    self.assertEquals('HotButton', library.tags.get(name='HotButton').name)
-    self.assertEquals('WarmButton', library.tags.get(name='WarmButton').name)
+
+    self.assertEquals(library.tags.count(), 2)
+    self.assertEquals(library.tags.get(name='HotButton').name, 'HotButton')
+    self.assertEquals(library.tags.get(name='WarmButton').name, 'WarmButton')
     # print 'Passed the create link library test.'
+
+  def test_add_single(self):
+    creator = CoreUser.objects.create(sid='me', username='meme', first_name='me', last_name='me', email='me@me.com', phone_number='1234567890')
+    link_library = LinkLibrary.objects.create(name='test library', desc='just a test', creator=creator)
+
+    response = self.client.post('/add-library/', {'library_id': link_library.id})
+    self.assertRedirects(response, '/success/')
+
+    libraries = self.user.libraries.all()
+    self.assertEquals(libraries.count(), 1)
+    self.assertEquals(libraries[0].name, link_library.name)
+
+  def test_add_multi(self):
+    creator = CoreUser.objects.create(sid='me', username='meme', first_name='me', last_name='me', email='me@me.com', phone_number='1234567890')
+    link_library1 = LinkLibrary.objects.create(name='library1', desc='just a test', creator=creator)
+    link_library2 = LinkLibrary.objects.create(name='library2', desc='just a test', creator=creator)
+
+    response = self.client.post('/add-library/', {'library_id': (link_library1.id, link_library2.id)})
+    self.assertRedirects(response, '/success/')
+
+    libraries = self.user.libraries.all()
+    self.assertEquals(libraries.count(), 2)
+    self.assertEquals(libraries[0].name, link_library1.name)
+    self.assertEquals(libraries[1].name, link_library2.name)
 
 
 class LinkSearchTest(TestCase):
@@ -362,7 +386,7 @@ class RateTest(TestCase):
     self.link.tags.add(self.link_tags[0])
     self.link.tags.add(self.link_tags[1])
 
-    self.link_library = LinkLibrary.objects.create(name='Test LL', desc='Just a test', user=self.user)
+    self.link_library = LinkLibrary.objects.create(name='Test LL', desc='Just a test', creator=self.user)
     self.link_library.tags.add(self.link_library_tags[0])
     self.link_library.tags.add(self.link_library_tags[1])
     self.link_library.links.add(self.link)

@@ -89,7 +89,7 @@ def create_library(request):
 
       linkArray = links.split(',')
       tags = tags.split(',')
-      library = LinkLibrary(name=name, desc=desc, user=user)
+      library = LinkLibrary(name=name, desc=desc, creator=user)
       library.save()
 
       for t in tags:
