@@ -193,7 +193,7 @@ class LinkLibrary(models.Model):
   links = models.ManyToManyField(Link)
 
   def __unicode__(self):
-    return '%s %s' % (self.user.username, self.name)
+    return '%s %s' % (self.creator.username, self.name)
 
   class Meta:
     verbose_name_plural = 'link libraries'
