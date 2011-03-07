@@ -105,6 +105,7 @@ class CoreUser(auth.models.User):
   phone_number = models.PositiveSmallIntegerField()
   settings = models.OneToOneField(Settings, null=True, blank=True)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
+  libraries = models.ManyToManyField('LinkLibrary')
   # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
@@ -192,6 +193,15 @@ class LinkLibrary(models.Model):
 
   class Meta:
     verbose_name_plural = 'link libraries'
+
+
+''' This model allows each user to have a collection of LinkLibraries.
+    user must link to an existing user.
+    library must refer to an existing library.
+'''
+class LibraryCollection(models.Model):
+  user = models.ForeignKey(CoreUser)
+  library = models.ForeignKey(LinkLibrary)
 
 
 class SearchLog(models.Model):
