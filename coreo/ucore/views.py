@@ -14,7 +14,6 @@ from django.core import serializers
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
-from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -534,41 +533,12 @@ def save_user(request):
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
 
-def search_libraries(request):
+def search(request, models):
   if not request.GET['q']:
     return HttpResponse(serializers.serialize('json', ''))
 
   terms = request.GET['q'].split(',') 
-
-  results = set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
-
-  return HttpResponse(serializers.serialize('json', results))
-
-
-def search_links(request):
-  """
-  The purpose of this view is to take in a GET request with q 
-  being the search parameter, and return a list of links that 
-  match the search parameter.
- 
-  Parameters: 
-    ``q`` - the user-submitted search string
-
-  Returns: 
-    This view returns a json list of all the Links that match the 
-    search parameter submitted.
-  """           
-  if not request.GET['q']:
-   return HttpResponse(serializers.serialize('json', ''))
-
-  terms = request.GET['q'].split(',') 
-  logging.debug('Received terms %s in the GET of search_links\n' % terms)
-
-  results = set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  results = utils.search_ucore(models, terms)
 
   return HttpResponse(serializers.serialize('json', results))
 
