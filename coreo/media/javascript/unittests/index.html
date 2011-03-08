@@ -39,6 +39,7 @@
 	<script type="text/javascript" src="../core.gearth/gecontroller.js"></script>
 	
 	<script type="text/javascript" src="../core.services/searchservice.js"></script>
+	<script type="text/javascript" src="../core.services/searchstrategy.js"></script>
 
     <script type="text/javascript"><!--
     	google.load("earth", "1");
@@ -46,6 +47,7 @@
 
        	$(document).ready(function() {
        		// dynamically load unit tests - google API's need to be loaded first
+       		$.getScript("core.services/searchstrategy.js");
        		$.getScript("core.services/searchservice.js");
        		
        		$.getScript("core.geo/kmlnodegeodata.js");

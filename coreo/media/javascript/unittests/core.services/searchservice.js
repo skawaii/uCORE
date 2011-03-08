@@ -11,7 +11,7 @@ test("search", function() {
 	var service = new core.services.SearchService("/search-links/", "/search-libraries/");
 	var results = [];
 	service.search("Hot", {
-		success: function(linkOrLibrary) {
+		result: function(linkOrLibrary) {
 			ok(linkOrLibrary, "success() was invoked with an object");
 			ok(linkOrLibrary.pk, "result object has a 'pk' field");
 			strictEqual(typeof linkOrLibrary.pk, "number", "result object's 'pk' field is a number");
@@ -41,4 +41,23 @@ test("search", function() {
 		}
 	});
 	stop();
+});
+
+test("search - partial result processing", function() {
+	var service = new core.services.SearchService("/search-links/", "/search-libraries/");
+	var results = [];
+	service.search("Hot", {
+		result: function(linkOrLibrary) {
+			results.push(linkOrLibrary);
+			return false;
+		},
+		error: function(errorThrown) {
+			ok(false, "Error: " + errorThrown);
+		},
+		complete: function() {
+			strictEqual(results.length, 1, "Returning false from the result callback stops the result processing");
+			start();
+		}
+	});
+	stop();	
 });

@@ -34,7 +34,7 @@ if (!window.core.util)
 			else if (typeof callback === "object") {
 				if (fnName) {
 					if (typeof callback[fnName] === "function") {
-						var ctx = this;
+						var ctx = callback;
 						if ("context" in callback) {
 							ctx = callback.context;
 						}

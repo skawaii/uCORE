@@ -57,7 +57,7 @@ if (!window.core.services)
 		 *   searchLibraries - Boolean. Optional. Defaults to true.
 		 *   callback - Function or Object. Required. Invoked with results.
 		 *         Contains the following functions:
-		 *           - success - invoked once per result
+		 *           - result - invoked once per result
 		 *           - error - invoked once if an error occurs
 		 *           - complete - invoked once when the query is complete and 
 		 *                 there are no more results to process
@@ -77,8 +77,8 @@ if (!window.core.services)
 			if (searchLinksVal && searchLibrariesVal) {
 				var self = this;
 				this.searchLinks(term, {
-					success: function(link) {
-						CallbackUtils.invokeCallback(callback, link, "success");
+					result: function(link) {
+						return CallbackUtils.invokeCallback(callback, link, "result");
 					},
 					error: function(errorThrown) {
 						CallbackUtils.invokeOptionalCallback(callback, errorThrown, "error");
@@ -105,7 +105,7 @@ if (!window.core.services)
 		 * 
 		 * Parameters:
 		 *   term - String. Required. Search term.
-		 *   callback - Function or Object. Requried.
+		 *   callback - Function or Object. Required.
 		 */
 		searchLinks: function(term, callback) {
 			$.ajax(this.linksEndpoint, {
@@ -113,7 +113,7 @@ if (!window.core.services)
 				dataType: "json",
 				success: function(data, textStatus, jqXHR) {
 					$.each(data, function(key, val) {
-						CallbackUtils.invokeCallback(callback, val, "success");
+						return CallbackUtils.invokeCallback(callback, val, "result");
 					});
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
@@ -134,7 +134,7 @@ if (!window.core.services)
 		 * 
 		 * Parameters:
 		 *   term - String. Required. Search term.
-		 *   callback - Function or Object. Requried.
+		 *   callback - Function or Object. Required.
 		 */
 		searchLibraries: function(term, callback) {
 			$.ajax(this.libEndpoint, {
@@ -142,7 +142,7 @@ if (!window.core.services)
 				dataType: "json",
 				success: function(data, textStatus, jqXHR) {
 					$.each(data, function(key, val) {
-						CallbackUtils.invokeCallback(callback, val, "success");
+						return CallbackUtils.invokeCallback(callback, val, "result");
 					});
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
