@@ -200,15 +200,6 @@ class LinkLibrary(models.Model):
     verbose_name_plural = 'link libraries'
 
 
-''' This model allows each user to have a collection of LinkLibraries.
-    user must link to an existing user.
-    library must refer to an existing library.
-'''
-class LibraryCollection(models.Model):
-  user = models.ForeignKey(CoreUser)
-  library = models.ForeignKey(LinkLibrary)
-
-
 class SearchLog(models.Model):
   user = models.ForeignKey(CoreUser)
   date_queried = models.DateField()
