@@ -59,7 +59,7 @@
     "model": "ucore.Trophy",
     "pk": 1,
     "fields": {
-      "name": "Life is a beach trophy",
+      "name": "Life is a beach",
       "desc": "For 5 tropical searches",
       "tag": 5,
       "earning_req": 5,
@@ -70,7 +70,7 @@
     "model": "ucore.Trophy",
     "pk": 2,
     "fields": {
-      "name": "Artic King Trophy",
+      "name": "Artic King",
       "desc": "For 5 searches in the artic.",
       "tag": 3,
       "earning_req": 5,
@@ -81,7 +81,7 @@
     "model": "ucore.Trophy",
     "pk": 3,
     "fields": {
-      "name": "Forrest Ranger Trophy",
+      "name": "Forrest Ranger",
       "desc": "For 5 searches over forrests.",
       "tag": 2,
       "earning_req": 5,
@@ -92,7 +92,7 @@
     "model": "ucore.Trophy",
     "pk": 4,
     "fields": {
-      "name": "Captain Blackbeard Trophy",
+      "name": "Captain Blackbeard",
       "desc": "For 5 searches over oceans.",
       "tag": 1,
       "earning_req": 5,
@@ -103,7 +103,7 @@
     "model": "ucore.Trophy",
     "pk": 5,
     "fields": {
-      "name": "Successful Registration Trophy",
+      "name": "Successful Registration",
       "desc": "For a successful registration.",
       "tag": 6,
       "earning_req": 1,
