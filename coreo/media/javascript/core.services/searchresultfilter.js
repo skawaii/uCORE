@@ -5,6 +5,8 @@
  * order - begin, result, end, getResults. error function may be invoked at any
  * time.
  * 
+ * This is merely an interface. Implementations should extend this class.
+ * 
  * Example Use Case:
  * This is how a caller would use SearchResultFilter.
  * (start code)
