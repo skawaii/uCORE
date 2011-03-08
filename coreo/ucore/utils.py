@@ -1,6 +1,8 @@
 import csv
 import xml.dom.minidom
 
+from django.db.models import Q
+
 from coreo.ucore.models import *
 
 
@@ -84,4 +86,29 @@ def build_kml_from_library(link_library):
     folder.appendChild(net_link)
 
   return doc
+
+
+def search_ucore(models, terms):
+  """
+  Search the desc, name, and associated ``Tag`` names of ``models`` for the search terms specified in ``terms``.
+
+  Example:
+    ``search_core(('Link', 'LinkLibrary'), ['hot', 'pants'])`` will return all rows from the ``Link`` and ``LinkLibrary``
+    models containing 'hot' or 'pants' in either the name, description, or ``Tag`` names.
+
+  Parameters:
+    ``models`` - a sequence of models to be searched, specified as strings.
+    ``terms`` - a sequence of search terms
+
+  Returns:
+    a set containing the results of the search
+  """
+  results = set()
+
+  for model in models:
+    results |= set(eval(model).objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+    results |= set(eval(model).objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+    results |= set(eval(model).objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+
+  return results
 
