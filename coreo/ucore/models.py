@@ -111,6 +111,7 @@ class CoreUser(auth.models.User):
   settings = models.OneToOneField(Settings, null=True, blank=True)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
   libraries = models.ManyToManyField('LinkLibrary')
+  # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
     return '%s %s' % (self.username, self.sid)

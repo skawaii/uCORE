@@ -103,6 +103,7 @@ class LinkSearchTest(TestCase):
     self.link3 = Link.objects.create(name='link3', desc='this is link3 desc', url='http://www.link3.com', poc=self.poc)
     self.link3.tags.add(self.tag1, self.tag4)
 
+  
   def test_search_none(self):
     response = self.client.get('/search-links/?q=empty')
     self.assertEquals(response.status_code, 200)
@@ -165,6 +166,45 @@ class LinkSearchTest(TestCase):
     self.assertIn(self.link3, objs)
 
 
+class LibrarySearchTest(TestCase):
+  def setUp(self):
+    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com', phone_number='9221112222')
+    self.user.set_password('2pass')
+    self.user.save()
+
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
+    # create a POC
+    self.poc = POC.objects.create(first_name='Bob', last_name='Dole', phone_number='1234567890', email='bob@dole.net')
+
+    # create some Tags
+    self.tag1 = Tag.objects.create(name='tag1', type='P')
+    self.tag2 = Tag.objects.create(name='tag2', type='P')
+    self.tag3 = Tag.objects.create(name='tag3', type='P')
+
+    # create some Links
+    self.link1 = Link.objects.create(name='link1', desc='this is link1 desc', url='http://www.link1.com', poc=self.poc)
+    self.link1.tags.add(self.tag1, self.tag2)
+
+    self.link2 = Link.objects.create(name='link2', desc='this is link2 desc', url='http://www.link2.com', poc=self.poc)
+    self.link2.tags.add(self.tag1, self.tag3)
+
+
+    self.library1 = LinkLibrary.objects.create(name='sample1', desc='This is a description', creator=self.user)
+    self.library1.tags.add(self.tag1, self.tag3)
+    self.library1.links.add(self.link1, self.link2)
+
+  def test_library_search(self):
+    response = self.client.get('/search-libraries/?q=sample1')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+    self.assertIn(self.library1, objs)
+    for i in objs:
+      self.assertIn(self.link1, i.links.all())
+
+
 class LoginTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
@@ -177,7 +217,7 @@ class LoginTest(TestCase):
 
     self.assertTrue(self.client.session.has_key('_auth_user_id'))
 
-    #print '\nPassed the login test.'
+    # print '\nPassed the login test.'
 
 
 class LogoutTest(TestCase):
@@ -366,7 +406,7 @@ class NotificationTest(TestCase):
     #print 'Poll notification test has passed.'
 
   def test_post_save_signal(self):
-    self.assertEquals(len(mail.outbox), 1)
+    self.assertEquals(len(mail.outbox), 1) 
 
 
 class RateTest(TestCase):

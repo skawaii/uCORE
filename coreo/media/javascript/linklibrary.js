@@ -1,5 +1,5 @@
-      // var totalTable = [];
-      // var librarytable = [];
+      var totalTable = [];
+      var librarytable = [];
       var grid;
       var librarygrid;
       
@@ -59,28 +59,21 @@
 		 	});
           
       });
-
+        
+     
       function searchLinks(term)
        {
         document.getElementById('tagname').value = '';
         document.getElementById('q2').value = '';
         document.getElementById('q1').value = '';
-        if (grid !== null)
-        {
-          grid.invalidateAllRows();
-          grid.render();
-        }
-        if (librarygrid !== null)
-        {
-          librarygrid.invalidateAllRows();
-          librarygrid.render();
-        }
+        totalTable = [];
+        librarytable = [];
         $("#myGrid").empty();
         $("#libraryGrid").empty();
          $.getJSON('../search-links/', { q : term },
          function(jsonstuff)
          { 
-           var totalTable = [];
+           // var totalTable = [];
            if (!jQuery.isEmptyObject(jsonstuff))
            {
               var columns = [];
@@ -113,20 +106,15 @@
                grid.registerPlugin(checkboxSelector);
               })   
          } 
-         
-         //   alert("empty JSON is returned.");
-          
-        
         
          });
            
          $.getJSON('../search-libraries/', { q : term },
          function(libraryjson)
          {
-           var librarytable = [];
+           // var librarytable = [];
            if (!jQuery.isEmptyObject(libraryjson))
            {
-   
              var columns = [];
              $(function()
              {
@@ -153,9 +141,10 @@
           librarygrid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
           librarygrid.registerPlugin(checkboxSelector);
               })   
-         } });
-         var continueClick = false;
-         $("#dialog").dialog({ width: 1000, hide: 'slide', close: function(event, ui)
+         } });   
+         var selectedRows = [];
+         var libraryRows = []; 
+         $("#dialog").dialog({ width: 1000, close: function(event, ui)
              { 
               if (grid !== null){
                grid.invalidateAllRows();
@@ -168,12 +157,39 @@
                }
                $("#myGrid").empty();
                $("#libraryGrid").empty();
-               //if (!continueClick)
-               //{
-               //  window.location.reload(true);
-               //}  
              }, buttons: { "Continue": function() {
-               continueClick = true;
+               if (grid != null)
+               {
+                 selectedRows = grid.getSelectedRows();
+               }
+               if (librarygrid != null)
+               {
+                 libraryRows = librarygrid.getSelectedRows();
+               }
+               if (selectedRows.length > 0 && libraryRows.length > 0)
+               {
+                 alert("Please select either from the link grid or the library grid, but not both.");
+                 return false;
+               }
+               if (libraryRows.length > 0)
+               {
+                  var libparameter = null;
+                  for (var j = 0; j < libraryRows.length; j++)
+                  {
+                    var rowNum = libraryRows[j];
+                    if (libparameter != null)
+                    {
+                      libparameter = libparameter + "," + librarytable[rowNum]["pk"];
+                    }
+                    else
+                    { libparameter = librarytable[rowNum]["pk"];
+                    }
+                    $.post("../add-library/", { library_id: libparameter});
+                  }
+                  $("#dialog").dialog( "close" );
+               }
+               else 
+               {
                $("#dialog").dialog( "close" );
                $("#questionDialog").dialog({ width: 1000, buttons: { "Continue" : function() {
                var library_name = document.getElementById('q1').value;
@@ -190,8 +206,8 @@
                }
                });
                document.getElementById('questionDialog').style.display='block';
-               var selectedRows = grid.getSelectedRows();
-               if (selectedRows == 0)
+
+               if (selectedRows.length == 0 && libraryRows.length == 0)
                {
                  alert("Please check some links before continuing..");
                  return false;
@@ -200,7 +216,7 @@
                for (var j = 0; j < selectedRows.length; j++)
                {
                  var rowNum = selectedRows[j];
-                 if (j == 0)
+                 if (j === 0)
                  {
                    row_parameter = totalTable[rowNum]["pk"];
                  }
@@ -209,7 +225,23 @@
                    row_parameter = row_parameter + "," + totalTable[rowNum]["pk"];
                  }
                }
+               var libparameter;
+               for (var j = 0; j < libraryRows.length; j++)
+               {
+                 var rowNum = libraryRows[j];
+                 if (j === 0)
+                 {
+                   libparameter = librarytable[rowNum]["pk"];
+                 }
+                 else
+                 {
+                   libparameter = libparameter + "," + librarytable[rowNum]["pk"];
+                 }
+               }
+               
+             }
          } 
-     } 
+       }
+          
    });
 }

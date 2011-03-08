@@ -7,6 +7,7 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^register/(?P<sid>\w*)/$', 'register'), # the regex should probably enforce a min length
     (r'^ge/$', 'ge_index'),
     (r'^gm/$', 'gm_index'),
+    (r'^add-library/$', 'add_library'),
     (r'^save-user/$', 'save_user'),
     (r'^export-csv/$', 'get_csv'),
     (r'^add-library/$', 'add_library'),
