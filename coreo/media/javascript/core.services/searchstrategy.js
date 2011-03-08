@@ -43,7 +43,7 @@ if (!window.core.services)
 	};
 
 	/**
-	 * Contructor: SearchStrategy
+	 * Constructor: SearchStrategy
 	 * 
 	 * Initializes the object.
 	 * 
