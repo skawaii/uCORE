@@ -205,6 +205,23 @@ class LibrarySearchTest(TestCase):
       self.assertIn(self.link1, i.links.all())
 
 
+  def test_multi_library_search(self):
+    self.library2 = LinkLibrary.objects.create(name='sample2', desc='This is a 2nd description', creator=self.user)
+    self.library2.tags.add(self.tag1, self.tag3)
+    self.library2.links.add(self.link1, self.link2)
+    
+    response = self.client.get('/search-libraries/?q=sample')
+    self.assertEquals(response.status_code, 200)
+    
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 2)
+    # Just a quick check to make sure that the search is not too liberal.
+    response = self.client.get('/search-libraries/?q=sample2')
+    self.assertEquals(response.status_code, 200)
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+
+
 class LoginTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
