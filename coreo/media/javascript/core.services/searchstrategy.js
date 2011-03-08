@@ -1,7 +1,10 @@
 /**
  * Class: SearchStrategy
  * 
- * Performs a search for CORE Links, LinkLibraries, or KML documents.
+ * Performs a search for CORE Links, LinkLibraries, or KML documents. Contains
+ * the algorithm for parsing user-entered search text and determining 
+ * whether to perform a Link/LinkLibrary search or loading a KML URL 
+ * directly.
  * 
  * Namespace:
  *   core.services
@@ -21,6 +24,7 @@ if (!window.core.services)
 	var KmlNodeGeoData = core.geo.KmlNodeGeoData;
 	var CallbackUtils = core.util.CallbackUtils;
 
+	// private function used by SearchStrategy
 	var fetchKml = function(url, callback) {
 		$.ajax({
 			"url": url,
@@ -38,15 +42,58 @@ if (!window.core.services)
 		});
 	};
 
+	/**
+	 * Contructor: SearchStrategy
+	 * 
+	 * Initializes the object.
+	 * 
+	 * Parameters:
+	 *   searchService - core.services.SearchService. Required.
+	 *   searchResultFilter - core.services.SearchResultFilter. Required.
+	 */
 	var SearchStrategy = function(searchService, searchResultFilter) {
 		this.searchService = searchService;
 		this.searchResultFilter = searchResultFilter;
 	};
 	SearchStrategy.prototype = {
+		/**
+		 * Property: searchService
+		 * 
+		 * core.util.SearchService. Client to CORE search web service. Invoked
+		 * when search term is not a URL.
+		 */
 		searchService: null,
 
+		/**
+		 * Property: searchResultFilter
+		 * 
+		 * core.services.SearchResultFilter. When search term is not a URL, 
+		 * the CORE search web service is queried for matching Links and 
+		 * LinkLibraries. The results are fed to this object and this object
+		 * determines which results will be returned from the search. 
+		 * Typical implementation would be to present the unfiltered results 
+		 * to the user in some type of listing and allow the user to select 
+		 * the results.
+		 */
 		searchResultFilter: null,
 
+		/**
+		 * Function: search
+		 * 
+		 * Perform a search. If search text is a URL, KML is retrieved from the
+		 * URL. If search text is not a URL, the CORE search web service is 
+		 * queried for matching Links and LinkLibraries.
+		 * 
+		 * Parameters:
+		 *   text - String. Required. Search term.
+		 *   callback - Object or Function. Required. Callback to be invoked 
+		 *         with filtered search results and search status. If callback
+		 *         is an object, its "result" function will be invoked with 
+		 *         a single parameter, an instance of core.geo.GeoData, for
+		 *         each search result. Its "complete" function will be invoked
+		 *         when after all search results have been evaluated. Its 
+		 *         "error" function will be invoked if an error occurs.  
+		 */
 		search: function(text, callback) {
 			if (text.match('^http')) {
 				fetchKml(text, callback);

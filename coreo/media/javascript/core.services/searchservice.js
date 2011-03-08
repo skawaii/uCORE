@@ -21,13 +21,32 @@ if (!window.core.services)
 	var Assert = core.util.Assert;
 	var CallbackUtils = core.util.CallbackUtils;
 	
+	/**
+	 * Constructor: SearchService
+	 * 
+	 * Initializes the object.
+	 * 
+	 * Parameters:
+	 *   linksEndpoint: String. Required. Endpoint to CORE search-links service.
+	 *   libEndpoint: String. Required. Endpoint to CORE search-libraries service.
+	 */
 	var SearchService = function(linksEndpoint, libEndpoint) {
 		this.linksEndpoint = linksEndpoint;
 		this.libEndpoint = libEndpoint;
 	};
 	SearchService.prototype = {
+		/**
+		 * Property: linksEndpoint
+		 * 
+		 * String. Endpoint to CORE search-links service.
+		 */
 		linksEndpoint: null,
 
+		/**
+		 * Property: libEndpoint
+		 * 
+		 * String. Endpoint to CORE search-libraries service.
+		 */
 		libEndpoint: null,
 
 		/**
