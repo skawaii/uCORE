@@ -239,14 +239,12 @@ class SearchTest(TestCase):
     self.link3 = Link.objects.create(name='link3', desc='this is link3 desc', url='http://www.link3.com', poc=self.poc)
     self.link3.tags.add(self.tag1, self.tag4)
 
-    # create some LinkLibraries
+    # create some LinkLibraries (don't need to worry about adding links, since we don't search libraries based on links)
     self.library1 = LinkLibrary.objects.create(name='sample1', desc='This is a description', creator=self.user)
-    self.library1.tags.add(self.tag1, self.tag3)
-    self.library1.links.add(self.link1, self.link2)
+    self.library1.tags.add(self.tag1, self.tag2)
 
     self.library2 = LinkLibrary.objects.create(name='sample2', desc='This LinkLibrary will rock your socks', creator=self.user)
-    self.library2.tags.add(self.tag1, self.tag2, self.tag3, self.tag4)
-    self.library2.links.add(self.link1, self.link2, self.link3)
+    self.library2.tags.add(self.tag1, self.tag3)
 
   # tests for only searching Links
   def test_search_links_none(self):
@@ -311,7 +309,14 @@ class SearchTest(TestCase):
     self.assertIn(self.link3, objs)
 
   # tests for only searching LinkLibraries
-  def test_desc_search_libraries_single(self):
+  def test_search_libraries_none(self):
+    response = self.client.get('/search-libraries/?q=none')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 0)
+
+  def test_name_search_libraries_single(self):
     response = self.client.get('/search-libraries/?q=sample1')
     self.assertEquals(response.status_code, 200)
 
@@ -319,9 +324,90 @@ class SearchTest(TestCase):
     self.assertEquals(len(objs), 1)
     self.assertIn(self.library1, objs)
 
-    links = objs[0].links.all()
-    self.assertIn(self.link1, links)
-    self.assertIn(self.link2, links)
+  def test_name_search_libraries_multi(self):
+    response = self.client.get('/search-libraries/?q=sample')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 2)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  def test_desc_search_libraries_single(self):
+    response = self.client.get('/search-libraries/?q=rock,socks')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+    self.assertIn(self.library2, objs)
+
+  def test_desc_search_libraries_multi(self):
+    response = self.client.get('/search-libraries/?q=this')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 2)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  def test_tag_search_libraries_single(self):
+    response = self.client.get('/search-libraries/?q=tag3')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+    self.assertIn(self.library2, objs)
+
+  def test_tag_search_libraries_multi(self):
+    response = self.client.get('/search-libraries/?q=tag1')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 2)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  # tests for searching both Links and LinkLibraries
+  def test_search_none(self):
+    response = self.client.get('/search/?q=none')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 0)
+
+  def test_name_search(self):
+    response = self.client.get('/search/?q=link1,sample')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 3)
+    self.assertIn(self.link1, objs)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  def test_desc_search(self):
+    response = self.client.get('/search/?q=this')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 5)
+    self.assertIn(self.link1, objs)
+    self.assertIn(self.link2, objs)
+    self.assertIn(self.link3, objs)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  def test_tag_search(self):
+    response = self.client.get('/search/?q=tag1')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 5)
+    self.assertIn(self.link1, objs)
+    self.assertIn(self.link2, objs)
+    self.assertIn(self.link3, objs)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
 
 
 class ShapefileTest(TestCase):
