@@ -36,20 +36,21 @@
 <br/>
 <br/>
 <br/>
+
        {% if trophy_list %}
        <table style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">
            <thead>
            <tr>
-             <th style="border-style:solid; border-color: black; border-width: 2px">Image</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Name</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Description</th><th style="border-style:solid; border-color: black; border-width: 2px; padding: 2px">Action</th>
+             <th style="border-style:solid; border-color: black; border-width: 2px">Image</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Name</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Description</th><th style="border-style:solid; border-color: black; border-width: 2px; padding: 2px">Action</th><th style="border-style:solid; border-color: black; border-width: 2px; padding: 2px">Progress</th>
            </tr>
          </thead>
        <tbody> 
-      {% for trophy in trophy_list %}
+   {% for trophy, earn_progress in trophy_list %}
         <tr>
         <td style="border-style:solid; border-color: black; border-width: 2px; padding: 2px"><img src='{{ MEDIA_URL }}{{ trophy.file_path }}' height='100px' width='200px'/></td>
      <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.name }}</td>
      <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.desc }}</td>
-     <td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><button value="earntrophy" onclick="earn_trophy('{{ trophy.pk }}', '{{ user }}'); return false;">Earn This Trophy</button></td> 
+     <td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><button value="earntrophy" onclick="earn_trophy('{{ trophy.pk }}', '{{ user }}'); return false;">Earn This Trophy</button></td><td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;">{{ earn_progress }} out of {{trophy.earning_req}}</td> 
       </tr>
       {% endfor %}
     </tbody>
@@ -67,6 +68,7 @@
    <br/>
    <br/>
    <br/>
+   <!--
    <div>
      <h1>---------------- Trophies Already Earned --------------- </h1>
      <br/>
@@ -90,5 +92,6 @@
          {% endfor %}
        {% endif %}
      </table>
-</body>
+ -->
+   </body>
 </html>
