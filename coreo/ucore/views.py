@@ -556,7 +556,7 @@ def search(request, models):
 
   results = utils.search_ucore(models, terms)
 
-  return HttpResponse(serializers.serialize('json', results))
+  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
 
 def search_mongo(request):

@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from django.db import models
 from django.db.models.signals import post_save
 
-# from coreo.ucore.managers import InheritanceManager
+from coreo.ucore.managers import TagManager
 
 class Skin(models.Model):
   """
@@ -23,8 +23,8 @@ class Skin(models.Model):
 
 class Tag(models.Model):
   """
-  The Tag model.  This will be associated with either a Trophy or a Link.
-  Two values are available : Trophy Tags and Public Tags.  
+  The Tag model. This will be associated with either a Trophy or a Link.
+  Two values are available : Trophy Tags and Public Tags.
   """
   TAG_CHOICES = (
       ('T', 'Trophy'),
@@ -34,8 +34,13 @@ class Tag(models.Model):
   name = models.CharField(max_length=50, unique=True)
   type = models.CharField(max_length=1, choices=TAG_CHOICES, default='P')
 
+  objects = TagManager()
+
   def __unicode__(self):
     return self.name
+
+  def natural_key(self):
+    return (self.pk, self.name)
 
 
 class Trophy(models.Model):
