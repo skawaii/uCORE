@@ -560,17 +560,38 @@ def trophy_room(request):
 
   try: 
     user = CoreUser.objects.get(username=request.user.username)
+  
+    
     trophy_list = Trophy.objects.all()
-    trophy_case_list = TrophyCase.objects.all() 
+    
+    trophy_case_list = TrophyCase.objects.all()
+    earn_total = []
+    earn_progress = []
+    for i in trophy_list:
+      earn_total += [i.earning_req]
+    print 'total elements in list: ', earn_total  
+    for t in trophy_list:
+      for o in trophy_case_list:
+        if (o.trophy == t):
+          # print 'Found one : %s' % t.name
+          if o.date_earned:
+            earn_progress += [t.earning_req]
+          else:
+            earn_progress += [o.count]
+        else:
+          earn_progress += [0]
+    print 'total earn_progress looks like: ', earn_progress        
+    combine_list = zip(trophy_list, earn_progress)
   except CoreUser.DoesNotExist: 
     # as long as the login_user view forces them to register if they don't already 
     # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
-    
   return render_to_response('trophyroom.html',
-      {'trophy_list' : trophy_list ,
+      {'trophy_list' : combine_list,
        'trophy_case_list' : trophy_case_list,
-       'user' : user.username
+       'user' : user.username,
+       'earn_total' : earn_total,
+       'earn_progress' : earn_progress,
       }, context_instance=RequestContext(request))
 
 
