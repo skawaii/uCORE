@@ -426,7 +426,7 @@ def rate(request, ratee, ratee_id):
 
   Parameters:
     ``ratee`` - a string, whose value must be either 'link' or 'library'. The value of ``ratee`` is
-                guaranteed by the project's URL conf file.
+                guaranteed by the app's URL conf file.
     ``ratee_id`` - the ID of the ``Link`` or ``LinkLibrary`` to be rated
   """ 
   if not request.user.is_authenticated():
@@ -534,13 +534,29 @@ def save_user(request):
 
 
 def search(request, models):
+  """
+  Search the databases for ``Links`` or ``LinkLibraries`` whose metadata matches the search terms. The
+  metadata searched is the name, description, and tag names associated with the ``Link`` or ``LinkLibrary``.
+  The search terms come from the POST parameter ``q``, which should be a comma-separated list of strings.
+
+  Parameters:
+    ``models`` - a sequence of strings specifying the models to search. Must be a combination of
+                 'Link' or 'LinkLibrary'. The values are guaranteed by the app's URL conf file.
+
+  Returns:
+    a JSON object containing the matching ``Links`` and/or ``LinkLibraries``.
+  """
   if not request.GET['q']:
     return HttpResponse(serializers.serialize('json', ''))
 
   terms = request.GET['q'].split(',') 
+
+  # if the only search term is '*', then search everything
+  if len(terms) == 1 and terms[0] == '*': terms[0] = ''
+
   results = utils.search_ucore(models, terms)
 
-  return HttpResponse(serializers.serialize('json', results))
+  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
 
 def search_mongo(request):
