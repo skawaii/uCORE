@@ -11,6 +11,13 @@
   
   <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
   <script type="text/javascript" src="{{ MEDIA_URL }}javascript/tscript.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jgcharts.js"></script>
+  <script type="text/javascript">
+     var api = new jGCharts.Api();
+     jQuery('<img>')
+     .attr('src', api.make({data : [[0,45,140], [0,55,120]]}))
+     .appendTo("bar1");
+  </script>
 
   <body>
     <div id='geheader'>
@@ -37,7 +44,7 @@
 <br/>
 <br/>
 
-       {% if trophy_list %}
+       {% if trophy_list %} 
        <table style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">
            <thead>
            <tr>
@@ -54,7 +61,8 @@
       </tr>
       {% endfor %}
     </tbody>
-    </table>
+  </table>
+  <div id="bar1">Something should be here.</div>
     {% else %}
     <table>
       <tr>
@@ -68,30 +76,7 @@
    <br/>
    <br/>
    <br/>
-   <!--
-   <div>
-     <h1>---------------- Trophies Already Earned --------------- </h1>
-     <br/>
-     <br/>
-     <table style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">
-       {% if trophy_case_list %}
-       <thead>
-         <tr>
-           <th style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">User</th>
-           <th style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">Trophy</th>
-           <th style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">Date Earned</th>
-         </tr>
-       </thead>
-       <tbody>
-           {% for trophy_case in trophy_case_list %}
-         <tr>
-           <td style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">{{ trophy_case.user }}</td>
-         <td>{{ trophy_case.trophy }}</td>
-         <td>{{ trophy_case.date_earned }}</td>
-         </tr>
-         {% endfor %}
-       {% endif %}
-     </table>
- -->
+   
+ 
    </body>
 </html>
