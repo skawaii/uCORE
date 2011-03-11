@@ -569,7 +569,7 @@ def trophy_room(request):
     earn_progress = []
     for i in trophy_list:
       earn_total += [i.earning_req]
-    print 'total elements in list: ', earn_total  
+    # print 'total elements in list: ', earn_total  
     for t in trophy_list:
       for o in trophy_case_list:
         if (o.trophy == t):
@@ -580,7 +580,7 @@ def trophy_room(request):
             earn_progress += [o.count]
         else:
           earn_progress += [0]
-    print 'total earn_progress looks like: ', earn_progress        
+    # print 'total earn_progress looks like: ', earn_progress        
     combine_list = zip(trophy_list, earn_progress)
   except CoreUser.DoesNotExist: 
     # as long as the login_user view forces them to register if they don't already 
