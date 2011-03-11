@@ -169,9 +169,13 @@
                if (selectedRows.length > 0 && libraryRows.length > 0)
                {
                  alert("Please select either from the link grid or the library grid, but not both.");
-                 return false;
+                 // return false;
                }
-               if (libraryRows.length > 0)
+               else if (selectedRows.length == 0 && libraryRows.length == 0)
+               {
+                 alert("Please check some links before continuing..");
+               }
+               else if (libraryRows.length > 0)
                {
                   var libparameter = null;
                   for (var j = 0; j < libraryRows.length; j++)
@@ -188,7 +192,7 @@
                   }
                   $("#dialog").dialog( "close" );
                }
-               else 
+               else  
                {
                $("#dialog").dialog( "close" );
                $("#questionDialog").dialog({ width: 1000, buttons: { "Continue" : function() {
@@ -207,11 +211,6 @@
                });
                document.getElementById('questionDialog').style.display='block';
 
-               if (selectedRows.length == 0 && libraryRows.length == 0)
-               {
-                 alert("Please check some links before continuing..");
-                 return false;
-               }
                var row_parameter;
                for (var j = 0; j < selectedRows.length; j++)
                {
