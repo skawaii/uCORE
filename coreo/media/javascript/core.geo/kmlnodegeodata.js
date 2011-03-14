@@ -71,6 +71,15 @@ if (!window.core.geo)
 	KmlNodeGeoData.fromKmlDoc = function(kmlDoc) {
 		var root = kmlDoc.documentElement;
 		var nsPrefix = XmlUtils.declareNamespace(root, KmlNodeGeoData.NS_URI);
+		var localName = root.tagName.substring(root.tagName.indexOf(":") + 1).toLowerCase();
+		if (localName === "kml") {
+			$(root).children().each(function() {
+				if (KmlUtils.isKmlElement(this)) {
+					root = this;
+					return false;
+				}
+			});
+		}
 		var kmlNodeGeoData = new KmlNodeGeoData(null, root, nsPrefix);
 		GeoDataStore.persist(kmlNodeGeoData);
 		return kmlNodeGeoData;
@@ -173,9 +182,44 @@ if (!window.core.geo)
 		}
 		return null;
 	};
-	
+
 	$.extend(KmlNodeGeoData.prototype, GeoData.prototype, {
+
+		/**
+		 * Function: getKmlFeatureType
+		 * 
+		 * See Also:
+		 *   <GeoData.getKmlFeatureType>
+		 */
+		getKmlFeatureType: function() {
+			var elName = this.node.tagName;
+			return elName.substring(elName.indexOf(":") + 1);
+		},
 		
+		/**
+		 * Function: hasChildren
+		 * 
+		 * See Also:
+		 *   <GeoData.hasChildren>
+		 */
+		hasChildren: function() {
+			return KmlUtils.hasChildKmlElements(this.node);
+		},
+
+		/**
+		 * Function: getName
+		 * 
+		 * See Also:
+		 *   <GeoData.getName>
+		 */
+		getName: function() {
+			var nameNode = $(this.node).find("> name");
+			if (nameNode.length > 0) {
+				return nameNode.text();
+			}
+			return null;
+		},
+
 		/**
 		 * Function: getParent
 		 * 

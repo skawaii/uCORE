@@ -6,6 +6,9 @@
     <script type="text/javascript" src="qunit.js"></script>
     <script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
 
+	<script type="text/javascript" src="../jstree/jquery.jstree.js"></script>
+	<script type="text/javascript" src="../jstree/jquery.jstree.lazyload.js"></script>
+
     <script type="text/javascript" src="core.testutils.js"></script>
 
 	<script type="text/javascript" src="../core.util/assert.js"></script>
@@ -40,6 +43,9 @@
 	
 	<script type="text/javascript" src="../core.services/searchservice.js"></script>
 	<script type="text/javascript" src="../core.services/searchstrategy.js"></script>
+	<script type="text/javascript" src="../core.services/userchoiceresultfilter.js"></script>
+	
+	<script type="text/javascript" src="../core.ui/geodatatree.js"></script>
 
     <script type="text/javascript"><!--
     	google.load("earth", "1");
@@ -47,6 +53,9 @@
 
        	$(document).ready(function() {
        		// dynamically load unit tests - google API's need to be loaded first
+       		$.getScript("core.ui/geodatatree.js");
+       		
+       		$.getScript("core.services/userchoiceresultfilter.js");
        		$.getScript("core.services/searchstrategy.js");
        		$.getScript("core.services/searchservice.js");
        		

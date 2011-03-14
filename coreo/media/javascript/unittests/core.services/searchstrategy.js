@@ -37,7 +37,7 @@ test("search - url", function() {
 			ok(geodata);
 			core.testutils.assertImplements(geodata, core.geo.GeoData.prototype);
 			ok(geodata.node, "GeoData references a node in a KML document");
-			strictEqual(geodata.node.tagName, "kml");
+			strictEqual(geodata.node.tagName, "Document");
 		},
 		error: function(errorThrown) {
 			ok(false, "Error: " + errorThrown);
@@ -121,7 +121,7 @@ test("search - keyword", function() {
 			ok(geodata);
 			core.testutils.assertImplements(geodata, core.geo.GeoData.prototype);
 			ok(geodata.node, "GeoData references a node in a KML document");
-			strictEqual(geodata.node.tagName, "kml");
+			strictEqual(geodata.node.tagName, "Document");
 			if (resultInvokes.length > 1) {
 				this.complete();
 			}

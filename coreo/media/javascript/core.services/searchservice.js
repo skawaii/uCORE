@@ -95,15 +95,22 @@ if (!window.core.services)
 			}
 			if (searchLinksVal && searchLibrariesVal) {
 				var self = this;
+				var keepQuering = true;
 				this.searchLinks(term, {
 					result: function(link) {
-						return CallbackUtils.invokeCallback(callback, link, "result");
+						keepQuerying = CallbackUtils.invokeCallback(callback, link, "result");
+						return keepQuerying;
 					},
 					error: function(errorThrown) {
 						CallbackUtils.invokeOptionalCallback(callback, errorThrown, "error");
 					},
 					complete: function() {
-						self.searchLibraries(term, callback);
+						if (keepQuerying === false) {
+							CallbackUtils.invokeOptionalCallback(callback, "complete", []);
+						}
+						else {
+							self.searchLibraries(term, callback);
+						}
 					}
 				});
 			}

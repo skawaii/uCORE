@@ -38,6 +38,39 @@ if (!window.core.geo)
 	};
 	GeoData.prototype = {
 		/**
+		 * Function: getKmlFeatureType
+		 * 
+		 * Determines the name of the type of KML feature 
+		 * represented by this object (i.e. Placemark). 
+		 * This name must be one of the valid element 
+		 * names that extend the KML Feature element.
+		 * 
+		 * Returns:
+		 *   String. KML feature type name.
+		 */
+		getKmlFeatureType: function() {},
+
+		/**
+		 * Function: getName
+		 * 
+		 * Retrieves this feature's name.
+		 * 
+		 * Returns:
+		 *   String. Feature's name (title).
+		 */
+		getName: function() {},
+
+		/**
+		 * Function: hasChildren
+		 * 
+		 * Returns true if this node contains children.
+		 * 
+		 * Returns:
+		 *   Boolean. True if this feature contains children.
+		 */
+		hasChildren: function() {},
+
+		/**
 		 * Function: getParent
 		 * 
 		 * Retrieves the parent <GeoData> instance.
