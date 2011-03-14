@@ -445,22 +445,26 @@ def rate(request, ratee, ratee_id):
   # check to see if a RatingFK already exists for this (CoreUser, (Link|LinkLibrary)) combo. If the combo already exists:
   #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
   #   2. and this is a POST, update the Rating
-  rating_fk = RatingFK.objects.filter(user=user, link=link, link_library=link_library) # guaranteed at most 1 result b/c of DB unique_together
+  try:
+    rating_fk = RatingFK.objects.get(user=user, link=link, link_library=link_library)
+  except RatingFK.DoesNotExist:
+    rating_fk = None
 
   if rating_fk:
-    rating = Rating.objects.filter(rating_fk=rating_fk[0]) #again, guarantted at most 1 result
-
-    if not rating: raise IntegrityError('A RatingFK %s exists, but is not associated with a Rating' % rating_fk[0])
+    try:
+      rating = Rating.objects.get(rating_fk=rating_fk)
+    except Rating.DoesNotExist:
+      if not rating: raise IntegrityError('A RatingFK %s exists, but is not associated with a Rating' % rating_fk)
 
   if request.method == 'GET':
-    if rating_fk: context = {'rating': rating[0], 'link': link, 'link_library': link_library}
+    if rating_fk: context = {'rating': rating, 'link': link, 'link_library': link_library}
     else: context = {'link': link, 'link_library': link_library}
 
     return render_to_response('rate.html', context, context_instance=RequestContext(request))
   else:
     if rating_fk:
-      rating[0].score, rating[0].comment = (request.POST['score'], request.POST['comment'].strip())
-      rating[0].save()
+      rating.score, rating.comment = (request.POST['score'], request.POST['comment'].strip())
+      rating.save()
     else:
       if ratee == 'link': rating_fk = RatingFK.objects.create(user=user, link=link)
       elif ratee == 'library': rating_fk = RatingFK.objects.create(user=user, link_library=link_library)
