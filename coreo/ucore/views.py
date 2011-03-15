@@ -15,7 +15,7 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils import simplejson as json
 
@@ -432,15 +432,9 @@ def rate(request, ratee, ratee_id):
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  try:
-    user = CoreUser.objects.get(username=request.user.username)
-    link = None
-    link_library = None
-
-    if ratee == 'link': link = Link.objects.get(id=ratee_id)
-    elif ratee == 'library': link_library = LinkLibrary.objects.get(id=ratee_id)
-  except (CoreUser.DoesNotExist, Link.DoesNotExist, LinkLibrary.DoesNotExist) as e:
-    return HttpResponse(e.message)
+  user = get_object_or_404(CoreUser, username=request.user.username)
+  link = get_object_or_404(Link, pk=ratee_id) if ratee == 'link' else None
+  link_library = get_object_or_404(LinkLibrary, pk=ratee_id) if ratee == 'library' else None
 
   # check to see if a RatingFK already exists for this (CoreUser, (Link|LinkLibrary)) combo. If the combo already exists:
   #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
@@ -460,6 +454,7 @@ def rate(request, ratee, ratee_id):
     if rating_fk: context = {'rating': rating, 'link': link, 'link_library': link_library}
     else: context = {'link': link, 'link_library': link_library}
 
+    #return HttpResponse(serializers.serialize('json', context))
     return render_to_response('rate.html', context, context_instance=RequestContext(request))
   else:
     if rating_fk:
