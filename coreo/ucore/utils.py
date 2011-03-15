@@ -127,7 +127,9 @@ def to_json(instance):
   """
   from django.core import serializers
 
-  if not isinstance(instance, list): instance = [instance]
+  is_list = isinstance(instance, list)
+
+  if not is_list: instance = [instance]
 
   data = []
 
@@ -135,7 +137,7 @@ def to_json(instance):
     if inst: data.append(eval(serializers.serialize('json', [inst]))[0])
     else: data.append(None)
 
-  if not isinstance(instance, list): data = data[0]
+  if not is_list: data = data[0]
 
   return data
 
