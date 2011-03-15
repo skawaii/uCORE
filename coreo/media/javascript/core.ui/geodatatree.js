@@ -10,6 +10,7 @@
  *   - jQuery
  *   - jsTree
  *   - jsTree lazyload plugin
+ *   - jsTree bettercheckbox plugin
  *   - core.geo.GeoDataStore
  *   - core.util.Assert
  */
@@ -23,27 +24,84 @@ if (!window.core.ui)
 	var GeoDataStore = core.geo.GeoDataStore;
 	var Assert = core.util.Assert;
 
+	
+	/**
+	 * Constructor: GeoDataTree
+	 * 
+	 * Initializes the object. Renders a tree within the provided DOM element.
+	 * 
+	 * Parameters:
+	 *   geodata - <GeoData>. Required. Root tree node.
+	 *   el - HTML DOM Element. Element to contain the tree.
+	 */
 	var GeoDataTree = function(geodata, el) {
 		Assert.notNull(geodata, "geodata cannot be null");
 		Assert.type(geodata, "object", "geodata must be of type core.geo.GeoData");
 		Assert.notNull(el, "el cannot be null");
 		this.el = el;
 		this.geodata = geodata;
-		this.init();
+		this._init();
 	};
+	/**
+	 * Constant: GEODATA_ATTR
+	 * 
+	 * String. Name of the attribute on a tree node containing the GeoData ID.
+	 */
 	GeoDataTree.GEODATA_ATTR = "core-geodata-id";
 	GeoDataTree.prototype = {
+		/**
+		 * Property: el
+		 * 
+		 * HTML DOM element. Element containing the tree.
+		 */
 		el: null,
 
+		/**
+		 * Property: geodata
+		 * 
+		 * <GeoData>. Root tree node.
+		 */
 		geodata: null,
 
+		/**
+		 * Property: onCheck
+		 * 
+		 * Function. Invoked when a tree node is checked. Function is invoked 
+		 * with one parameter - the <GeoData> that was checked.
+		 */
 		onCheck: function(geodata) {},
-		
+
+		/**
+		 * Property: onUncheck
+		 * 
+		 * Function. Invoked when a tree node is unchecked. Function is 
+		 * invoked with one parameter - the <GeoData> that was unchecked.
+		 */
 		onUncheck: function(geodata) {},
 		
+		/**
+		 * Function: onSelect
+		 * 
+		 * Function. Invoked when a tree node is selected. Function is 
+		 * invoked with one parameter - the <GeoData> that was selected.
+		 * There is no deselect event. A select event indicates that 
+		 * all previously selected nodes were deselected. Only one 
+		 * node may be selected at a time.
+		 */
 		onSelect: function(geodata) {},
 
-		createTreeNode: function(geodata) {
+		/**
+		 * Function: _createTreeNode
+		 * 
+		 * Generates a tree node object for jsTree from a <GeoData> instance.
+		 * 
+		 * Parameters:
+		 *   geodata - <GeoData>. Required.
+		 *   
+		 * Returns:
+		 *   Object.
+		 */
+		_createTreeNode: function(geodata) {
 			Assert.hasFunction(geodata, "getName", 
 					"geodata doesn't contain function getName");
 			Assert.hasFunction(geodata, "getKmlFeatureType", 
@@ -69,11 +127,27 @@ if (!window.core.ui)
 			return treeNode;
 		},
 
-		getGeoDataId: function(treeNode) {
+		/**
+		 * Function: _getGeoDataId
+		 * 
+		 * Retrieves the ID of the <GeoData> represented in a tree node.
+		 * 
+		 * Parameters:
+		 *   treeNode - HTML DOM element. Tree node.
+		 *   
+		 * Returns:
+		 *   String. GeoData ID.
+		 */
+		_getGeoDataId: function(treeNode) {
 			return $(treeNode).attr(GeoDataTree.GEODATA_ATTR);
 		},
 
-		init: function() {
+		/**
+		 * Function: _init
+		 * 
+		 * Invoked by the constructor. Renders a jsTree.
+		 */
+		_init: function() {
 			var getGeoDataFromTreeNode = function(node) {
 				var geodataId = node.attr(GeoDataTree.GEODATA_ATTR);
 				var geodata = GeoDataStore.getById(geodataId);
@@ -109,16 +183,16 @@ if (!window.core.ui)
 					animation: 70
 				},
 				lazyload: {
-					data: this.createTreeNode(this.geodata),
+					data: this._createTreeNode(this.geodata),
 					loadChildren: function(parent, dataFn, completeFn, errorFn) {
-						var parentGeoDataId = _this.getGeoDataId(parent);
+						var parentGeoDataId = _this._getGeoDataId(parent);
 						var parentGeoData = GeoDataStore.getById(parentGeoDataId);
 						Assert.hasFunction(parentGeoData, "iterateChildren", 
 								"GeoData with ID " + parentGeoDataId 
 								+ " returned from GeoDataStore doesn't "
 								+ "contain function iterateChildren");
 						parentGeoData.iterateChildren(function(childGeoData) {
-							var childNode = _this.createTreeNode(childGeoData);
+							var childNode = _this._createTreeNode(childGeoData);
 							dataFn(childNode);
 						});
 						completeFn();
