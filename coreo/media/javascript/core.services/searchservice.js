@@ -111,7 +111,8 @@ if (!window.core.services)
 						else {
 							self.searchLibraries(term, callback);
 						}
-					}
+					},
+					context: self
 				});
 			}
 			else if (searchLinksVal) {
@@ -134,20 +135,21 @@ if (!window.core.services)
 		 *   callback - Function or Object. Required.
 		 */
 		searchLinks: function(term, callback) {
+			var self = this;
 			$.ajax(this.linksEndpoint, {
 				data: {q: term},
 				dataType: "json",
-				success: function(data, textStatus, jqXHR) {
+				success: $.proxy(function(data, textStatus, jqXHR) {
 					$.each(data, function(key, val) {
 						return CallbackUtils.invokeCallback(callback, val, "result");
 					});
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
+				}, self),
+				error: $.proxy(function(jqXHR, textStatus, errorThrown) {
 					CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
-				},
-				complete: function(jqXHR, textStatus) {
+				}, self),
+				complete: $.proxy(function(jqXHR, textStatus) {
 					CallbackUtils.invokeOptionalCallback(callback, "complete", []);
-				}
+				}, self)
 			});
 		},
 
@@ -163,20 +165,21 @@ if (!window.core.services)
 		 *   callback - Function or Object. Required.
 		 */
 		searchLibraries: function(term, callback) {
+			var self = this;
 			$.ajax(this.libEndpoint, {
 				data: {q: term},
 				dataType: "json",
-				success: function(data, textStatus, jqXHR) {
+				success: $.proxy(function(data, textStatus, jqXHR) {
 					$.each(data, function(key, val) {
 						return CallbackUtils.invokeCallback(callback, val, "result");
 					});
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
+				}, this),
+				error: $.proxy(function(jqXHR, textStatus, errorThrown) {
 					CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
-				},
-				complete: function(jqXHR, textStatus) {
+				}, this),
+				complete: $.proxy(function(jqXHR, textStatus) {
 					CallbackUtils.invokeOptionalCallback(callback, "complete", []);
-				}
+				}, this)
 			});
 		}
 

@@ -24,20 +24,17 @@ if (!window.core.services)
 	var KmlNodeGeoData = core.geo.KmlNodeGeoData;
 	var CallbackUtils = core.util.CallbackUtils;
 
-	// private function used by SearchStrategy
-	var fetchKml = function(url, callback) {
-		$.ajax({
-			"url": url,
-			dataType: "xml",
-			success: function(data, textStatus, jqXHR) {
-				var geodata = KmlNodeGeoData.fromKmlDoc(data);
+	// private function used by SearchStrategy to retrieve KML and then 
+	// convert it to a GeoData instance.
+	var fetchKml = function(kmlRetriever, url, callback) {
+		kmlRetriever.fetch(url, {
+			success: function(kml) {
+				var geodata = KmlNodeGeoData.fromKmlString(kml);
 				CallbackUtils.invokeCallback(callback, geodata, "result");
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
-			},
-			complete: function(jqXHR, textStatus) {
 				CallbackUtils.invokeOptionalCallback(callback, "complete", []);
+			},
+			error: function(errorThrown) {
+				CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
 			}
 		});
 	};
@@ -48,12 +45,14 @@ if (!window.core.services)
 	 * Initializes the object.
 	 * 
 	 * Parameters:
-	 *   searchService - core.services.SearchService. Required.
-	 *   searchResultFilter - core.services.SearchResultFilter. Required.
+	 *   searchService - <SearchService>. Required.
+	 *   searchResultFilter - <SearchResultFilter>. Required.
+	 *   kmlRetriever - <KmlRetriever>. Required. 
 	 */
-	var SearchStrategy = function(searchService, searchResultFilter) {
+	var SearchStrategy = function(searchService, searchResultFilter, kmlRetriever) {
 		this.searchService = searchService;
 		this.searchResultFilter = searchResultFilter;
+		this.kmlRetriever = kmlRetriever;
 	};
 	SearchStrategy.prototype = {
 		/**
@@ -78,6 +77,13 @@ if (!window.core.services)
 		searchResultFilter: null,
 
 		/**
+		 * Property: kmlRetriever
+		 * 
+		 * <KmlRetriever>. Retrieves KML for selected search results.
+		 */
+		kmlRetriever: null,
+		
+		/**
 		 * Function: search
 		 * 
 		 * Perform a search. If search text is a URL, KML is retrieved from the
@@ -91,25 +97,25 @@ if (!window.core.services)
 		 *         is an object, its "result" function will be invoked with 
 		 *         a single parameter, an instance of core.geo.GeoData, for
 		 *         each search result. Its "complete" function will be invoked
-		 *         when after all search results have been evaluated. Its 
+		 *         after all search results have been evaluated. Its 
 		 *         "error" function will be invoked if an error occurs.  
 		 */
 		search: function(text, callback) {
 			if (text.match('^http')) {
-				fetchKml(text, callback);
+				fetchKml(this.kmlRetriever, text, callback);
 			}
 			else {
 				// get Links and LinkLibraries matching the search term, 
 				// pass the results through the SearchResultFilter
 				// build GeoData objects from the filtered results and 
 				// invoke the callback with them
+				var self = this;
 				var geoDataBuilder = {
 					result: function(linkOrLibrary) {
 						// build geodata
 						var kmlUrl = linkOrLibrary.fields.url;
 						// need to prevent complete from being called
-						//fetchKml(kmlUrl, callback);
-						fetchKml(kmlUrl, {
+						fetchKml(this.kmlRetriever, kmlUrl, {
 							result: function(geodata) {
 								CallbackUtils.invokeCallback(callback, geodata, "result");
 							},
@@ -124,7 +130,8 @@ if (!window.core.services)
 					},
 					error: function(errorThrown) {
 						CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
-					}
+					},
+					context: self
 				};
 				this.searchResultFilter.begin(geoDataBuilder);
 				var searchResultFilterRef = this.searchResultFilter;
@@ -137,7 +144,8 @@ if (!window.core.services)
 					},
 					complete: function() {
 						searchResultFilterRef.end();
-					}
+					},
+					context: self
 				});
 			}
 		}
