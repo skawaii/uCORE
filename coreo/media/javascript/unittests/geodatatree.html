@@ -7,6 +7,7 @@
 		<script type="text/javascript" src="../jQuery/jquery-1.5.min.js"></script>
 		<script type="text/javascript" src="../jstree/jquery.jstree.js"></script>
 		<script type="text/javascript" src="../jstree/jquery.jstree.lazyload.js"></script>
+		<script type="text/javascript" src="../jstree/jquery.jstree.bettercheckbox.js"></script>
 		<script type="text/javascript" src="../core.util/idsequence.js"></script>
 		<script type="text/javascript" src="../core.util/assert.js"></script>
 		<script type="text/javascript" src="../core.util/callbackutils.js"></script>
@@ -39,6 +40,15 @@
 					+ "</k:kml>";
 				var geodata = core.geo.KmlNodeGeoData.fromKmlString(kml);
 				var tree = new core.ui.GeoDataTree(geodata, $("#tree")[0]);
+				tree.onCheck = function(geodata) {
+					console.log("Checked " + geodata.id);
+				};
+				tree.onUncheck = function(geodata) {
+					console.log("Unchecked " + geodata.id);
+				};
+				tree.onSelect = function(geodata) {
+					console.log("Selected " + geodata.id);
+				};
 			});
 		</script>
 	</head>

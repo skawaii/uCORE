@@ -37,6 +37,12 @@ if (!window.core.ui)
 
 		geodata: null,
 
+		onCheck: function(geodata) {},
+		
+		onUncheck: function(geodata) {},
+		
+		onSelect: function(geodata) {},
+
 		createTreeNode: function(geodata) {
 			Assert.hasFunction(geodata, "getName", 
 					"geodata doesn't contain function getName");
@@ -68,11 +74,36 @@ if (!window.core.ui)
 		},
 
 		init: function() {
+			var getGeoDataFromTreeNode = function(node) {
+				var geodataId = node.attr(GeoDataTree.GEODATA_ATTR);
+				var geodata = GeoDataStore.getById(geodataId);
+				return geodata;
+			};
 			var _this = this;
 			var jqueryEl = $(this.el);
 			Assert.hasFunction(jqueryEl, "jstree", 
 					"jQuery jstree plugin not found");
-			jqueryEl.jstree({
+			jqueryEl.bind("change_state.jstree", function(e, data) {
+				var geodata = getGeoDataFromTreeNode(data.rslt);
+				if (jqueryEl.jstree("is_checked", data.rslt)) {
+					if (_this.onCheck) {
+						_this.onCheck(geodata);
+					}					
+				}
+				else {
+					if (_this.onUncheck) {
+						_this.onUncheck(geodata);
+					}
+				}
+			})
+			.bind("select_node.jstree", function(e, data) {
+				var selected = data.rslt.obj;
+				var geodata = getGeoDataFromTreeNode(selected);
+				if (_this.onSelect) {
+					_this.onSelect(geodata);
+				}
+			})
+			.jstree({
 				core: {
 					html_titles: true,
 					animation: 70
@@ -96,7 +127,11 @@ if (!window.core.ui)
 				themes: {
 					theme: "kml"
 				},
-				plugins: ["ui", "themes", "lazyload", "checkbox"]
+				ui: {
+					select_limit: 1,
+					selected_parent_close: false
+				},
+				plugins: ["ui", "themes", "lazyload", "bettercheckbox"]
 			});
 		}
 

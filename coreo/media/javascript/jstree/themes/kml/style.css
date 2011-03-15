@@ -121,66 +121,6 @@
 	background-color:transparent;
 	background-position: -567px 0;
 }
-/*
-.jstree-kml .jstree-open > ins { 
-	background-image:url("kmlsprite.png");
-	background-repeat:no-repeat;
-	background-color:transparent;
-	width: 16px;
-	height: 16px;
-	background-position:-105px 0;
-}
-.jstree-kml .jstree-closed > ins { 
-	background-image:url("kmlsprite.png");
-	background-repeat:no-repeat;
-	background-color:transparent;
-	width: 16px;
-	height: 16px;
-	background-position:-168px 0;
-}
-.jstree-kml li a {
-	padding-left: 16px;
-}
-.jstree-kml li ins.Folder + a {
-	background-image:url("kmlsprite.png");
-	background-repeat:no-repeat;
-	background-color:transparent;
-	background-position: 0 0;
-	width: 16px;
-	height: 16px;
-}
-*/
-
-/*
-.jstree-kml li > ins.Folder {
-	background-image:url("kmlsprite.png");
-	background-repeat:no-repeat;
-	background-color:transparent;
-	width: 16px;
-	height: 16px;
-	background-position: 0 0;	
-}
-*/
-/*
-.jstree-kml li > ins.Folder {
-	background-image:url("kmlsprite.png");
-	background-repeat:no-repeat;
-	background-color:transparent;
-	width: 16px;
-	height: 16px;
-	background-position: 0 0;	
-}
-*/
-/*
-.jstree-kml li.jstree-open > ins.Folder {
-	background-image:url("kmlsprite.png");
-	background-repeat:no-repeat;
-	background-color:transparent;
-	width: 16px;
-	height: 16px;
-	background-position: -21px 0;	
-}
-*/
 
 /* .jstree-kml .jstree-leaf > ins { background-position:-36px 0; } */
 
@@ -203,7 +143,7 @@
 
 .jstree-kml .jstree-no-icons .jstree-checkbox { display:inline-block; }
 .jstree-kml .jstree-no-checkboxes .jstree-checkbox { display:none !important; }
-.jstree-kml .jstree-checked > a > .jstree-checkbox { 
+.jstree-kml .jstree-checked > a.jstree-checkbox { 
 	background-image:url("kmlsprite.png");
 	background-repeat:no-repeat;
 	background-color:transparent;
@@ -211,7 +151,15 @@
 	height: 16px;
 	background-position: -315px 0;	
 }
-.jstree-kml .jstree-unchecked > a > .jstree-checkbox {
+.jstree-kml .jstree-checked > a.jstree-checkbox:hover {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	width: 16px;
+	height: 16px;
+	background-position: -357px 0;	
+}
+.jstree-kml .jstree-unchecked > a.jstree-checkbox {
 	background-image:url("kmlsprite.png");
 	background-repeat:no-repeat;
 	background-color:transparent;
@@ -219,13 +167,29 @@
 	height: 16px;
 	background-position: -231px 0; 
 }
-.jstree-kml .jstree-undetermined > a > .jstree-checkbox {
+.jstree-kml .jstree-unchecked > a.jstree-checkbox:hover { 
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	width: 16px;
+	height: 16px;
+	background-position: -273px 0;	
+}
+.jstree-kml .jstree-undetermined > a.jstree-checkbox {
 	background-image:url("kmlsprite.png");
 	background-repeat:no-repeat;
 	background-color:transparent;
 	width: 16px;
 	height: 16px;
 	background-position: -315px 0; 
+}
+.jstree-kml .jstree-undetermined > a.jstree-checkbox:hover {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	width: 16px;
+	height: 16px;
+	background-position: -357px 0;	
 }
 
 /*.jstree-kml .jstree-checked > a > .jstree-checkbox:hover { background-position:-38px -37px; } */
