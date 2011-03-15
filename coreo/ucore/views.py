@@ -24,7 +24,7 @@ from coreo.ucore import shapefile, utils
 
 
 def add_library(request):
-  """
+  """ 
   Add ``LinkLibrary``s to the user's ``LinkLibrary`` collection (i.e. the ``CoreUser.libraries`` field).
   This view accepts only POST requests. The request's ``library_id`` parameter should contain the
   ``LinkLibrary`` IDs to be added to the user's collection.
@@ -71,39 +71,44 @@ def create_library(request):
   user = CoreUser.objects.get(username=request.user)
 
  # XXX why is all of this code in a try block and only the generic Exception is being caught
-  try:
-    if not user:
-      logging.error('No user retrieved by the username of %s' % request.user)
+ # ZZZ what try block? :-)
+  # try:
+  if not user:
+    logging.error('No user retrieved by the username of %s' % request.user)
       # XXX so we're continuing even though there isn't a valid user?
+    return HttpResponse('No user identified in request.')
+      # ZZZ Absolutely not.  We now send back a response with the result.
 
-    if request.method == 'POST':
-      links = request.POST['links'].strip()
-      name = request.POST['name'].strip()
-      desc = request.POST['desc'].strip()
-      tags = request.POST['tags'].strip()
+  if request.method == 'POST':
+    links = request.POST['links'].strip()
+    name = request.POST['name'].strip()
+    desc = request.POST['desc'].strip()
+    tags = request.POST['tags'].strip()
 
-      if tags[-1] == ',':
-        length_of_tags = len(tags)
-        tags = tags[0:length_of_tags-1]
+    if tags[-1] == ',':
+      length_of_tags = len(tags)
+      tags = tags[0:length_of_tags-1]
 
-      linkArray = links.split(',')
-      tags = tags.split(',')
-      library = LinkLibrary(name=name, desc=desc, creator=user)
-      library.save()
+    linkArray = links.split(',')
+    tags = tags.split(',')
+    library = LinkLibrary(name=name, desc=desc, creator=user)
+    library.save()
 
-      for t in tags:
-        t = t.strip()
-        retrievedtag = Tag.objects.get_or_create(name=t)
-        library.tags.add(retrievedtag[0])
+    for t in tags:
+      t = t.strip()
+      retrievedtag = Tag.objects.get_or_create(name=t)
+      library.tags.add(retrievedtag[0])
 
-      for link_object in linkArray:
-        link = Link.objects.get(pk=int(link_object))
-        library.links.add(link)
+    for link_object in linkArray:
+      link = Link.objects.get(pk=int(link_object))
+      library.links.add(link)
 
-      library.save()
-  except Exception, e:
-    print e.message
-    logging.error(e.message)
+    library.save()
+  # except Exception, e:
+  #   print e.message
+  #   logging.error(e.message)
+  else:
+      return HttpResponse('only GET Supported.')
 
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
@@ -233,7 +238,11 @@ def get_kmz(request):
 
 def get_library(request, username, lib_name):
   # XXX and try/except in case the lib_name doesn't exist
+  # ZZZ Not putting the try in unless the author approves.
+  # try :
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
+  # except library.DoesNotExist:
+  #   return HttpResponse('No library found.')
 
   doc = utils.build_kml_from_library(library)
   file_path = 'media/kml/' + username + '-' + lib_name + '.kml'
@@ -576,13 +585,11 @@ def trophy_room(request):
 
   try: 
     user = CoreUser.objects.get(username=request.user.username)
-  
-    
     trophy_list = Trophy.objects.all()
-    
     trophy_case_list = TrophyCase.objects.all()
     earn_total = []
     earn_progress = []
+    percentage = []
     for i in trophy_list:
       earn_total += [i.earning_req]
     # print 'total elements in list: ', earn_total  
@@ -592,12 +599,15 @@ def trophy_room(request):
           # print 'Found one : %s' % t.name
           if o.date_earned:
             earn_progress += [t.earning_req]
+            percentage += [(o.count / t.earning_req)*100]
           else:
             earn_progress += [o.count]
+            percentage += [(o.count / t.earning_req)*100]
         else:
           earn_progress += [0]
+          percentage += [(o.count / t.earning_req)*100]
     # print 'total earn_progress looks like: ', earn_progress        
-    combine_list = zip(trophy_list, earn_progress)
+    combine_list = zip(trophy_list, earn_progress, percentage)
   except CoreUser.DoesNotExist: 
     # as long as the login_user view forces them to register if they don't already 
     # exist in the db, then we should never actually get here. Still, better safe than sorry.
@@ -608,8 +618,11 @@ def trophy_room(request):
        'user' : user.username,
        'earn_total' : earn_total,
        'earn_progress' : earn_progress,
-      }, context_instance=RequestContext(request))
+       }, context_instance=RequestContext(request))
 
+
+def test_chart(request):
+  return render_to_response('chart.html', context_instance=RequestContext(request))
 
 def upload_csv(request):
   if request.method == 'POST':
