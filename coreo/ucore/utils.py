@@ -112,3 +112,29 @@ def search_ucore(models, terms):
 
   return results
 
+
+def to_json(instance):
+  """
+  Creates a Python dictionary representation of a Django model instance (or list of instances)
+  suitable for encoding with the ``json`` Python module.
+
+  Parameters:
+    ``instance`` - a single Django model instance or a list of model instances
+
+  Returns:
+    a single Python dictionary representation of the model if ``instance`` is a single object;
+    otherwise, a list of Python dictionaries.
+  """
+  from django.core import serializers
+
+  is_list = isinstance(instance, list)
+
+  # Django's serialize() requires an interable obj
+  if not is_list: instance = [instance]
+
+  data = eval(serializers.serialize('json', instance))
+
+  if not is_list: data = data[0]
+
+  return data
+
