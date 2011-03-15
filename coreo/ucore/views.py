@@ -428,6 +428,11 @@ def rate(request, ratee, ratee_id):
     ``ratee`` - a string, whose value must be either 'link' or 'library'. The value of ``ratee`` is
                 guaranteed by the app's URL conf file.
     ``ratee_id`` - the ID of the ``Link`` or ``LinkLibrary`` to be rated
+
+  Returns:
+    a JSON object. For GET requests, the JSON object represent the ``Link`` or ``LinkLibrary`` and the
+    related ``Rating``, if one already exists. For POST requests, the JSON object is simply the new
+    ``Rating`` instance resulting for updating the database.
   """ 
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
