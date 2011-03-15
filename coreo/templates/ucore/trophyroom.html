@@ -8,16 +8,11 @@
   <!-- CSS --> 
   <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
   <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css"/>
   
-  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.5.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
   <script type="text/javascript" src="{{ MEDIA_URL }}javascript/tscript.js"></script>
-  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jgcharts.js"></script>
-  <script type="text/javascript">
-     var api = new jGCharts.Api();
-     jQuery('<img>')
-     .attr('src', api.make({data : [[0,45,140], [0,55,120]]}))
-     .appendTo("bar1");
-  </script>
 
   <body>
     <div id='geheader'>
@@ -52,17 +47,19 @@
            </tr>
          </thead>
        <tbody> 
-   {% for trophy, earn_progress in trophy_list %}
+   {% for trophy, earn_progress, percentage in trophy_list %}
         <tr>
         <td style="border-style:solid; border-color: black; border-width: 2px; padding: 2px"><img src='{{ MEDIA_URL }}{{ trophy.file_path }}' height='100px' width='200px'/></td>
      <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.name }}</td>
      <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.desc }}</td>
-     <td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><button value="earntrophy" onclick="earn_trophy('{{ trophy.pk }}', '{{ user }}'); return false;">Earn This Trophy</button></td><td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;">{{ earn_progress }} out of {{trophy.earning_req}}</td> 
-      </tr>
+     <td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><button value="earntrophy" onclick="earn_trophy('{{ trophy.pk }}', '{{ user }}'); return false;">Earn This Trophy</button></td><td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><div id="progress{{ forloop.counter }}"></div>{{ earn_progress }} / {{trophy.earning_req}}</td> 
+   </tr>
+   <script type="text/javascript">
+     $("#progress{{ forloop.counter }}").progressbar({ value: {{ percentage }} });
+    </script>
       {% endfor %}
     </tbody>
   </table>
-  <div id="bar1">Something should be here.</div>
     {% else %}
     <table>
       <tr>
