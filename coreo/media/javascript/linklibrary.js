@@ -70,7 +70,7 @@
         librarytable = [];
         $("#myGrid").empty();
         $("#libraryGrid").empty();
-         $.getJSON('../search-links/', { q : term },
+         $.getJSON('../search/links/', { q : term },
          function(jsonstuff)
          { 
            // var totalTable = [];
@@ -109,7 +109,7 @@
         
          });
            
-         $.getJSON('../search-libraries/', { q : term },
+         $.getJSON('../search/libraries/', { q : term },
          function(libraryjson)
          {
            // var librarytable = [];
