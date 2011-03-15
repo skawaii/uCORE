@@ -135,7 +135,7 @@ def to_json(instance):
     if inst: data.append(eval(serializers.serialize('json', [inst]))[0])
     else: data.append(None)
 
-  if len(data) == 1: data = data[0]
+  if not isinstance(instance, list): data = data[0]
 
   return data
 
