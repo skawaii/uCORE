@@ -119,7 +119,8 @@ def to_json(instance):
   suitable for encoding with the ``json`` Python module.
 
   Parameters:
-    ``instance`` - a single Django model instance or a list of model instances
+    ``instance`` - a single Django model instance or a list of model instances. If ``instance``
+                   (or the elements of ``instance``) is ``None``, then ``None`` is returned.
 
   Returns:
     a single Python dictionary representation of the model if ``instance`` is a single object;

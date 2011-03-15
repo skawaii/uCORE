@@ -4,7 +4,7 @@
   Jason Cooper, Jason Hotelling, Paul Coleman, and Paul Boone.
 """
 
-import csv, datetime, logging, os, re, time, urllib2, zipfile
+import csv, datetime, json, logging, os, re, time, urllib2, zipfile
 from cStringIO import StringIO
 
 from django.core.mail import send_mail
@@ -451,12 +451,13 @@ def rate(request, ratee, ratee_id):
       if not rating: raise IntegrityError('A RatingFK %s exists, but is not associated with a Rating' % rating_fk)
 
   if request.method == 'GET':
-    if rating_fk: context = {'rating': rating, 'link': link, 'link_library': link_library}
-    else: context = {'link': link, 'link_library': link_library}
+    if rating_fk:
+      context = {'rating': utils.to_json(rating), 'link': utils.to_json(link), 'link_library': utils.to_json(link_library)}
+    else:
+      context = {'link': utils.to_json(link), 'link_library': utils.to_json(link_library)}
 
-    #return HttpResponse(serializers.serialize('json', context))
-    return render_to_response('rate.html', context, context_instance=RequestContext(request))
-  else:
+    return HttpResponse(json.dumps(context))
+  elif request.method == 'POST':
     if rating_fk:
       rating.score, rating.comment = (request.POST['score'], request.POST['comment'].strip())
       rating.save()
@@ -464,11 +465,11 @@ def rate(request, ratee, ratee_id):
       if ratee == 'link': rating_fk = RatingFK.objects.create(user=user, link=link)
       elif ratee == 'library': rating_fk = RatingFK.objects.create(user=user, link_library=link_library)
 
-      Rating.objects.create(rating_fk=rating_fk, score=request.POST['score'], comment=request.POST['comment'].strip())
+      rating = Rating.objects.create(rating_fk=rating_fk, score=request.POST['score'], comment=request.POST['comment'].strip())
 
-    # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
-    #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
-    return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+    return HttpResponse(json.dumps(utils.to_json(rating)))
+  else:
+    return HttpResponse('%s is not a supported method' % request.method, status=405)
 
 
 def register(request, sid):
