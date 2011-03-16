@@ -70,14 +70,10 @@ def create_library(request):
   """
   user = CoreUser.objects.get(username=request.user)
 
- # XXX why is all of this code in a try block and only the generic Exception is being caught
- # ZZZ what try block? :-)
-  # try:
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
-      # XXX so we're continuing even though there isn't a valid user?
+
     return HttpResponse('No user identified in request.')
-      # ZZZ Absolutely not.  We now send back a response with the result.
 
   if request.method == 'POST':
     links = request.POST['links'].strip()
@@ -108,7 +104,7 @@ def create_library(request):
   #   print e.message
   #   logging.error(e.message)
   else:
-      return HttpResponse('only GET Supported.')
+    return HttpResponse('only POST Supported.', status=405)
 
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
