@@ -26,6 +26,7 @@
  *  - core.geo.GeoDataStore
  *  - core.util.CallbackUtils
  *  - core.util.Assert
+ *  - core.geo.KmlFeatureType
  */
 if (!window.core)
 	window.core = {};
@@ -39,6 +40,29 @@ if (!window.core.geo)
 	var GeoDataStore = core.geo.GeoDataStore;
 	var CallbackUtils = core.util.CallbackUtils;
 	var Assert = core.util.Assert;
+	var KmlFeatureType = core.geo.KmlFeatureType;
+
+	var tagNameForKmlFeature = function(kmlFeatureType) {
+		if (kmlFeatureType) {
+			switch(kmlFeatureType) {
+			case KmlFeatureType.NETWORK_LINK:
+				return "NetworkLink";
+			case KmlFeatureType.PLACEMARK:
+				return "Placemark";
+			case KmlFeatureType.PHOTO_OVERLAY:
+				return "PhotoOverlay";
+			case KmlFeatureType.SCREEN_OVERLAY:
+				return "ScreenOverlay";
+			case KmlFeatureType.GROUND_OVERLAY:
+				return "GroundOverlay";
+			case KmlFeatureType.FOLDER:
+				return "Folder";
+			case KmlFeatureType.DOCUMENT:
+				return "Document";
+			};
+		}
+		throw "No KML element for " + kmlFeatureType;
+	};
 
 	/**
 	 * Constructor: KmlNodeGeoData
@@ -203,7 +227,8 @@ if (!window.core.geo)
 		 *   <GeoData.hasChildren>
 		 */
 		hasChildren: function() {
-			return KmlUtils.hasChildKmlElements(this.node);
+			return (KmlUtils.hasChildKmlElements(this.node)
+					|| this.getKmlFeatureType() === "NetworkLink");
 		},
 
 		/**
@@ -268,7 +293,7 @@ if (!window.core.geo)
 			}
 			return null;
 		},
-		
+
 		/**
 		 * Function: getKmlString
 		 * 
@@ -277,6 +302,23 @@ if (!window.core.geo)
 		 */
 		getKmlString: function() {
 			return XmlUtils.getXmlString(this.node);
+		},
+
+		/**
+		 * Function: findByKmlFeatureType
+		 * 
+		 * See Also:
+		 *   <GeoData.findByKmlFeatureType>
+		 */
+		findByKmlFeatureType: function(kmlFeatureType, callback) {
+			var tagName = tagNameForKmlFeature(kmlFeatureType);
+			var nsPrefix = this.nsPrefix;
+			$(this.node).find(tagName).each($.proxy(function(index, el) {
+				var id = KmlNodeGeoData.getIdFromElement(el, nsPrefix);
+				var childFeature = new KmlNodeGeoData(id, el, nsPrefix);
+				GeoDataStore.persist(childFeature);
+				CallbackUtils.invokeCallback(callback, childFeature);
+			}, this));
 		},
 		
 		/**

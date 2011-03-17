@@ -38,6 +38,22 @@ if (!window.core.geo)
 	};
 	GeoData.prototype = {
 		/**
+		 * Function: findByKmlFeatureType
+		 * 
+		 * Finds all descendants that represent a certain KML feature (i.e. 
+		 * Placemark, NeworkLink). Callback is invoked once per descendant.
+		 * 
+		 * Parameters:
+		 *   kmlFeatureType - String. Required. KML feature type. See 
+		 *         <KmlFeatureType>.
+		 *   callback - Function. Invoked for each matching descendant. 
+		 *         Invoked with one parameter of type <GeoData>, which is 
+		 *         the descendant.
+		 *         
+		 */
+		findByKmlFeatureType: function(kmlFeatureType, callback) {},
+		
+		/**
 		 * Function: getKmlFeatureType
 		 * 
 		 * Determines the name of the type of KML feature 

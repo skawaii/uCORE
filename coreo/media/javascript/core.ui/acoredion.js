@@ -57,7 +57,7 @@ if (!window.core.ui)
 			}, this);
 			if (publishEvent === true) {
 				// TODO
-				alert("PUBLISH GeoDataLoadedEvent");
+				console.log("PUBLISH GeoDataLoadedEvent");
 			}
 		},
 
@@ -88,7 +88,6 @@ if (!window.core.ui)
 			var searchForm = $("<div>").addClass("acoredion-search").appendTo(content);
 			var _this = this;
 			var doSearch = function() {
-				// alert(core.util.ObjectUtils.describe(this));
 				var searchText = _this.searchInput.val();
 				_this.searchStrategy.search(searchText, {
 					result: function(geodata) {

@@ -535,7 +535,7 @@ test("hasChildren", function() {
 
 	var dom = core.util.XmlUtils.createXmlDoc(kml);
 	geodata = new core.geo.KmlNodeGeoData(null, $(dom.documentElement).find("NetworkLink")[0], "c");
-	strictEqual(geodata.hasChildren(), false);
+	strictEqual(geodata.hasChildren(), true);
 });
 
 test("getKmlFeatureType", function() {
@@ -562,4 +562,45 @@ test("getKmlFeatureType", function() {
 	var dom = core.util.XmlUtils.createXmlDoc(kml);
 	geodata = new core.geo.KmlNodeGeoData(null, $(dom.documentElement).find("NetworkLink")[0], "c");
 	strictEqual(geodata.getKmlFeatureType(), "NetworkLink");
+});
+
+test("findByKmlFeatureType", function() {
+	var kml = "<kml xmlns=\"" + core.util.KmlUtils.KML_NS[0] + "\">"
+	        + "  <Document>"
+	        + "    <NetworkLink><name>network link 1</name></NetworkLink>"
+	        + "    <Folder>"
+	        + "      <name>folder 1</name>"
+	        + "      <NetworkLink><name>network link 2</name></NetworkLink>"
+	        + "      <Placemark><name>placemark 1</name></Placemark>"
+	        + "    </Folder>"
+	        + "    <NetworkLink><name>network link 3</name></NetworkLink>"
+	        + "  </Document>"
+	        + "</kml>";
+	var geodata = core.geo.KmlNodeGeoData.fromKmlString(kml);
+	
+	var results = [];
+	geodata.findByKmlFeatureType(core.geo.KmlFeatureType.DOCUMENT, function(match) {
+		results.push(match);
+	});
+	strictEqual(results.length, 0);
+	
+	results = [];
+	geodata.findByKmlFeatureType(core.geo.KmlFeatureType.NETWORK_LINK, function(match) {
+		results.push(match);
+	});
+	strictEqual(results.length, 3);
+	strictEqual(results[0].getName(), "network link 1");
+	ok(results[0].id);
+	strictEqual(results[1].getName(), "network link 2");
+	ok(results[1].id);
+	strictEqual(results[2].getName(), "network link 3");
+	ok(results[2].id);
+	
+	results = [];
+	geodata.findByKmlFeatureType(core.geo.KmlFeatureType.PLACEMARK, function(match) {
+		results.push(match);
+	});
+	strictEqual(results.length, 1);
+	ok(results[0].id);
+	strictEqual(results[0].getName(), "placemark 1");
 });

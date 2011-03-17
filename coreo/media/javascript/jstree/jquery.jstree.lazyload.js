@@ -85,6 +85,10 @@
 								_this.clean_node(this);
 							});
 						}
+						else {
+							parentNode.closest("li").find(".jstree-loading").removeClass("jstree-loading");
+							parentNode.closest("li").removeClass("jstree-closed").addClass("jstree-open");
+						}
 					}
 					_this.__callback({"obj": obj});
 					if(s_call) {

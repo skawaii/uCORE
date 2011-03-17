@@ -61,6 +61,14 @@
 	background-position: -504px 0;
 }
 
+.jstree-kml a.jstree-loading ins {
+	background-image:url("ajax-loader16.gif") !important;
+	background-repeat:no-repeat !important;
+	background-position: 0 0 !important;
+	height: 16px !important;
+	width: 16px !important;
+}
+  
 .jstree-kml a ins.Folder {
 	background-image:url("kmlsprite.png");
 	background-repeat:no-repeat;
