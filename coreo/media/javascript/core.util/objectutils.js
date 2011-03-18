@@ -1,3 +1,15 @@
+/**
+ * Class: ObjectUtils
+ * 
+ * Utility functions related to javascript objects.
+ * 
+ * Namespace:
+ *   core.util
+ * 
+ * Dependencies:
+ *   - jQuery
+ */
+
 if (!window.core)
 	window.core = {};
 if (!window.core.util)
@@ -7,9 +19,23 @@ if (!window.core.util)
 
 	var ObjectUtils = {
 		
+		/**
+		 * Function: asArray
+		 * 
+		 * Creates an array from an object. If the object is an array, a new 
+		 * array is created from the non-null elements. If the object is not 
+		 * an array, a new single-element array is created containing the 
+		 * object.
+		 * 
+		 * Parameters:
+		 *   obj - Object.
+		 *   
+		 * Returns:
+		 *   Array.
+		 */
 		asArray: function(obj) {
 			var arr = [];
-			if (jQuery.isArray(obj)) {
+			if ($.isArray(obj)) {
 				for (var i = 0; i < obj.length; i++) {
 					if (obj[i]) {
 						arr.push(obj[i]);
@@ -23,7 +49,18 @@ if (!window.core.util)
 		},
 
 		/**
-		 * Generates a string describing the properties of an object
+		 * Function: describe
+		 * 
+		 * Generates a string describing the properties of an object.
+		 * 
+		 * Parameters:
+		 *   obj - Object. Required. Object to describe.
+		 *   includeFunctions - Boolean. Optional. Defaults to false.
+		 *         Determines if functions are included in the description.
+		 *         
+		 * Returns:
+		 *   String. Description of the object containing type, name, and 
+		 *   value of all members of the object.
 		 */
 		describe: function(obj, includeFunctions) {
 			var str = "";

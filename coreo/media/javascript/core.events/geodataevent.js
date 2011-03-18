@@ -1,21 +1,20 @@
 /**
  * Class: GeoDataEvent
  * 
- * SuperClass:
- * <Event>
- *
  * Superclass for all CORE event objects containing GeoData.
- * Extends Event.
  *
+ * SuperClass:
+ *   <Event>
+ * 
  * Dependencies:
+ *  - jQuery
  *  - core.events.Event
  * 
  * Namespace:
  * 	core.events
  * 
  * Properties:
- * 
- *   geoData - GeoData object.
+ *   geoData - <GeoData>. Associated GeoData object.
  */
 
 if (!window.core)
@@ -27,7 +26,14 @@ if (!window.core.events)
 
 	/**
 	 * Constructor: GeoDataEvent
-	 * Initializes the object 
+	 * 
+	 * Initializes the object.
+	 * 
+	 * Parameters:
+	 *   publisher - String. Name of the component from which this event 
+	 *         originated.
+	 *   geoData - <GeoData>. Associated GeoData object.
+	 *   type - String. Name of the event type.
 	 */
 	var GeoDataEvent = function(publisher, geoData, type) {
 		ns.Event.call(this, publisher, type);

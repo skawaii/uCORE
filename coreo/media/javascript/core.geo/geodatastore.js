@@ -7,25 +7,29 @@
  *  core.geo
  * 
  * Dependencies:
- *  - core.util.XmlUtils
  *  - core.util.IdSequence
- *  - jQuery
  */
 if (!window.core)
 	window.core = {};
 if (!window.core.geo)
 	window.core.geo = {};
 
-(function($, ns) {
+(function(ns) {
 	
-	var XMLUTILS = core.util.XmlUtils;
-	var IDSEQ = core.util.IdSequence;
-	
-	var idSequence = new IDSEQ("core-");
+	var idSequence = new core.util.IdSequence("core-");
+
 	var store = {};
 	
 	var GeoDataStore = {
 		
+		/**
+		 * Function: generateId
+		 * 
+		 * Generates a new unique ID.
+		 * 
+		 * Returns:
+		 *   String. Unique ID.
+		 */
 		generateId: function() {
 			var id = null;
 			do {
@@ -35,6 +39,20 @@ if (!window.core.geo)
 			return id;
 		},
 		
+		/**
+		 * Function: persist
+		 * 
+		 * Saves a <GeoData> instance into the repository.
+		 * If the object to persist has a "postSave" function, it will 
+		 * be invoked after setting the ID and persisting the object in 
+		 * the repository.
+		 * 
+		 * Parameters:
+		 *   feature - <GeoData>. Object to save in the repository.
+		 *   
+		 * Returns:
+		 *   <GeoData>. Persisted object.
+		 */
 		persist: function(feature) {
 			if (!feature) {
 				return feature;
@@ -63,6 +81,17 @@ if (!window.core.geo)
 			return feature;
 		},
 		
+		/**
+		 * Function: idExists
+		 * 
+		 * Tests if an object with an ID exists in the repository.
+		 * 
+		 * Parameter:
+		 *   id - String. <GeoData> ID.
+		 * 
+		 * Returns:
+		 *   Boolean. True if an object exists with the provided ID.
+		 */
 		idExists: function(id) {
 			if (id) {
 				for (var existingId in store) {
@@ -77,6 +106,17 @@ if (!window.core.geo)
 			return false;
 		},
 		
+		/**
+		 * Function: getById
+		 * 
+		 * Retrieve a <GeoData> instance by its ID.
+		 * 
+		 * Parameters:
+		 *   id - String. The object's ID.
+		 *   
+		 * Returns:
+		 *   <GeoData>. The object, or null if it doesn't exist.
+		 */
 		getById: function(id) {
 			if (id) {
 				for (var existingId in store) {
@@ -95,10 +135,18 @@ if (!window.core.geo)
 			return null;
 		},
 		
+		/**
+		 * Function: deleteById
+		 * 
+		 * Removes an object from the repository.
+		 * 
+		 * Parameters:
+		 *   id - String. ID to remove.
+		 */
 		deleteById: function(id) {
 			store[id] = null;
 			delete store[id];
 		}
 	};
 	ns.GeoDataStore = GeoDataStore;
-})(jQuery, window.core.geo);
+})(window.core.geo);

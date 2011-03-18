@@ -1,6 +1,8 @@
 import csv
 import xml.dom.minidom
 
+from django.db.models import Q
+
 from coreo.ucore.models import *
 
 
@@ -84,4 +86,105 @@ def build_kml_from_library(link_library):
     folder.appendChild(net_link)
 
   return doc
+
+
+def search_ucore(models, terms):
+  """
+  Search the desc, name, and associated ``Tag`` names of ``models`` for the search terms specified in ``terms``.
+
+  Example:
+    ``search_core(('Link', 'LinkLibrary'), ['hot', 'pants'])`` will return all rows from the ``Link`` and ``LinkLibrary``
+    models containing 'hot' or 'pants' in either the name, description, or ``Tag`` names.
+
+  Parameters:
+    ``models`` - a sequence of models to be searched, specified as strings.
+    ``terms`` - a sequence of search terms
+
+  Returns:
+    a set containing the results of the search
+  """
+  results = set()
+
+  for model in models:
+    results |= set(eval(model).objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
+    results |= set(eval(model).objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+    results |= set(eval(model).objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
+
+  return results
+
+
+def django_to_dict(instance):
+  """
+  Creates a Python dictionary representation of a Django model instance (or list of instances)
+  suitable for encoding with the ``json`` Python module.
+
+  Parameters:
+    ``instance`` - a single Django model instance or a list of model instances. If ``instance``
+                   (or the elements of ``instance``) is ``None``, then ``None`` is returned.
+
+  Returns:
+    a single Python dictionary representation of the model if ``instance`` is a single object;
+    otherwise, a list of Python dictionaries.
+  """
+  from django.core import serializers
+
+  is_list = isinstance(instance, list)
+
+  if not is_list: instance = [instance]
+
+  data = []
+
+  for inst in instance:
+    if inst: data.append(eval(serializers.serialize('json', [inst]))[0])
+    else: data.append(None)
+
+  if not is_list: data = data[0]
+
+  return data
+
+
+# XXX don't use this. It works, but I don't like the way I implemented it
+def dict_to_django(dicts):
+  """
+  Creates a Django model instance (or list of instances) from a Python dictionary representation
+  of the instance.
+
+  Parameters:
+    ``dicts`` - a single dictionary or a list of dictionaries. If ``dicts`` (or the elements of
+    ``dicts``) is ``None``, then ``None`` is returned.
+
+  Returns:
+    a single Django model instance if ``dicts`` is a single object; otherwise, a list of Django
+    model instances.
+  """
+  from django.core import serializers
+
+  is_list = isinstance(dicts, list)
+
+  if not is_list: dicts = [dicts]
+
+  data = []
+
+  for d in dicts:
+    if d:
+      # the Django deserializer expects a pretty specific string format. Have to
+      # convert unicode to strings and use " for the keys
+      #items = d.items()
+      #d.clear()
+
+      #for key, value in items:
+      #  d[str(key)] = str(value) if isinstance(value, unicode) else value
+
+      d = str([d]).replace('\'', '"')
+      # XXX this is a really hacky why to do this and a bad assumption to be making...
+      d = d.replace('u"', '"')
+
+      for obj in serializers.deserialize('json', d):
+        data.append(obj.object)
+    else:
+      data.append(None)
+
+  if not is_list: data = data[0]
+
+  return data
 

@@ -1,5 +1,10 @@
-import csv, datetime, logging, os, re, time, urllib2, zipfile
-#import xml.dom.minidom
+"""
+  Views provide the views (or the controllers in a MVC applications)
+  for the Django project.  This file was created and maintained by:
+  Jason Cooper, Jason Hotelling, Paul Coleman, and Paul Boone.
+"""
+
+import csv, datetime, json, logging, os, re, time, urllib2, zipfile
 from cStringIO import StringIO
 
 from django.core.mail import send_mail
@@ -9,9 +14,8 @@ from django.core import serializers
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
-from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils import simplejson as json
 
@@ -19,43 +23,88 @@ from coreo.ucore.models import *
 from coreo.ucore import shapefile, utils
 
 
+def add_library(request):
+  """ 
+  Add ``LinkLibrary``s to the user's ``LinkLibrary`` collection (i.e. the ``CoreUser.libraries`` field).
+  This view accepts only POST requests. The request's ``library_id`` parameter should contain the
+  ``LinkLibrary`` IDs to be added to the user's collection.
+  """
+  if request.method != 'POST':
+    return HttpResponse('Only POST is supported!')
+
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  user = CoreUser.objects.get(username=request.user.username)
+  library_ids = request.POST.getlist('library_id')
+
+  try:
+    for library_id in library_ids:
+      user.libraries.add(LinkLibrary.objects.get(pk=library_id))
+  except LinkLibrary.DoesNotExist as e:
+    return HttpResponse(e.message)
+
+  return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+
+
 def create_library(request):
+  """
+  This view when called will create a link library. It won't work properly unless you are
+  already logged in to the webapp in a legitimate way.
+ 
+  Parameters:
+    ``links`` - a comma-delimited list of the primary keys of the links you want
+                to add to the created link library. They are passed in from
+                request object via POST.
+    ``name`` -  the name you wish to call the created link library.  Passed in
+                from the request object via POST.
+    ``desc`` -  The description you want to use for the link library.
+    ``tags`` -  Another comma-delimited list of the names of the tags you want
+                to associate with the link library you are creating. If the tags
+                are not found within the Tag table, they will be created.
+
+  Returns:
+    This view should return the same page that called it, which is testgrid.
+    We may need to modify this when it is more smoothly integrated into our
+    existing webapp.
+  """
   user = CoreUser.objects.get(username=request.user)
 
-  # XXX why is all of this code in a try block and only the generic Exception is being caught
-  try:
-    if not user:
-      logging.error('No user retrieved by the username of %s' % request.user)
-      # XXX so we're continuing even though there isn't a valid user?
+  if not user:
+    logging.error('No user retrieved by the username of %s' % request.user)
 
-    if request.method == 'POST':
-      links = request.POST['links'].strip()
-      name = request.POST['name'].strip()
-      desc = request.POST['desc'].strip()
-      tags = request.POST['tags'].strip()
+    return HttpResponse('No user identified in request.')
 
-      if tags[-1] == ',':
-        length_of_tags = len(tags)
-        tags = tags[0:length_of_tags-1]
+  if request.method == 'POST':
+    links = request.POST['links'].strip()
+    name = request.POST['name'].strip()
+    desc = request.POST['desc'].strip()
+    tags = request.POST['tags'].strip()
 
-      linkArray = links.split(',')
-      tags = tags.split(',')
-      library = LinkLibrary(name=name, desc=desc, user=user)
-      library.save()
+    if tags[-1] == ',':
+      length_of_tags = len(tags)
+      tags = tags[0:length_of_tags-1]
 
-      for t in tags:
-        t = t.strip()
-        retrievedtag = Tag.objects.get_or_create(name=t)
-        library.tags.add(retrievedtag[0])
+    linkArray = links.split(',')
+    tags = tags.split(',')
+    library = LinkLibrary(name=name, desc=desc, creator=user)
+    library.save()
 
-      for link_object in linkArray:
-        link = Link.objects.get(pk=int(link_object))
-        library.links.add(link)
+    for t in tags:
+      t = t.strip()
+      retrievedtag = Tag.objects.get_or_create(name=t)
+      library.tags.add(retrievedtag[0])
 
-      library.save()
-  except Exception, e:
-    print e.message
-    logging.error(e.message)
+    for link_object in linkArray:
+      link = Link.objects.get(pk=int(link_object))
+      library.links.add(link)
+
+    library.save()
+  # except Exception, e:
+  #   print e.message
+  #   logging.error(e.message)
+  else:
+    return HttpResponse('only POST Supported.', status=405)
 
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
@@ -82,8 +131,7 @@ def ge_index(request):
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
     # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+    # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
@@ -98,20 +146,26 @@ def gm_index(request):
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
     # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+    # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('gmindex.html', {'user': user}, context_instance=RequestContext(request))
 
 
 def get_csv(request):
-  ''' get_csv is a method that will return csv to the browser.
-      It eventually will accept json input from the GE view,
-      and return it as a .csv file to the browser. 
-      Right now the filename is sample.csv but can be modified
-      as necessary.
-   '''
+  """
+  The purpose of this view is to return a csv file that represents the 
+  data on a GE view.  As of now, we don't have anything on the client
+  side to work with this view.
+
+  Parameters:
+    Currently no parameters are passed in, but soon we hope to have JSON
+    passed in from the client that represents the data from a GE view.
+
+  Returns: 
+    This should return an attachment of type text/csv that will be csv
+    from the view.  Right now it returns static data.
+  """
   response = HttpResponse(mimetype='text/csv')
   response['Content-Disposition'] = 'attachment; filename=sample.csv'
   # This will eventually handle a json object rather than static data.
@@ -130,10 +184,23 @@ def get_csv(request):
   writer.writerow(['First', '1', '2', '3'])
   writer.writerow(['Second', '4', '5', '6'])
   writer.writerow(['Third', '7', '8', '9'])
+
   return response
 
 
 def get_kmz(request):
+  """
+  Return a KMZ file that represents the data from a GE view in our webapp.
+
+  Parameters:
+    No parameters have yet been accepted, but eventually the client will
+    be submitting a JSON object that represents the data from the GE view
+    that we wish to convert to KMZ.
+
+  Returns:
+    This view will return a file attachment that is KMZ to the client.
+    Right now we return static data. when the user requests /get-kmz/.
+  """
   # I must say I used some of : http://djangosnippets.org/snippets/709/
   # for this part. - PRC
   # I know this will be replaced once I have a sample JSON from the client
@@ -161,12 +228,17 @@ def get_kmz(request):
   response['Content-Disposition'] = 'attachment; filename=download.kmz'
   response['Content-Description'] = 'a sample kmz file.'
   response['Content-Length'] = str(len(response.content))
+
   return response 
 
 
 def get_library(request, username, lib_name):
   # XXX and try/except in case the lib_name doesn't exist
+  # ZZZ Not putting the try in unless the author approves.
+  # try :
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
+  # except library.DoesNotExist:
+  #   return HttpResponse('No library found.')
 
   doc = utils.build_kml_from_library(library)
   file_path = 'media/kml/' + username + '-' + lib_name + '.kml'
@@ -199,35 +271,58 @@ def get_shapefile(request):
   response['Content-Disposition'] = 'attachment; filename=sample1.shp'
   response.content = shp.getvalue()
   shp.close()
+
   return response
 
 
 def get_tags(request):
-    if request.method == 'GET':
-      term = request.GET['term'].strip()
+  """
+  The purpose of this view is to respond to an AJAX call for all
+  the public tags in our Tag table.
 
-      if ',' in term:
-         termList = term.split(',')
-         length_of_list = len(termList)
-         term = termList[length_of_list-1].strip()
-         # print 'term is- %s -here' % term
+  Parameters:
+    ``term`` - represents the keyboard input of the user while
+               waiting for the auto-complete list to be returned.
 
-    # XXX if the request method is something besides a GET, it'll still execute the
-    # next 2 lines of code....
-    results = Tag.objects.filter(name__contains=term, type='P')
+  Returns:
+    This view returns a list of all the public tags that match the
+    parameter submitted.
+  """           
+  if request.method == 'GET':
+    term = request.GET['term'].strip()
 
-    return HttpResponse(serializers.serialize('json', results))
+    if ',' in term:
+      termList = term.split(',')
+      length_of_list = len(termList)
+      term = termList[length_of_list-1].strip()
+      # print 'term is- %s -here' % term
+
+  # XXX if the request method is something besides a GET, it'll still execute the next 2 lines of code....
+  results = Tag.objects.filter(name__contains=term, type='P')
+
+  return HttpResponse(serializers.serialize('json', results))
 
 
 def index(request):
   # If the user is authenticated, send them to the application.
   if request.user.is_authenticated():
     return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+
   # If the user is not authenticated, show them the main page.
   return render_to_response('index.html', context_instance=RequestContext(request))
 
 
 def library_demo(request):
+  """
+  This view exists to demonstrate the ability to select multiple
+  links from our search results and then select the ones you want
+  to create a link library.
+
+  Returns:
+    If the user requesting this view is authenticated already, this
+    view will return the HTML page that goes with it : testgrid.html.
+    Otherwise, it will take the request and redirect to the login page.
+  """
   if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
   else:
@@ -259,8 +354,9 @@ def login(request):
 
 
 def logout(request):
-  ''' Log the user out, terminating the session
-  '''
+  """
+  Log the user out, terminating the session
+  """
   if request.user.is_authenticated():
     auth.logout(request)
 
@@ -275,8 +371,7 @@ def map_view(request):
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
     # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+    # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
@@ -287,95 +382,112 @@ def notifytest(request):
     logging.warning('%s was not authenticated' % request.user)
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  # userperson = CoreUser.objects.filter(username=request.user)
+  # user = CoreUser.objects.filter(username=request.user)
   return render_to_response('notify.html', context_instance=RequestContext(request))
 
 
 def poll_notifications(request, notification_id):
-  ''' poll_notifications has two methods it supports: GET and DELETE
-      for DELETE you have to submit a notification_id which will then
-      delete the notification from the table. 
-      If you call a GET, don't send any parameters and the view will
-      return a json list of all notifications for the logged in user.
-  '''
+  """
+  poll_notifications has two methods it supports: GET and DELETE.
+  For DELETE you have to submit a ``notification_id``, which will then
+  delete the notification from the DB. 
+
+  If you call a GET, don't send any parameters and the view will
+  return a JSON list of all notifications for the logged-in user.
+  """ 
   # notification_id is passed in on a delete request in the URL.
   if not request.user.is_authenticated(): 
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  userperson = CoreUser.objects.filter(username=request.user)
-  if not userperson: 
+  user = CoreUser.objects.filter(username=request.user)
+
+  if not user: 
     logging.debug('No user retrieved by the username of %s' % request.user)
   response = HttpResponse(mimetype='application/json')
+
   if request.method == "GET":
     # print 'request user is %s' % request.user
     try:
-      json_serializer = serializers.get_serializer("json")()
-      notify_list = Notification.objects.filter(user=userperson)
+      json_serializer = serializers.get_serializer('json')()
+      notify_list = Notification.objects.filter(user=user)
       json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
     except Exception, e:
       logging.error(e.message)
       print e.message 
+
     return response
   elif request.method == "DELETE":
     primaryKey = notification_id 
     logging.debug('Received the following id to delete from notifications : %s' % primaryKey)
-    record2delete = Notification.objects.filter(user=userperson, pk=primaryKey)
+    record2delete = Notification.objects.filter(user=user, pk=primaryKey)
     record2delete.delete()
+
     return response
 
 
 def rate(request, ratee, ratee_id):
-  ''' Rate either a ``Link`` or ``LinkLibrary``.
-      ``ratee`` must either be 'link' or 'library', with ``ratee_id`` being the respective id.
-      The value of ``ratee`` is ensured in urls.py.
-  '''
+  """
+  Rate either a ``Link`` or ``LinkLibrary``.
+
+  Parameters:
+    ``ratee`` - a string, whose value must be either 'link' or 'library'. The value of ``ratee`` is
+                guaranteed by the app's URL conf file.
+    ``ratee_id`` - the ID of the ``Link`` or ``LinkLibrary`` to be rated
+
+  Returns:
+    a JSON object. For GET requests, the JSON object represent the ``Link`` or ``LinkLibrary`` and the
+    related ``Rating``, if one already exists. For POST requests, the JSON object is simply the new
+    ``Rating`` instance resulting for updating the database.
+  """ 
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  try:
-    user = CoreUser.objects.get(username=request.user.username)
-    link = None
-    link_library = None
-
-    if ratee == 'link': link = Link.objects.get(id=ratee_id)
-    elif ratee == 'library': link_library = LinkLibrary.objects.get(id=ratee_id)
-  except (CoreUser.DoesNotExist, Link.DoesNotExist, LinkLibrary.DoesNotExist) as e:
-    return HttpResponse(e.message)
+  user = get_object_or_404(CoreUser, username=request.user.username)
+  link = get_object_or_404(Link, pk=ratee_id) if ratee == 'link' else None
+  link_library = get_object_or_404(LinkLibrary, pk=ratee_id) if ratee == 'library' else None
 
   # check to see if a RatingFK already exists for this (CoreUser, (Link|LinkLibrary)) combo. If the combo already exists:
   #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
   #   2. and this is a POST, update the Rating
-  rating_fk = RatingFK.objects.filter(user=user, link=link, link_library=link_library) # guaranteed at most 1 result b/c of DB unique_together
+  try:
+    rating_fk = RatingFK.objects.get(user=user, link=link, link_library=link_library)
+  except RatingFK.DoesNotExist:
+    rating_fk = None
 
   if rating_fk:
-    rating = Rating.objects.filter(rating_fk=rating_fk[0]) #again, guarantted at most 1 result
-
-    if not rating: raise IntegrityError('A RatingFK %s exists, but is not associated with a Rating' % rating_fk[0])
+    try:
+      rating = Rating.objects.get(rating_fk=rating_fk)
+    except Rating.DoesNotExist:
+      if not rating: raise IntegrityError('A RatingFK %s exists, but is not associated with a Rating' % rating_fk)
 
   if request.method == 'GET':
-    if rating_fk: context = {'rating': rating[0], 'link': link, 'link_library': link_library}
-    else: context = {'link': link, 'link_library': link_library}
-
-    return render_to_response('rate.html', context, context_instance=RequestContext(request))
-  else:
     if rating_fk:
-      rating[0].score, rating[0].comment = (request.POST['score'], request.POST['comment'].strip())
-      rating[0].save()
+      context = {'rating': utils.django_to_dict(rating), 'link': utils.django_to_dict(link),
+                 'link_library': utils.django_to_dict(link_library)}
+    else:
+      context = {'link': utils.django_to_dict(link), 'link_library': utils.django_to_dict(link_library)}
+
+    return HttpResponse(json.dumps(context))
+  elif request.method == 'POST':
+    if rating_fk:
+      rating.score, rating.comment = (request.POST['score'], request.POST['comment'].strip())
+      rating.save()
     else:
       if ratee == 'link': rating_fk = RatingFK.objects.create(user=user, link=link)
       elif ratee == 'library': rating_fk = RatingFK.objects.create(user=user, link_library=link_library)
 
-      Rating.objects.create(rating_fk=rating_fk, score=request.POST['score'], comment=request.POST['comment'].strip())
+      rating = Rating.objects.create(rating_fk=rating_fk, score=request.POST['score'], comment=request.POST['comment'].strip())
 
-    # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
-    #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
-    return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+    return HttpResponse(json.dumps(utils.django_to_dict(rating)))
+  else:
+    return HttpResponse('%s is not a supported method' % request.method, status=405)
 
 
 def register(request, sid):
-  ''' Pull out the user's sid, name, email, and phone number from the user's certs.
-      Return a pre-filled registration form with this info so the user can create an account.
-  '''
+  """
+  Pull out the user's sid, name, email, and phone number from the user's certs.
+  Return a pre-filled registration form with this info so the user can create an account.
+  """
   # get the sid and name from the cert
   #name_sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')
   #name = ' '.join(name_sid[:-1])
@@ -388,8 +500,9 @@ def register(request, sid):
 
 
 def save_user(request):
-  ''' Create/update the user's record in the DB.
-  '''
+  """
+  Create/update the user's record in the DB.
+  """ 
   sid = request.POST['sid'].strip()
   username = request.POST['username'].strip()
   first_name = request.POST['first_name'].strip()
@@ -397,21 +510,17 @@ def save_user(request):
   password = request.POST['password'].strip()
   email = request.POST['email'].strip()
   phone_number = request.POST['phone_number'].strip()
-  newphone = ''
 
   try:
-    if (len(phone_number) == 10):
-      newphone = phone_number
-    else:
+    if (len(phone_number) != 10): 
       prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
-      # prog = re.compile(r"(\d+[^/d]+)")
       result = prog.match(phone_number)
-      newphone = result.group(1) + result.group(2) + result.group(3)
+      phone_number = result.group(1) + result.group(2) + result.group(3)
   except Exception, e:
     logging.error(e.message)
     logging.error('Exception parsing phone number. Phone number not set.')
 
-  if not (sid and username and first_name and last_name and password and email and newphone and phone_number):
+  if not (sid and username and first_name and last_name and password and email and phone_number):
     # redisplay the registration page
     return render_to_response('register.html',
         {'sid': sid,
@@ -420,13 +529,13 @@ def save_user(request):
 
   # create/update the user to the DB
   user, created = CoreUser.objects.get_or_create(sid=sid, defaults={'username': username, 'first_name': first_name,
-    'last_name': last_name, 'email': email, 'phone_number': newphone})
+    'last_name': last_name, 'email': email, 'phone_number': phone_number})
 
   if not created:
     user.first_name = first_name
     user.last_name = last_name
     user.email = email
-    user.phone_number = newphone
+    user.phone_number = phone_number 
 
   user.set_password(password)
   user.save()
@@ -435,25 +544,30 @@ def save_user(request):
   return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
 
 
-def search_links(request):
+def search(request, models):
+  """
+  Search the databases for ``Links`` or ``LinkLibraries`` whose metadata matches the search terms. The
+  metadata searched is the name, description, and tag names associated with the ``Link`` or ``LinkLibrary``.
+  The search terms come from the POST parameter ``q``, which should be a comma-separated list of strings.
+
+  Parameters:
+    ``models`` - a sequence of strings specifying the models to search. Must be a combination of
+                 'Link' or 'LinkLibrary'. The values are guaranteed by the app's URL conf file.
+
+  Returns:
+    a JSON object containing the matching ``Links`` and/or ``LinkLibraries``.
+  """
   if not request.GET['q']:
     return HttpResponse(serializers.serialize('json', ''))
 
   terms = request.GET['q'].split(',') 
-  logging.debug('Received terms %s in the GET of search_links\n' % terms)
 
-  # search Link for matches
-  results = set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  results |= set(Link.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  # if the only search term is '*', then search everything
+  if len(terms) == 1 and terms[0] == '*': terms[0] = ''
 
-  # XXX put this in its own view
-  # search LinkLibraries for matches
-  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(tags__name__icontains=z), terms))).distinct())
-  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(desc__icontains=z), terms))).distinct())
-  #results |= set(LinkLibrary.objects.filter(reduce(lambda x, y: x | y, map(lambda z: Q(name__icontains=z), terms))).distinct())
+  results = utils.search_ucore(models, terms)
 
-  return HttpResponse(serializers.serialize('json', results))
+  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
 
 def search_mongo(request):
@@ -474,19 +588,43 @@ def trophy_room(request):
   try: 
     user = CoreUser.objects.get(username=request.user.username)
     trophy_list = Trophy.objects.all()
-    trophy_case_list = TrophyCase.objects.all() 
+    trophy_case_list = TrophyCase.objects.all()
+    earn_total = []
+    earn_progress = []
+    percentage = []
+    for i in trophy_list:
+      earn_total += [i.earning_req]
+    # print 'total elements in list: ', earn_total  
+    for t in trophy_list:
+      for o in trophy_case_list:
+        if (o.trophy == t):
+          # print 'Found one : %s' % t.name
+          if o.date_earned:
+            earn_progress += [t.earning_req]
+            percentage += [(o.count / t.earning_req)*100]
+          else:
+            earn_progress += [o.count]
+            percentage += [(o.count / t.earning_req)*100]
+        else:
+          earn_progress += [0]
+          percentage += [(o.count / t.earning_req)*100]
+    # print 'total earn_progress looks like: ', earn_progress        
+    combine_list = zip(trophy_list, earn_progress, percentage)
   except CoreUser.DoesNotExist: 
     # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+    # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
-    
   return render_to_response('trophyroom.html',
-      {'trophy_list' : trophy_list ,
+      {'trophy_list' : combine_list,
        'trophy_case_list' : trophy_case_list,
-       'user' : user.username
-      }, context_instance=RequestContext(request))
+       'user' : user.username,
+       'earn_total' : earn_total,
+       'earn_progress' : earn_progress,
+       }, context_instance=RequestContext(request))
 
+
+def test_chart(request):
+  return render_to_response('chart.html', context_instance=RequestContext(request))
 
 def upload_csv(request):
   if request.method == 'POST':
@@ -496,21 +634,22 @@ def upload_csv(request):
 
 
 def user_profile(request):
-  # XXX the django dev server can't use ssl, so fake getting the sid from the cert
-  # XXX pull out the name as well. pass it to register() and keep things DRY
-  # sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
+  #XXX the django dev server can't use ssl, so fake getting the sid from the cert
+  #XXX pull out the name as well. pass it to register() and keep things DRY
+  #sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
   #sid = 'jlcoope'
   #if not sid: return render_to_response('install_certs.html')
-
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
-    # as long as the login_user view forces them to register if they don't already 
-    # exist in the db, then we should never actually get here. Still, better safe
-    # than sorry.
+  
+  # as long as the login_user view forces them to register if they
+  # don't already exist in the db, then we should never actually get here.
+  # Still, better safe than sorry.
+ 
     return render_to_response('login.html', context_instance=RequestContext(request))
   
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))

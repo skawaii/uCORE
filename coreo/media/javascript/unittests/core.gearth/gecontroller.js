@@ -100,11 +100,106 @@ test("hide", function() {
 });
 
 test("info", function() {
-	ok(false, "not implemented");
+	var balloon = {
+		feature: null,
+		setFeature: function(kmlObject) {
+			this.feature = kmlObject;
+		},
+		closeButtonEnabled: null,
+		setCloseButtonEnabled: function(enabled) {
+			this.closeButtonEnabled = enabled;
+		}
+	};
+	var ge = {
+		setBalloonInvokes: [],
+		setBalloon: function(balloon) {
+			this.setBalloonInvokes.push(balloon);
+		},
+		createBalloonInvokes: [],
+		createHtmlStringBalloon: function(str) {
+			this.createBalloonInvokes.push(str);
+			return balloon;
+		}
+	};
+	var controller = new core.gearth.GeController(ge);
+	var kmlObjectStore = controller.kmlObjectStore;
+	var mockKmlObject = {};
+	var getKmlObjectInvokes = [];
+	kmlObjectStore.getKmlObject = function(geoData) {
+		getKmlObjectInvokes.push(geoData);
+		return mockKmlObject;
+	};
+	var geoData = {};
+	controller.info(geoData);
+
+	strictEqual(ge.setBalloonInvokes.length, 2);
+	strictEqual(ge.setBalloonInvokes[0], null);
+	strictEqual(ge.setBalloonInvokes[1], balloon);
+	strictEqual(getKmlObjectInvokes.length, 1);
+	strictEqual(getKmlObjectInvokes[0], geoData);
+	strictEqual(ge.createBalloonInvokes.length, 1);
+	strictEqual(ge.createBalloonInvokes[0], "");
+	strictEqual(balloon.feature, mockKmlObject);
+	strictEqual(balloon.closeButtonEnabled, true);
 });
 
 test("flyTo", function() {
-	ok(false, "not implemented");
+	var mockGeView = {
+		view: null,
+		setAbstractView: function(view) {
+			this.view = view;
+		}
+	};
+	var ge = {
+		getView: function() {
+			return mockGeView;
+		}
+	};
+	var controller = new core.gearth.GeController(ge);
+	var kmlObjectStore = controller.kmlObjectStore;
+	var mockAbstractView = {};
+	var mockKmlObject = {
+		getAbstractView: function() {
+			return mockAbstractView;
+		}
+	};
+	var getKmlObjectInvokes = [];
+	kmlObjectStore.getKmlObject = function(geoData) {
+		getKmlObjectInvokes.push(geoData);
+		return mockKmlObject;
+	};
+	var geoData = {};
+
+	controller.flyTo(geoData);
+	strictEqual(mockGeView.view, mockAbstractView);
+	
+	kmlObjectStore.getKmlObject = function(geoData) {
+		return {
+			getAbstractView: "foo"
+		};
+	};
+	raises(function() {controller.flyTo(geoData);});
+	
+	kmlObjectStore.getKmlObject = function(geoData) {
+		return {};
+	};
+	raises(function() {controller.flyTo(geoData);});
+	
+	kmlObjectStore.getKmlObject = function(geoData) {
+		return null;
+	};
+	controller.flyTo(geoData);
+	
+	kmlObjectStore.getKmlObject = function(geoData) {
+		return undefined;
+	};
+	controller.flyTo(geoData);
+	
+	controller.flyTo(null);
+	controller.flyTo(undefined);
+	controller.flyTo("foo");
+	controller.flyTo([]);
+	controller.flyTo(1);
 });
 
 //test("GeController", function() {
