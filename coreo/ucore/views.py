@@ -633,6 +633,29 @@ def upload_csv(request):
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
 
+def modify_settings(request):
+  if request.method == 'GET':    try:
+      user = CoreUser.objects.get(username=request.user.username)
+      skin_list = Skin.objects.all()
+    except CoreUser.DoesNotExist:
+       return render_to_response('login.html', context_instance=RequestContext(request
+))
+    settings = user.settings
+      return render_to_response('settings.html', { 'settings' : settings, 'skin_list' :
+ skin_list }, context_instance=RequestContext(request))
+  elif request.method == 'POST':
+    checkbox = request.POST['wants_emails'].strip()
+    if (checkbox):
+      print 'the person wants emails.'
+    else:
+      print 'the person does not want e-mails.'
+    anothervar = request.POST['skin'].strip()
+    print 'value of variable is: %s' % checkbox
+    print 'value of second is : %s' % anothervar
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+
+
 def user_profile(request):
   #XXX the django dev server can't use ssl, so fake getting the sid from the cert
   #XXX pull out the name as well. pass it to register() and keep things DRY
