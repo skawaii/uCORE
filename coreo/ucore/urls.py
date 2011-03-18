@@ -35,6 +35,8 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^rate/library/(?P<ratee_id>\d+)/$', 'rate', {'ratee': 'library'}),
     # (r'^success/(?P<message>\w+)/$', 'success'),
     # (r'^testchart/$', 'test_chart'),
+    (r'^updatesettings/$', 'modify_settings'),
+    (r'^viewsettings/$', 'modify_settings'),
     (r'^success/$', 'success'),
     (r'^map/$', 'map_view'),
 )
