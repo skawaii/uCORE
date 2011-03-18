@@ -634,15 +634,15 @@ def upload_csv(request):
 
 
 def modify_settings(request):
-  if request.method == 'GET':    try:
+  if request.method == 'GET':   
+    try:
       user = CoreUser.objects.get(username=request.user.username)
       skin_list = Skin.objects.all()
     except CoreUser.DoesNotExist:
        return render_to_response('login.html', context_instance=RequestContext(request
 ))
     settings = user.settings
-      return render_to_response('settings.html', { 'settings' : settings, 'skin_list' :
- skin_list }, context_instance=RequestContext(request))
+    return render_to_response('settings.html', { 'settings' : settings, 'skin_list' : skin_list }, context_instance=RequestContext(request))
   elif request.method == 'POST':
     checkbox = request.POST['wants_emails'].strip()
     if (checkbox):
