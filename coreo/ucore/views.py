@@ -457,9 +457,10 @@ def rate(request, ratee, ratee_id):
 
   if request.method == 'GET':
     if rating_fk:
-      context = {'rating': utils.to_json(rating), 'link': utils.to_json(link), 'link_library': utils.to_json(link_library)}
+      context = {'rating': utils.django_to_dict(rating), 'link': utils.django_to_dict(link),
+                 'link_library': utils.django_to_dict(link_library)}
     else:
-      context = {'link': utils.to_json(link), 'link_library': utils.to_json(link_library)}
+      context = {'link': utils.django_to_dict(link), 'link_library': utils.django_to_dict(link_library)}
 
     return HttpResponse(json.dumps(context))
   elif request.method == 'POST':
@@ -472,7 +473,7 @@ def rate(request, ratee, ratee_id):
 
       rating = Rating.objects.create(rating_fk=rating_fk, score=request.POST['score'], comment=request.POST['comment'].strip())
 
-    return HttpResponse(json.dumps(utils.to_json(rating)))
+    return HttpResponse(json.dumps(utils.django_to_dict(rating)))
   else:
     return HttpResponse('%s is not a supported method' % request.method, status=405)
 
