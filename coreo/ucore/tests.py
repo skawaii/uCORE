@@ -1,10 +1,11 @@
-import datetime, os, zipfile
+import datetime, json, os, zipfile
 from cStringIO import StringIO
 
 from django.core import mail, serializers
 from django.test import TestCase
 from django.test.client import Client
 
+from coreo.ucore import utils
 from coreo.ucore.models import *
 
 
@@ -507,31 +508,33 @@ class RateTest(TestCase):
     rating = Rating.objects.create(rating_fk=rating_fk, score=3, comment='could be better')
 
     response = self.client.get('/rate/link/1/')
+    content = json.loads(response.content)
 
-    self.assertTemplateUsed(response, 'rate.html')
     self.assertEquals(response.status_code, 200)
-    self.assertEquals(response.context['rating'].score, 3)
-    self.assertEquals(response.context['rating'].comment, 'could be better')
-    self.assertEquals(response.context['link'], self.link)
-    self.assertEquals(response.context['link_library'], None)
+    self.assertEquals(content['rating']['fields']['score'], 3)
+    self.assertEquals(content['rating']['fields']['comment'], 'could be better')
+    self.assertEquals(content['link']['pk'], self.link.pk)
+    self.assertEquals(content['link']['fields']['url'], self.link.url)
+    self.assertEquals(content['link_library'], None)
 
   def test_view_link_library_rating(self):
     rating_fk = RatingFK.objects.create(user=self.user, link_library=self.link_library)
     rating = Rating.objects.create(rating_fk=rating_fk, score=5, comment='mint chocolate chip!')
 
     response = self.client.get('/rate/library/1/')
+    content = json.loads(response.content)
 
-    self.assertTemplateUsed(response, 'rate.html')
     self.assertEquals(response.status_code, 200)
-    self.assertEquals(response.context['rating'].score, 5)
-    self.assertEquals(response.context['rating'].comment, 'mint chocolate chip!')
-    self.assertEquals(response.context['link'], None)
-    self.assertEquals(response.context['link_library'], self.link_library)
+    self.assertEquals(content['rating']['fields']['score'], 5)
+    self.assertEquals(content['rating']['fields']['comment'], 'mint chocolate chip!')
+    self.assertEquals(content['link'], None)
+    self.assertEquals(content['link_library']['pk'], self.link_library.pk)
+    self.assertEquals(content['link_library']['fields']['name'], self.link_library.name)
 
   def test_rating_link(self):
     response = self.client.post('/rate/link/1/', {'score': 1, 'comment': 'What is this? A link for ants?!'})
 
-    self.assertRedirects(response, '/success/')
+    self.assertEquals(response.status_code, 200)
     self.assertEquals(RatingFK.objects.all().count(), 1)
     self.assertEquals(Rating.objects.all().count(), 1)
 
@@ -548,7 +551,7 @@ class RateTest(TestCase):
   def test_rating_link_library(self):
     response = self.client.post('/rate/library/1/', {'score': 1, 'comment': 'What is this? A library for ants?!'})
 
-    self.assertRedirects(response, '/success/')
+    self.assertEquals(response.status_code, 200)
     self.assertEquals(RatingFK.objects.all().count(), 1)
     self.assertEquals(Rating.objects.all().count(), 1)
 
