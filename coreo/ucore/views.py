@@ -4,7 +4,7 @@
   Jason Cooper, Jason Hotelling, Paul Coleman, and Paul Boone.
 """
 
-import csv, datetime, logging, os, re, time, urllib2, zipfile
+import csv, datetime, json, logging, os, re, time, urllib2, zipfile
 from cStringIO import StringIO
 
 from django.core.mail import send_mail
@@ -15,7 +15,7 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils import simplejson as json
 
@@ -433,48 +433,54 @@ def rate(request, ratee, ratee_id):
     ``ratee`` - a string, whose value must be either 'link' or 'library'. The value of ``ratee`` is
                 guaranteed by the app's URL conf file.
     ``ratee_id`` - the ID of the ``Link`` or ``LinkLibrary`` to be rated
+
+  Returns:
+    a JSON object. For GET requests, the JSON object represent the ``Link`` or ``LinkLibrary`` and the
+    related ``Rating``, if one already exists. For POST requests, the JSON object is simply the new
+    ``Rating`` instance resulting for updating the database.
   """ 
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  try:
-    user = CoreUser.objects.get(username=request.user.username)
-    link = None
-    link_library = None
-
-    if ratee == 'link': link = Link.objects.get(id=ratee_id)
-    elif ratee == 'library': link_library = LinkLibrary.objects.get(id=ratee_id)
-  except (CoreUser.DoesNotExist, Link.DoesNotExist, LinkLibrary.DoesNotExist) as e:
-    return HttpResponse(e.message)
+  user = get_object_or_404(CoreUser, username=request.user.username)
+  link = get_object_or_404(Link, pk=ratee_id) if ratee == 'link' else None
+  link_library = get_object_or_404(LinkLibrary, pk=ratee_id) if ratee == 'library' else None
 
   # check to see if a RatingFK already exists for this (CoreUser, (Link|LinkLibrary)) combo. If the combo already exists:
   #   1. and this is a GET, pass the Rating to the template to be rendered so the user can update the Rating
   #   2. and this is a POST, update the Rating
-  rating_fk = RatingFK.objects.filter(user=user, link=link, link_library=link_library) # guaranteed at most 1 result b/c of DB unique_together
+  try:
+    rating_fk = RatingFK.objects.get(user=user, link=link, link_library=link_library)
+  except RatingFK.DoesNotExist:
+    rating_fk = None
 
   if rating_fk:
-    rating = Rating.objects.filter(rating_fk=rating_fk[0]) #again, guarantted at most 1 result
-
-    if not rating: raise IntegrityError('A RatingFK %s exists, but is not associated with a Rating' % rating_fk[0])
+    try:
+      rating = Rating.objects.get(rating_fk=rating_fk)
+    except Rating.DoesNotExist:
+      if not rating: raise IntegrityError('A RatingFK %s exists, but is not associated with a Rating' % rating_fk)
 
   if request.method == 'GET':
-    if rating_fk: context = {'rating': rating[0], 'link': link, 'link_library': link_library}
-    else: context = {'link': link, 'link_library': link_library}
-
-    return render_to_response('rate.html', context, context_instance=RequestContext(request))
-  else:
     if rating_fk:
-      rating[0].score, rating[0].comment = (request.POST['score'], request.POST['comment'].strip())
-      rating[0].save()
+      context = {'rating': utils.django_to_dict(rating), 'link': utils.django_to_dict(link),
+                 'link_library': utils.django_to_dict(link_library)}
+    else:
+      context = {'link': utils.django_to_dict(link), 'link_library': utils.django_to_dict(link_library)}
+
+    return HttpResponse(json.dumps(context))
+  elif request.method == 'POST':
+    if rating_fk:
+      rating.score, rating.comment = (request.POST['score'], request.POST['comment'].strip())
+      rating.save()
     else:
       if ratee == 'link': rating_fk = RatingFK.objects.create(user=user, link=link)
       elif ratee == 'library': rating_fk = RatingFK.objects.create(user=user, link_library=link_library)
 
-      Rating.objects.create(rating_fk=rating_fk, score=request.POST['score'], comment=request.POST['comment'].strip())
+      rating = Rating.objects.create(rating_fk=rating_fk, score=request.POST['score'], comment=request.POST['comment'].strip())
 
-    # XXX is there a better way to redirect (which is recommended after a POST) to a "success" msg?
-    #return HttpResponseRedirect(reverse('coreo.ucore.views.success', kwargs={'message': 'Rating successfully saved.'}))
-    return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+    return HttpResponse(json.dumps(utils.django_to_dict(rating)))
+  else:
+    return HttpResponse('%s is not a supported method' % request.method, status=405)
 
 
 def register(request, sid):

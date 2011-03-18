@@ -112,3 +112,79 @@ def search_ucore(models, terms):
 
   return results
 
+
+def django_to_dict(instance):
+  """
+  Creates a Python dictionary representation of a Django model instance (or list of instances)
+  suitable for encoding with the ``json`` Python module.
+
+  Parameters:
+    ``instance`` - a single Django model instance or a list of model instances. If ``instance``
+                   (or the elements of ``instance``) is ``None``, then ``None`` is returned.
+
+  Returns:
+    a single Python dictionary representation of the model if ``instance`` is a single object;
+    otherwise, a list of Python dictionaries.
+  """
+  from django.core import serializers
+
+  is_list = isinstance(instance, list)
+
+  if not is_list: instance = [instance]
+
+  data = []
+
+  for inst in instance:
+    if inst: data.append(eval(serializers.serialize('json', [inst]))[0])
+    else: data.append(None)
+
+  if not is_list: data = data[0]
+
+  return data
+
+
+# XXX don't use this. It works, but I don't like the way I implemented it
+def dict_to_django(dicts):
+  """
+  Creates a Django model instance (or list of instances) from a Python dictionary representation
+  of the instance.
+
+  Parameters:
+    ``dicts`` - a single dictionary or a list of dictionaries. If ``dicts`` (or the elements of
+    ``dicts``) is ``None``, then ``None`` is returned.
+
+  Returns:
+    a single Django model instance if ``dicts`` is a single object; otherwise, a list of Django
+    model instances.
+  """
+  from django.core import serializers
+
+  is_list = isinstance(dicts, list)
+
+  if not is_list: dicts = [dicts]
+
+  data = []
+
+  for d in dicts:
+    if d:
+      # the Django deserializer expects a pretty specific string format. Have to
+      # convert unicode to strings and use " for the keys
+      #items = d.items()
+      #d.clear()
+
+      #for key, value in items:
+      #  d[str(key)] = str(value) if isinstance(value, unicode) else value
+
+      d = str([d]).replace('\'', '"')
+      # XXX this is a really hacky why to do this and a bad assumption to be making...
+      d = d.replace('u"', '"')
+
+      for obj in serializers.deserialize('json', d):
+        data.append(obj.object)
+    else:
+      data.append(None)
+
+  if not is_list: data = data[0]
+
+  return data
+
