@@ -43,7 +43,7 @@
        <table style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">
            <thead>
            <tr>
-             <th style="border-style:solid; border-color: black; border-width: 2px">Image</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Name</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Description</th><th style="border-style:solid; border-color: black; border-width: 2px; padding: 2px">Action</th><th style="border-style:solid; border-color: black; border-width: 2px; padding: 2px">Progress</th>
+             <th style="border-style:solid; border-color: black; border-width: 2px">Image</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Name</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Description</th><th style="border-style:solid; border-color: black; border-width: 2px; padding: 2px; width: 150px">Progress</th>
            </tr>
          </thead>
        <tbody> 
@@ -52,7 +52,7 @@
         <td style="border-style:solid; border-color: black; border-width: 2px; padding: 2px"><img src='{{ MEDIA_URL }}{{ trophy.file_path }}' height='100px' width='200px'/></td>
      <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.name }}</td>
      <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.desc }}</td>
-     <td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><button value="earntrophy" onclick="earn_trophy('{{ trophy.pk }}', '{{ user }}'); return false;">Earn This Trophy</button></td><td style="padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><div id="progress{{ forloop.counter }}"></div>{{ earn_progress }} / {{trophy.earning_req}}</td> 
+     <td style="width: 150px; padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><div id="progress{{ forloop.counter }}"></div>{{ earn_progress }} / {{trophy.earning_req}}</td> 
    </tr>
    <script type="text/javascript">
      $("#progress{{ forloop.counter }}").progressbar({ value: {{ percentage }} });
