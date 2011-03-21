@@ -649,6 +649,7 @@ def modify_settings(request):
     except KeyError:
       checkbox = False
     anothervar = request.POST['skin'].strip()
+    print 'value of skin is: %s' % anothervar
     skin_selected = Skin.objects.get(name=anothervar)
     user = CoreUser.objects.get(username=request.user.username)
     settings = user.settings
