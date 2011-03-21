@@ -644,15 +644,21 @@ def modify_settings(request):
     settings = user.settings
     return render_to_response('settings.html', { 'settings' : settings, 'skin_list' : skin_list }, context_instance=RequestContext(request))
   elif request.method == 'POST':
-    checkbox = request.POST['wants_emails'].strip()
-    if (checkbox):
-      print 'the person wants emails.'
-    else:
-      print 'the person does not want e-mails.'
+    try:
+      checkbox = request.POST['wants_emails'].strip()
+    except KeyError:
+      checkbox = False
     anothervar = request.POST['skin'].strip()
-    print 'value of variable is: %s' % checkbox
-    print 'value of second is : %s' % anothervar
-    return render_to_response('login.html', context_instance=RequestContext(request))
+    skin_selected = Skin.objects.get(name=anothervar)
+    user = CoreUser.objects.get(username=request.user.username)
+    settings = user.settings
+    if (checkbox):
+      settings.wants_emails = True
+    else:
+      settings.wants_emails = False
+    settings.skin = skin_selected 
+    settings.save()
+    return render_to_response('geindex.html', context_instance=RequestContext(request))
 
 
 
