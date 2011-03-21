@@ -1,7 +1,7 @@
 
 <html>
 <head>
-	<title>uCORE</title>
+	<title>uCORE</titl e>
  	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   	
 	<!-- CSS -->
@@ -21,41 +21,54 @@
 
   <script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script></head>
 <body>
-  <!--  Welcome.  {{ settings.wants_emails }} and {{ settings.skin }} -->
+<div id='geheader'>
+	<img id="core-logo"  height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
+	<div id="user-info">
+    <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/ge/">Back to Visualizer</a> | <a href="/library-demo/">Create Link Library</a> | <a href="FutureFeature">Help</a> | <a href="/logout/">Sign Out</a>
+  </div>
+</div>
+<br/>
+<br/>
+<!--  Welcome.  {{ settings.wants_emails }} and {{ settings.skin }} -->
+<h2 style="text-align:center">Settings for {{ user.first_name }}</h2>
+<br/>
+<br/>
   <form action="/updatesettings/" method="POST">{% csrf_token %}
-   <fieldset class="module aligned ">
-             <div class="form-row wants_emails">
-               <div>
+             <table style="text-align:center; padding: 15px; border-width:2px; align:center; border-style:solid; margin-left:auto; margin-right:auto;" border="2">
+               <tr>
+                 <td>
+                   <label for="id_wants_emails" class="vCheckboxLabel">Email Notifications (trophies, etc.)?</label></td>
+                 <td>
                  {% if settings.wants_emails %}              
                  <input checked="checked" type="checkbox" name="wants_emails" id="id_wants_emails" />
-                 <label for="id_wants_emails" class="vCheckboxLabel">Wants emails</label>
                  {% else %}
                  <input type="checkbox" name="wants_emails" id="id_wants_emails"/>
-                 <label for="id_wants_emails" class="vCheckboxLabel">Wants emails</label>
                  {% endif %}
-                 
-   <p class="help">Would you like to be notified of events via email?</p>
-   </div>
-   </div>
-   <div class="form-row skin">
-   <div>
-   <label for="id_skin">Skin:</label>
+               </td> 
+             </tr>
+             <tr>
+               <td>
+                 <label for="id_skin">Skin:</label>
+               </td>
+               <td>
    <select name="skin" id="id_skin">
      {% for i in skin_list %}
-     {% ifequal i.name settings.skin %}
+     {% ifequal i.name settings.skin.name %}
      <option value="{{ i.name }}" selected="selected">{{ i.name }}</option>
      {% else %}
      <option value="{{ i.name }}">{{ i.name }}</option>
      {% endifequal %}
      {% endfor %}
    </select>
-   <br/>
-   <br/>
-   <input id="Submit" type="submit" name="Submit"/>
-    <p class="help">Customize the look and feel with skins.</p>
-   </div>
-   </div>
- </fieldset>
+ </td>
+ </tr>
+ <tr>
+   <td>&nbsp;</td>
+   <td> 
+     <input id="Submit" type="submit" value="Submit"/>
+   </td>
+ </tr>
+ </table>
  </form>
 </body>
 </html>
