@@ -649,14 +649,11 @@ def modify_settings(request):
     except KeyError:
       checkbox = False
     anothervar = request.POST['skin'].strip()
-    print 'value of skin is: %s' % anothervar
     skin_selected = Skin.objects.get(name=anothervar)
     user = CoreUser.objects.get(username=request.user.username)
     settings = user.settings
     if (checkbox):
       settings.wants_emails = True
-    else:
-      settings.wants_emails = False
     settings.skin = skin_selected 
     settings.save()
     return render_to_response('geindex.html', context_instance=RequestContext(request))
