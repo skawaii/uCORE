@@ -654,6 +654,8 @@ def modify_settings(request):
     settings = user.settings
     if (checkbox):
       settings.wants_emails = True
+    else:
+      settings.wants_emails = False
     settings.skin = skin_selected 
     settings.save()
     return render_to_response('geindex.html', context_instance=RequestContext(request))

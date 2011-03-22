@@ -596,9 +596,9 @@ class ModifySettingsTest(TestCase):
   def test_view_settings(self):
     self.client.post('/login/', {'username': 'testuser', 'password': '2pass'})
     self.assertTrue(self.client.session.has_key('_auth_user_id'))
-    response = self.client.get('/viewsettings/')
+    response = self.client.get('/settings/')
     self.assertEquals(response.status_code, 200)
-    self.client.post('/updatesettings/', {'wants_emails': 'on', 'skin': 'Default2' })
+    self.client.post('/settings/', {'wants_emails': 'on', 'skin': 'Default2' })
     # For some reason,  if I use self.user.settings the test fails...
     user = CoreUser.objects.get(username='testuser')
     settings_to_check = user.settings
