@@ -97,7 +97,7 @@
             <div id="core_signup_div" class="center_div">
                 <div><h1> Sign Up </h1></div>
                 <div>{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
-                <form action="/save-user/" method="post" name="frmPhone">
+                <form action="/create-user/" method="post" name="frmPhone">
                     <div>{% csrf_token %}</div>
                     <ol>
                         <input name="sid" type="hidden" readonly="readonly" value="">
