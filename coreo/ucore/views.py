@@ -256,7 +256,15 @@ def get_library(request, username, lib_name):
 def check_username(request):
   if request.method == 'GET':
     user = request.GET['username'].strip()
-  return HttpResponse('index.html') 
+    dbCheck = CoreUser.objects.filter(username=user)
+    if (dbCheck.count() > 0):
+      boolReturn = True;
+    else:
+      boolReturn = False;
+    return HttpResponse(json.dumps(boolReturn))
+  else:
+    return HttpResponse('index.html') 
+
 
 def get_shapefile(request):
   w = shapefile.Writer(shapefile.POLYLINE)
@@ -305,7 +313,7 @@ def get_tags(request):
   # XXX if the request method is something besides a GET, it'll still execute the next 2 lines of code....
   results = Tag.objects.filter(name__contains=term, type='P')
 
-   return HttpResponse(serializers.serialize('json', results))
+  return HttpResponse(serializers.serialize('json', results))
 
 
 def index(request):
@@ -697,7 +705,7 @@ def trophy_room(request):
 
 
 def test_chart(request):
-  return render_to_response('chart.html', context_instance=RequestContext(request))
+   return render_to_response('chart.html', context_instance=RequestContext(request))
 
 def upload_csv(request):
   if request.method == 'POST':
