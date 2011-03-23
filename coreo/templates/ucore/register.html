@@ -7,6 +7,24 @@
         <!-- CSS -->
         <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
         <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+     <script type="text/javascript">
+        function passwordConfirm()
+        {
+          val1 = document.getElementsByName('password')[0].value;
+          val2 = document.getElementsByName('password2')[0].value;
+          if (val1 !== val2)
+          {
+            document.getElementById('matchOutput').style.color = "red";
+            document.getElementById('matchOutput').innerHTML = "Passwords do not match.";
+          }
+          else
+          {
+            document.getElementById('matchOutput').style.color = "green";
+            document.getElementById('matchOutput').innerHTML = "Passwords match.";
+          } 
+        }
+
+     </script>
     </head>
 
     <body id="signup_page">
@@ -49,7 +67,13 @@
                         <li>
                             <label>Password</label>
                             <input name="password" type="password">
-                        </li>
+                            </li>
+                         <li>
+                            <label>Password(confirm)</label>
+                            <input name="password2" type="password" onKeyUp="passwordConfirm()">
+                            <div id="matchOutput"></div>
+                         </li>
+
                         <li class="submit">
                             <a href="#" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"><input type="submit" value="Sign Up" /></a>
                         </li>
