@@ -78,8 +78,9 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 
 .right_div_feedback {
   float: right;
-  padding: 0% 0% 0% 2%;
+  /** padding: 0% 0% 0% 2%; **/
   width: 30%;
+  text-align: left;
 }
 
 #core_signup_div {
@@ -87,9 +88,10 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 }
 
 #signup_page ol{ width:620px;float:left;list-style-type:none;margin-top:20px }
-#signup_page li{ padding-bottom:10px}#signup_page input{width:150px }
+#signup_page li{ padding-bottom:10px}
+#signup_page input{width:150px }
 #signup_page label{ float:left;width:160px;font-weight:bold;color:#525252;padding-top:5px;padding-right:15px;text-align:right }
-#signup_page .terms input{ float:left;width:28px;margin:4px 0 0 110px }
+#signup_page .terms input{ float:left;width:28px;margin:4px 0 0 120px }
 #signup_page .about_gowalla{ float:left;width:250px;padding:0;margin:0;margin-left:40px;padding-left:30px;margin-top:20px;border-left:2px }
 
 .ui-kmlaccordion {
