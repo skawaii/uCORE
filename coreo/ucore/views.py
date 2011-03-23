@@ -109,6 +109,50 @@ def create_library(request):
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
 
+def create_user(request):
+  """
+  Create the user's record in the DB.
+  """ 
+  sid = request.POST['sid'].strip()
+  username = request.POST['username'].strip()
+  first_name = request.POST['first_name'].strip()
+  last_name = request.POST['last_name'].strip()
+  password = request.POST['password'].strip()
+  email = request.POST['email'].strip()
+  phone_number = request.POST['phone_number'].strip()
+
+  try:
+    if (len(phone_number) != 10): 
+      prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+      result = prog.match(phone_number)
+      phone_number = result.group(1) + result.group(2) + result.group(3)
+  except Exception, e:
+    logging.error('Exception parsing phone number: %s' % e.message)
+
+  if not (sid and username and first_name and last_name and password and email and phone_number):
+    # redisplay the registration page
+    return render_to_response('register.html',
+        {'sid': sid,
+         'error_message': 'Please fill in all required fields.'
+        }, context_instance=RequestContext(request))
+
+  # create the user in the DB
+  try:
+    user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name,
+                                   email=email, phone_number=phone_number)
+  except IntegrityError:
+    return render_to_response('register.html',
+        {'sid': sid,
+         'error_message': 'The username/sid %s is not available. Please try again' % username
+        }, context_instance=RequestContext(request))
+
+  user.set_password(password)
+  user.save()
+
+  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
+  return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
+
+
 def earn_trophy(request):
   if request.method == 'POST':
     user2 = request.POST['user'].strip()
@@ -378,30 +422,23 @@ def map_view(request):
 
 
 def modify_settings(request):
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  user = get_object_or_404(CoreUser, username=request.user.username)
+
   if request.method == 'GET':   
-    try:
-      user = CoreUser.objects.get(username=request.user.username)
-      skin_list = Skin.objects.all()
-    except CoreUser.DoesNotExist:
-       return render_to_response('login.html', context_instance=RequestContext(request))
-    settings = user.settings
-    return render_to_response('settings.html', { 'settings' : settings, 'skin_list' : skin_list }, context_instance=RequestContext(request))
+    return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all()},
+        context_instance=RequestContext(request))
   elif request.method == 'POST':
-    try:
-      checkbox = request.POST['wants_emails'].strip()
-    except KeyError:
-      checkbox = False
-    anothervar = request.POST['skin'].strip()
-    skin_selected = Skin.objects.get(name=anothervar)
-    user = CoreUser.objects.get(username=request.user.username)
-    settings = user.settings
-    if (checkbox):
-      settings.wants_emails = True
-    else:
-      settings.wants_emails = False
-    settings.skin = skin_selected 
-    settings.save()
-    return render_to_response('geindex.html', context_instance=RequestContext(request))
+    wants_emails = True if 'wants_emails' in request.POST else False
+    skin = Skin.objects.get(name=request.POST['skin'].strip())
+
+    user.settings.wants_emails = wants_emails
+    user.settings.skin = skin
+    user.settings.save()
+
+    return HttpResponseRedirect(reverse('coreo.ucore.views.modify_settings'))
 
 
 def notifytest(request):
@@ -526,92 +563,6 @@ def register(request, sid):
   return render_to_response('register.html', {'sid': sid}, context_instance=RequestContext(request))
 
 
-def create_user(request):
-  """
-  Create the user's record in the DB.
-  """ 
-  sid = request.POST['sid'].strip()
-  username = request.POST['username'].strip()
-  first_name = request.POST['first_name'].strip()
-  last_name = request.POST['last_name'].strip()
-  password = request.POST['password'].strip()
-  email = request.POST['email'].strip()
-  phone_number = request.POST['phone_number'].strip()
-
-  try:
-    if (len(phone_number) != 10): 
-      prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
-      result = prog.match(phone_number)
-      phone_number = result.group(1) + result.group(2) + result.group(3)
-  except Exception, e:
-    logging.error('Exception parsing phone number: %s' % e.message)
-
-  if not (sid and username and first_name and last_name and password and email and phone_number):
-    # redisplay the registration page
-    return render_to_response('register.html',
-        {'sid': sid,
-         'error_message': 'Please fill in all required fields.'
-        }, context_instance=RequestContext(request))
-
-  # create the user in the DB
-  try:
-    user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name,
-                                   email=email, phone_number=phone_number)
-  except IntegrityError:
-    return render_to_response('register.html',
-        {'sid': sid,
-         'error_message': 'The username/sid %s is not available. Please try again' % username
-        }, context_instance=RequestContext(request))
-
-  user.set_password(password)
-  user.save()
-
-  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
-  return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
-
-
-def update_user(request):
-  """
-  Update the user's record in the DB.
-  """ 
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
-
-  first_name = request.POST['first_name'].strip()
-  last_name = request.POST['last_name'].strip()
-  password = request.POST['password'].strip()
-  email = request.POST['email'].strip()
-  phone_number = request.POST['phone_number'].strip()
-
-  try:
-    if (len(phone_number) != 10): 
-      prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
-      result = prog.match(phone_number)
-      phone_number = result.group(1) + result.group(2) + result.group(3)
-  except Exception, e:
-    logging.error('Exception parsing phone number: %s' % e.message)
-
-  if not (first_name and last_name and password and email and phone_number):
-    # redisplay the registration page
-    return render_to_response('register.html',
-        {'sid': sid,
-         'error_message': 'Please fill in all required fields.'
-        }, context_instance=RequestContext(request))
-
-  # update the user to the DB
-  user = CoreUser.objects.get(sid=sid)
-  user.first_name = first_name
-  user.last_name = last_name
-  user.email = email
-  user.phone_number = phone_number 
-  user.set_password(password)
-  user.save()
-
-  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
-  # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
-  return HttpResponseRedirect(reverse('coreo.ucore.views.user_profile'))
-
-
 def search(request, models):
   """
   Search the databases for ``Links`` or ``LinkLibraries`` whose metadata matches the search terms. The
@@ -693,6 +644,49 @@ def trophy_room(request):
 
 def test_chart(request):
   return render_to_response('chart.html', context_instance=RequestContext(request))
+
+
+def update_user(request):
+  """
+  Update the user's record in the DB.
+  """ 
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+  first_name = request.POST['first_name'].strip()
+  last_name = request.POST['last_name'].strip()
+  password = request.POST['password'].strip()
+  email = request.POST['email'].strip()
+  phone_number = request.POST['phone_number'].strip()
+
+  try:
+    if (len(phone_number) != 10): 
+      prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+      result = prog.match(phone_number)
+      phone_number = result.group(1) + result.group(2) + result.group(3)
+  except Exception, e:
+    logging.error('Exception parsing phone number: %s' % e.message)
+
+  if not (first_name and last_name and password and email and phone_number):
+    # redisplay the registration page
+    return render_to_response('register.html',
+        {'sid': sid,
+         'error_message': 'Please fill in all required fields.'
+        }, context_instance=RequestContext(request))
+
+  # update the user to the DB
+  user = CoreUser.objects.get(sid=sid)
+  user.first_name = first_name
+  user.last_name = last_name
+  user.email = email
+  user.phone_number = phone_number 
+  user.set_password(password)
+  user.save()
+
+  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
+  # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
+  return HttpResponseRedirect(reverse('coreo.ucore.views.user_profile'))
+
 
 def upload_csv(request):
   if request.method == 'POST':

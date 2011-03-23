@@ -576,32 +576,20 @@ class SettingsTest(TestCase):
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
   def test_settings_created(self):
-    pass 
-
-
-class ModifySettingsTest(TestCase):
-  def setUp(self):
-    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
-    self.user.set_password('2pass')
-    self.skin = Skin(name="Default2", file_path="/default.css")
-    self.skin.save()
-    self.settings = Settings(0, wants_emails=False)
-    self.settings.save()
-    self.user.settings = self.settings
-    self.user.save()
-
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.user.settings.wants_emails)
+    self.assertEquals(self.user.settings.skin, Skin.objects.get(name='Default'))
 
   def test_view_settings(self):
-    self.client.post('/login/', {'username': 'testuser', 'password': '2pass'})
-    self.assertTrue(self.client.session.has_key('_auth_user_id'))
     response = self.client.get('/settings/')
     self.assertEquals(response.status_code, 200)
-    self.client.post('/settings/', {'wants_emails': 'on', 'skin': 'Default2' })
-    # For some reason,  if I use self.user.settings the test fails...
-    user = CoreUser.objects.get(username='testuser')
-    settings_to_check = user.settings
-    self.assertEqual(settings_to_check.wants_emails, True)
-    self.assertEqual(settings_to_check.skin.name, 'Default2')
+
+  def test_modify_settings(self):
+    skin = Skin.objects.create(name='Default2', file_path='/default.css')
+    
+    response = self.client.post('/settings/', {'skin': 'Default2'})
+    self.assertRedirects(response, '/settings/')
+
+    settings = CoreUser.objects.get(username=self.user.username).settings
+    self.assertFalse(settings.wants_emails)
+    self.assertEquals(settings.skin, skin)
 
