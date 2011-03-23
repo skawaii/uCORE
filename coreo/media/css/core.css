@@ -4,13 +4,14 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
   border:0;
   outline:0;
   font:inherit inherit 100% inherit;
-  vertical-align:baseline; }
+  vertical-align:baseline; 
+ }
 
 /*The user welcome message in the page header!*/
 #user-info {
-  position:relative;
-  float:right;
-  padding-right: 5px;
+   position:relative;
+   float:right;
+   padding-right: 5px;
   
 }
 #core-logo {
@@ -33,7 +34,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 #header-mainpage {
   float:right; 
   padding:10px;
-  font-famil: sans-serif;
+  font-family: sans-serif;
   color:#B3B3B3
 }
 
@@ -69,10 +70,16 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 .center_div {
   width: 650px;
   min-height: 250px;
-  margin-left: -225px; /*** width / 2 ***/
+  margin-left: -225px;  /** width / 2 ***/
   position: absolute; 
   top: -125px; /*** height / 2 ***/
   left: 50%;
+}
+
+.right_div_feedback {
+  float: right;
+  padding: 0% 0% 0% 2%;
+  width: 30%;
 }
 
 #core_signup_div {
