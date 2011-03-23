@@ -536,7 +536,7 @@ def save_user(request):
   user.save()
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
-  return HttpResponseRedirect(reverse( 'coreo.ucore.views.login'))
+  return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
 
 
 def search(request, models):
