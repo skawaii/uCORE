@@ -149,7 +149,7 @@ class TrophyTest(TestCase):
     #print '\nPassed the signal test.'
 
   def test_registration_trophy_earned(self):
-    self.client.post('/save-user/', {'sid': 'something', 'username': 'bubba', 'first_name': 'Bubba', 'last_name': 'Smith',
+    self.client.post('/create-user/', {'sid': 'something', 'username': 'bubba', 'first_name': 'Bubba', 'last_name': 'Smith',
       'password': 'somethinghere', 'email':'prcoleman2@gmail.com', 'phone_number':'(555)555-4444'})
 
     self.assertEquals(TrophyCase.objects.all().count(), 1)
@@ -576,6 +576,20 @@ class SettingsTest(TestCase):
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
   def test_settings_created(self):
-    pass
+    self.assertTrue(self.user.settings.wants_emails)
+    self.assertEquals(self.user.settings.skin, Skin.objects.get(name='Default'))
 
+  def test_view_settings(self):
+    response = self.client.get('/settings/')
+    self.assertEquals(response.status_code, 200)
+
+  def test_modify_settings(self):
+    skin = Skin.objects.create(name='Default2', file_path='/default.css')
+    
+    response = self.client.post('/settings/', {'skin': 'Default2'})
+    self.assertRedirects(response, '/settings/')
+
+    settings = CoreUser.objects.get(username=self.user.username).settings
+    self.assertFalse(settings.wants_emails)
+    self.assertEquals(settings.skin, skin)
 

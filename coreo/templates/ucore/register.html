@@ -7,6 +7,9 @@
         <!-- CSS -->
         <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
         <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-ui-1.8.5.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/formvalid.js"></script>
     </head>
 
     <body id="signup_page">
@@ -19,16 +22,14 @@
             <div id="core_signup_div" class="center_div">
                 <div><h1> Sign Up </h1></div>
                 <div>{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
-                <form action="/save-user/" method="post" name="frmPhone">
+                <form action="/create-user/" method="post" name="frmPhone">
                     <div>{% csrf_token %}</div>
                     <ol>
-                        <li>
-                            <label>SID</label>
-                            <input name="sid" type="text" readonly="readonly" value="{{ sid }}">
-                        </li>
+                        <input name="sid" type="hidden">
                         <li>
                             <label>Username</label>
-                            <input name="username" type="text">
+                            <input name="username" type="text" onblur="check_username()">
+                            <div id="userOutput" class="right_div_feedback"/>
                         </li>
                         <li>
                             <label>First Name</label>
@@ -49,9 +50,15 @@
                         <li>
                             <label>Password</label>
                             <input name="password" type="password">
-                        </li>
+                            </li>
+                         <li>
+                            <label>Password(confirm)</label>
+                            <input name="password2" type="password" onKeyUp="passwordConfirm()">
+                            <div id="matchOutput" class="right_div_feedback"></div>
+                         </li>
+
                         <li class="submit">
-                            <a href="#" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"><input type="submit" value="Sign Up" /></a>
+                        <a href="#" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"><input type="submit" value="Sign Up" onclick="return check_form()"/></a><div id="formOutput" class="right_div_feedback"/>
                         </li>
                     </ol>
                 </form>

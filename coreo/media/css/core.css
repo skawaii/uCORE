@@ -4,13 +4,14 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
   border:0;
   outline:0;
   font:inherit inherit 100% inherit;
-  vertical-align:baseline; }
+  vertical-align:baseline; 
+ }
 
 /*The user welcome message in the page header!*/
 #user-info {
-  position:relative;
-  float:right;
-  padding-right: 5px;
+   position:relative;
+   float:right;
+   padding-right: 5px;
   
 }
 #core-logo {
@@ -31,9 +32,9 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 }
 
 #header-mainpage {
-  float:right;
+  float:right; 
   padding:10px;
-  font-famil: sans-serif;
+  font-family: sans-serif;
   color:#B3B3B3
 }
 
@@ -67,22 +68,30 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 }
 
 .center_div {
-  width: 450px;
+  width: 650px;
   min-height: 250px;
-  margin-left: -225px; /*** width / 2 ***/
-  position: absolute;
+  margin-left: -225px;  /** width / 2 ***/
+  position: absolute; 
   top: -125px; /*** height / 2 ***/
   left: 50%;
+}
+
+.right_div_feedback {
+  float: right;
+  /** padding: 0% 0% 0% 2%; **/
+  width: 30%;
+  text-align: left;
 }
 
 #core_signup_div {
   background-color:#EFEFEF;
 }
 
-#signup_page ol{ width:320px;float:left;list-style-type:none;margin-top:20px }
-#signup_page li{ padding-bottom:10px}#signup_page input{width:200px }
-#signup_page label{ float:left;width:80px;font-weight:bold;color:#525252;padding-top:5px;padding-right:15px;text-align:right }
-#signup_page .terms input{ float:left;width:28px;margin:4px 0 0 110px }
+#signup_page ol{ width:620px;float:left;list-style-type:none;margin-top:20px }
+#signup_page li{ padding-bottom:10px}
+#signup_page input{width:150px }
+#signup_page label{ float:left;width:160px;font-weight:bold;color:#525252;padding-top:5px;padding-right:15px;text-align:right }
+#signup_page .terms input{ float:left;width:28px;margin:4px 0 0 120px }
 #signup_page .about_gowalla{ float:left;width:250px;padding:0;margin:0;margin-left:40px;padding-left:30px;margin-top:20px;border-left:2px }
 
 .ui-kmlaccordion {
@@ -137,12 +146,12 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 .kmlaccordion-searchform {
 	width: 100%;
 	margin-bottom: 20px;
-	white-space: nowrap;
-}
+	 white-space: nowrap;
+} 
 
 .kmlaccordion-searchform table {
 	width: 100%;
-	table-layout: fixed;
+ 	table-layout: fixed;
 }
 
 .kmlaccordion-searchform table td.buttonContainer {
@@ -150,7 +159,7 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 }
 
 .kmlaccordion-searchform input {
-	vertical-align: middle;
+ 	vertical-align: middle;
 	font-size: 1.1em !important;
 	height: 1.9em !important;
 	width: 100%;
@@ -159,19 +168,19 @@ body {background:#f3f3f3 url("../images/texture.gif") repeat top left}
 .kmlaccordion-searchform button {
 	width: 2.3em;
 	height: 2.3em;
-	vertical-align: middle;
+ 	vertical-align: middle;
 }
 
 .ui-emptytext {
 	font-weight: bold;
 	color: #ccc;
-	letter-spacing: 1.1;
+ 	letter-spacing: 1.1;
 }
 
 div.kmltree > ul:first-child > li.root-heading:first-child > span.name {
 	font-weight: bold;
 	font-size: 110%;
-	color: #6C7C90;
+ 	color: #6C7C90;
 }
 
 .gearthapp-controlpanel .ui-kmlaccordion {
@@ -180,11 +189,11 @@ div.kmltree > ul:first-child > li.root-heading:first-child > span.name {
 
 .collapser {
 	height: 18px;
-	cursor: pointer;
+ 	cursor: pointer;
 }
-
+ 
 .collapser span {
-	margin: 1px 2px 1px 1px;
+ 	margin: 1px 2px 1px 1px;
 	float: right;
 }
 
@@ -202,7 +211,7 @@ div.core-controlpanel-collapsed {
 	width: 18px;
 	height: 100%;
 	cursor: pointer;
-	z-index: 100;
+	z-index: 100; 
 }
 
 div.core-controlpanel-collapsed span {
