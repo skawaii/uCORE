@@ -27,7 +27,7 @@ def send_notification_email(sender, **kwargs):
 
   if notification.user.settings.wants_emails:
     # XXX perhaps customize the subject and body based on the notification type
-    send_mail(notification.message, notification.message, 'trophy@layedintel.com', [notification.user.email], fail_silently=False)
+    send_mail(notification.message, notification.message, 'trophy@layedintel.com', [notification.user.email], fail_silently=True)
 
 
 def check_trophy_conditions(sender, **kwargs):
