@@ -5,11 +5,28 @@
         <title>uCORE - Register</title>
 
         <!-- CSS -->
-        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
-        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+       <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+ <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+ 
     <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
     <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-ui-1.8.5.custom.min.js"></script>
     <script src="{{ MEDIA_URL }}javascript/formvalid.js"></script>
+    <style type="text/css">
+      table {
+        width: 400px;
+        padding-bottom:10px;
+      }
+      th {
+        width: 30px;
+        text-align: right;
+      }
+
+      td {
+        width: 150px;
+        padding-bottom:10px;
+      } 
+      
+    </style>
     </head>
 
     <body id="signup_page">
@@ -20,47 +37,81 @@
 
         <div class="main_div">
             <div id="core_signup_div" class="center_div">
-                <div><h1> Sign Up </h1></div>
+              <div><h1 style="padding-left:120px"> Sign Up </h1></div>
+              <br/>
+              <br/>
                 <div>{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
                 <form action="/create-user/" method="post" name="frmPhone">
                     <div>{% csrf_token %}</div>
-                    <ol>
                         <input name="sid" type="hidden">
-                        <li>
-                            <label>Username</label>
-                            <input name="username" type="text" onblur="check_username()">
-                            <div id="userOutput" class="right_div_feedback"></div>
-                        </li>
-                        <li>
-                            <label>First Name</label>
-                            <input name="first_name" type="text">
-                        </li>
-                        <li>
-                            <label>Last Name</label>
-                            <input name="last_name" type="text">
-                        </li>
-                        <li>
-                            <label>Phone</label>
-                            <input name="phone_number" type="text">
-                        </li>
-                        <li>
-                            <label>Email</label>
-                            <input name="email" type="text">
-                        </li>
-                        <li>
-                            <label>Password</label>
-                            <input name="password" type="password">
-                            </li>
-                         <li>
-                            <label>Password(confirm)</label>
-                            <input name="password2" type="password" onKeyUp="passwordConfirm()">
-                            <div id="matchOutput" class="right_div_feedback"></div>
-                         </li>
-
-                        <li class="submit">
-                        <a href="#" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"><input type="submit" value="Sign Up" onclick="return check_form()"/></a><div id="formOutput" class="right_div_feedback"></div>
-                        </li>
-                    </ol>
+                        <table>
+                          <tr style="width:40px">
+                            <th>
+                              <label>Username</label>
+                            </th>
+                            <td>
+                              <input name="username" type="text" onblur="check_username()"></td>
+                            <td>
+                              <div id="userOutput" style="padding-left:10px"></div></td>
+                          </tr>
+                          <tr>
+                            <th>
+                              <label>First Name</label></th>
+                            <td>
+                              <input name="first_name" type="text"></td>
+                            <td></td>
+                          </tr>
+                          <tr>
+                            <th>
+                              <label>Last Name</label></th>
+                            <td>
+                              <input name="last_name" type="text">
+                            </td>
+                            <td></td>
+                          </tr>
+                          <tr>
+                            <th>
+                              <label>Phone</label></th>
+                            <td>
+                              <input name="phone_number" type="text">
+                            </td>
+                            <td></td>
+                          </tr>
+                          <tr>
+                            <th>  
+                              <label>Email</label></th>
+                            <td>
+                              <input name="email" type="text"></td>
+                            <td>
+                            </td>
+                          </tr>
+                          <tr>
+                            <th>
+                              <label>Password</label></th>
+                            <td>
+                              <input name="password" type="password"></td>
+                            <td></td>
+                         </tr>
+                         <tr>
+                            <th>
+                              <label>Password(confirm)</label>
+                            </th>
+                              <td>
+                                <input name="password2" type="password" onKeyUp="passwordConfirm()"></td>
+                           <td>
+                             <div id="matchOutput" style="width:300px; padding-left:10px;"></div>
+                           </td>
+                         </tr>
+                         <tr>
+                           <td>
+                           </td>
+                          <td>
+                            <span class="submit"> <!-- was li/ul -->
+                        <!--                       <a href="" style="min-width: 100px; margin: 10px 0pt 10px 90px;" class="button fit large"> -->
+                          <a href="" class="button fit large">
+<input type="submit" value="Sign Up" onclick="return check_form()"/></a></td></span><td><div id="formOutput"></div></td>
+                    </tr>
+                  </table>
                 </form>
             </div> <!-- End center_div -->
         </div> <!-- End main_div -->
