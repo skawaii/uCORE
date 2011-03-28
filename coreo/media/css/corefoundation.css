@@ -78,7 +78,7 @@ a.button
   line-height:18px;
   font-weight:bold;
   color:#fff !important;
-  /* border:1px solid #ff920d; */
+  border:1px solid #ff920d; 
   min-width:40px;
   /* cursor:pointer; */
   text-shadow:#de6e00 0 -1px 0;
@@ -236,7 +236,7 @@ a.button.disabled:active,a.button.disabled:hover
 { -moz-box-shadow:rgba(0,0,0,0.1) 1px 0 5px 0;
   -webkit-box-shadow:rgba(0,0,0,0.1) 1px 0 5px 0;
   -o-box-shadow:rgba(0,0,0,0.1) 1px 0 5px 0;
-  box-shadow:rgba(0,0,0 ,0.1) 1px 0 5px 0; }
+  box-shadow:rgba(0,0,0,0.1) 1px 0 5px 0; }
 
 a.button.spinner span
 { display:block;
@@ -622,7 +622,7 @@ input.text:focus,input.password:focus,textarea.uniform:focus
 
 #signup_page label
 { float:left;
-  width:80px;
+  width:60px;
   font-weight:bold;
   color:#525252;
   padding-top:5px;
