@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <title>uCORE</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+
+    <!-- Javascript -->
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+    <script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
+
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/geo/geo-0.2.pack.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.js"></script>
+
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
+  </head>
+  <body>
+    <div id='geheader'>
+      <img id="core-logo"  height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
+      <div id="user-info">
+        <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/ge/">Back to Visualizer</a> | <a href="/library-demo/">Create Link Library</a> | <a href="FutureFeature">Help</a> | <a href="/logout/">Sign Out</a>
+      </div>
+    </div>
+    <br /> <br />
+    <!--  Welcome.  {{ settings.wants_emails }} and {{ settings.skin }} -->
+    <h2 style="text-align:center">Settings for {{ user.first_name }}</h2>
+    <br /> <br />
+    <form action="/settings/" method="POST">{% csrf_token %}
+      <table style="text-align:center; padding: 15px; border-width:2px; align:center; border-style:solid; margin-left:auto; margin-right:auto;" border="2">
+        <tr>
+          <td><label for="id_wants_emails" class="vCheckboxLabel">Email Notifications (trophies, etc.)?</label></td>
+          <td>
+            <input type="checkbox" name="wants_emails" id="id_wants_emails" {% if settings.wants_emails %}checked="checked"{% endif %} />
+          </td> 
+        </tr>
+        <tr>
+          <td><label for="id_skin">Skin:</label></td>
+          <td>
+            <select name="skin" id="id_skin">
+              {% for i in skin_list %}
+              <option value="{{ i.name }}" {% ifequal i.name settings.skin.name %}selected="selected"{% endifequal %}>{{ i.name }}</option>
+              {% endfor %}
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td><input id="Submit" type="submit" value="Submit"/></td>
+        </tr>
+      </table>
+    </form>
+  </body>
+</html>

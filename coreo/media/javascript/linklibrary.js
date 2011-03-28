@@ -59,20 +59,23 @@
 		 	});
           
       });
-
+        
+     
       function searchLinks(term)
        {
         document.getElementById('tagname').value = '';
         document.getElementById('q2').value = '';
         document.getElementById('q1').value = '';
+        totalTable = [];
+        librarytable = [];
         $("#myGrid").empty();
         $("#libraryGrid").empty();
-         $.getJSON('../search-links/', { q : term },
+         $.getJSON('../search/links/', { q : term },
          function(jsonstuff)
          { 
+           // var totalTable = [];
            if (!jQuery.isEmptyObject(jsonstuff))
            {
-   
               var columns = [];
               $(function()
               {
@@ -103,29 +106,25 @@
                grid.registerPlugin(checkboxSelector);
               })   
          } 
-         
-         //   alert("empty JSON is returned.");
-          
-        
         
          });
            
-         $.getJSON('../search-libraries/', { q : term },
+         $.getJSON('../search/libraries/', { q : term },
          function(libraryjson)
-         { 
+         {
+           // var librarytable = [];
            if (!jQuery.isEmptyObject(libraryjson))
            {
-   
-          var columns = [];
-          $(function()
-          {
-          var checkboxSelector = new Slick.CheckboxSelectColumn({
+             var columns = [];
+             $(function()
+             {
+                var checkboxSelector = new Slick.CheckboxSelectColumn({
                  cssClass: "slick-cell-checkboxsel"
-          });
-          columns.push(checkboxSelector.getColumnDefinition());
-          columns.push({ id: "name", name: "name", field: "name", width:300,
+              });
+              columns.push(checkboxSelector.getColumnDefinition());
+              columns.push({ id: "name", name: "name", field: "name", width:300,
                editor: TextCellEditor
-           });
+          });
           columns.push({ id: "desc", name: "desc", field: "description", width:300,
                editor: TextCellEditor
            });
@@ -142,10 +141,60 @@
           librarygrid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
           librarygrid.registerPlugin(checkboxSelector);
               })   
-         } });
-
-         $("#dialog").dialog({ width: 1000, buttons: { "Continue": function() {
-               $("#dialog").dialog("close");
+         } });   
+         var selectedRows = [];
+         var libraryRows = []; 
+         $("#dialog").dialog({ width: 1000, close: function(event, ui)
+             { 
+              if (grid !== null){
+               grid.invalidateAllRows();
+               grid.render();
+               }
+               if (librarygrid !== null)
+               {
+                 librarygrid.invalidateAllRows();
+                 librarygrid.render();
+               }
+               $("#myGrid").empty();
+               $("#libraryGrid").empty();
+             }, buttons: { "Continue": function() {
+               if (grid != null)
+               {
+                 selectedRows = grid.getSelectedRows();
+               }
+               if (librarygrid != null)
+               {
+                 libraryRows = librarygrid.getSelectedRows();
+               }
+               if (selectedRows.length > 0 && libraryRows.length > 0)
+               {
+                 alert("Please select either from the link grid or the library grid, but not both.");
+                 // return false;
+               }
+               else if (selectedRows.length == 0 && libraryRows.length == 0)
+               {
+                 alert("Please check some links before continuing..");
+               }
+               else if (libraryRows.length > 0)
+               {
+                  var libparameter = null;
+                  for (var j = 0; j < libraryRows.length; j++)
+                  {
+                    var rowNum = libraryRows[j];
+                    if (libparameter != null)
+                    {
+                      libparameter = libparameter + "," + librarytable[rowNum]["pk"];
+                    }
+                    else
+                    { libparameter = librarytable[rowNum]["pk"];
+                    }
+                    $.post("../add-library/", { library_id: libparameter});
+                  }
+                  $("#dialog").dialog( "close" );
+               }
+               else  
+               {
+               $("#dialog").dialog( "close" );
                $("#questionDialog").dialog({ width: 1000, buttons: { "Continue" : function() {
                var library_name = document.getElementById('q1').value;
                var library_desc = document.getElementById('q2').value;
@@ -161,17 +210,12 @@
                }
                });
                document.getElementById('questionDialog').style.display='block';
-               var selectedRows = grid.getSelectedRows();
-               if (selectedRows == 0)
-               {
-                 alert("Please check some links before continuing..");
-                 return false;
-               }
+
                var row_parameter;
                for (var j = 0; j < selectedRows.length; j++)
                {
                  var rowNum = selectedRows[j];
-                 if (j == 0)
+                 if (j === 0)
                  {
                    row_parameter = totalTable[rowNum]["pk"];
                  }
@@ -180,7 +224,23 @@
                    row_parameter = row_parameter + "," + totalTable[rowNum]["pk"];
                  }
                }
+               var libparameter;
+               for (var j = 0; j < libraryRows.length; j++)
+               {
+                 var rowNum = libraryRows[j];
+                 if (j === 0)
+                 {
+                   libparameter = librarytable[rowNum]["pk"];
+                 }
+                 else
+                 {
+                   libparameter = libparameter + "," + librarytable[rowNum]["pk"];
+                 }
+               }
+               
+             }
          } 
-     } 
+       }
+          
    });
 }

@@ -1,57 +1,17 @@
-import datetime, os, zipfile
+import datetime, json, os, zipfile
 from cStringIO import StringIO
 
 from django.core import mail, serializers
 from django.test import TestCase
 from django.test.client import Client
 
+from coreo.ucore import utils
 from coreo.ucore.models import *
 
 
 # XXX in every setUp(), a CoreUser is being created. This should be put into a fixture
 
-#Function: LinkLibraryTest
-#      tests to make sure that a link library can be created.
 class LinkLibraryTest(TestCase):
-  def setUp(self):
-    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
-    self.user.set_password('2pass')
-    self.user.save()
-
-  def test_create(self):
-    self.client.login(username='testuser', password='2pass')
-    response = self.client.get('/library-demo/')
-    self.assertEquals(response.status_code, 200)
-    tag2 = Tag(name='WarmButton', type='P')
-    tag2.save()
-    poc = POC(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
-    poc.save()
-    link = Link(name='yahoo', desc='search site', url='www.yahoo.com', poc=poc)
-    link.save()
-    tag = Tag.objects.get(name='HotButton')
-    link.tags.add(tag)
-    link.save()
-    link = Link(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=poc)
-    link.save()
-    link.tags.add(tag)
-    link.save()
-    response = self.client.post('/create-library/', { 'name': 'test library', 'desc': 'test description', 'links': '1,2', 'tags':'HotButton, WarmButton,'})
-    self.assertEquals(response.status_code, 200)
-    self.assertEquals(1, LinkLibrary.objects.count())
-    library = LinkLibrary.objects.get(pk=1)
-    self.assertEquals(2, library.links.count())
-    # print 'Two links found in the library... checking if they are the right ones.'
-    self.assertEquals('lifehacker', library.links.get(name='lifehacker').name)
-    self.assertEquals('yahoo', library.links.get(name='yahoo').name)
-    # print 'Ok the two links in the library created, are correct.'
-    self.assertEquals(2, library.tags.count())
-    self.assertEquals('HotButton', library.tags.get(name='HotButton').name)
-    self.assertEquals('WarmButton', library.tags.get(name='WarmButton').name)
-    # print 'Passed the create link library test.'
-
-
-class LinkSearchTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
@@ -60,85 +20,60 @@ class LinkSearchTest(TestCase):
 
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
-    # create a POC
-    self.poc = POC.objects.create(first_name='Bob', last_name='Dole', phone_number='1234567890', email='bob@dole.net')
+    Tag.objects.create(name='WarmButton', type='P')
+    self.poc = POC.objects.create(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
 
-    # create some Tags
-    self.tag1 = Tag.objects.create(name='tag1', type='P')
-    self.tag2 = Tag.objects.create(name='tag2', type='P')
-    self.tag3 = Tag.objects.create(name='tag3', type='P')
-    self.tag4 = Tag.objects.create(name='tag4', type='P')
+    self.link1 = Link.objects.create(name='yahoo', desc='search site', url='www.yahoo.com', poc=self.poc)
+    self.link1.tags.add(Tag.objects.get(name='HotButton'))
 
-    # create some Links
-    self.link1 = Link.objects.create(name='link1', desc='this is link1 desc', url='http://www.link1.com', poc=self.poc)
-    self.link1.tags.add(self.tag1, self.tag2)
+    self.link2 = Link.objects.create(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=self.poc)
+    self.link2.tags.add(Tag.objects.get(name='HotButton'))
 
-    self.link2 = Link.objects.create(name='link2', desc='this is link2 desc', url='http://www.link2.com', poc=self.poc)
-    self.link2.tags.add(self.tag1, self.tag3)
-
-    self.link3 = Link.objects.create(name='link3', desc='this is link3 desc', url='http://www.link3.com', poc=self.poc)
-    self.link3.tags.add(self.tag1, self.tag4)
-
-  def test_search_none(self):
-    response = self.client.get('/search-links/?q=empty')
+  def test_library_demo(self):
+    response = self.client.get('/library-demo/')
     self.assertEquals(response.status_code, 200)
 
-    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
-    self.assertEquals(len(objs), 0)
-
-  def test_name_search_single(self):
-    response = self.client.get('/search-links/?q=link2')
+  def test_create(self):
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': '1,2', 'tags':'HotButton, WarmButton,'})
     self.assertEquals(response.status_code, 200)
+    self.assertEquals(LinkLibrary.objects.count(), 1)
 
-    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
-    self.assertEquals(len(objs), 1)
-    self.assertIn(self.link2, objs)
+    library = LinkLibrary.objects.get(pk=1)
+    self.assertEquals(library.links.count(), 2)
+    # print 'Two links found in the library... checking if they are the right ones.'
 
-  def test_name_search_multi(self):
-    response = self.client.get('/search-links/?q=link')
-    self.assertEquals(response.status_code, 200)
-    
-    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
-    self.assertEquals(len(objs), 3)
-    self.assertIn(self.link1, objs)
-    self.assertIn(self.link2, objs)
-    self.assertIn(self.link3, objs)
+    self.assertEquals(library.links.get(name='lifehacker').name, 'lifehacker')
+    self.assertEquals(library.links.get(name='yahoo').name, 'yahoo')
+    # print 'Ok the two links in the library created, are correct.'
 
-  def test_desc_search_single(self):
-    response = self.client.get('/search-links/?q=link1%20desc')
-    self.assertEquals(response.status_code, 200)
+    self.assertEquals(library.tags.count(), 2)
+    self.assertEquals(library.tags.get(name='HotButton').name, 'HotButton')
+    self.assertEquals(library.tags.get(name='WarmButton').name, 'WarmButton')
+    # print 'Passed the create link library test.'
 
-    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
-    self.assertEquals(len(objs), 1)
-    self.assertIn(self.link1, objs)
+  def test_add_single(self):
+    creator = CoreUser.objects.create(sid='me', username='meme', first_name='me', last_name='me', email='me@me.com', phone_number='1234567890')
+    link_library = LinkLibrary.objects.create(name='test library', desc='just a test', creator=creator)
 
-  def test_desc_search_multi(self):
-    response = self.client.get('/search-links/?q=desc')
-    self.assertEquals(response.status_code, 200)
+    response = self.client.post('/add-library/', {'library_id': link_library.id})
+    self.assertRedirects(response, '/success/')
 
-    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
-    self.assertEquals(len(objs), 3)
-    self.assertIn(self.link1, objs)
-    self.assertIn(self.link2, objs)
-    self.assertIn(self.link3, objs)
+    libraries = self.user.libraries.all()
+    self.assertEquals(libraries.count(), 1)
+    self.assertEquals(libraries[0].name, link_library.name)
 
-  def test_tag_search_single(self):
-    response = self.client.get('/search-links/?q=tag4')
-    self.assertEquals(response.status_code, 200)
+  def test_add_multi(self):
+    creator = CoreUser.objects.create(sid='me', username='meme', first_name='me', last_name='me', email='me@me.com', phone_number='1234567890')
+    link_library1 = LinkLibrary.objects.create(name='library1', desc='just a test', creator=creator)
+    link_library2 = LinkLibrary.objects.create(name='library2', desc='just a test', creator=creator)
 
-    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
-    self.assertEquals(len(objs), 1)
-    self.assertIn(self.link3, objs)
+    response = self.client.post('/add-library/', {'library_id': (link_library1.id, link_library2.id)})
+    self.assertRedirects(response, '/success/')
 
-  def test_tag_search_multi(self):
-    response = self.client.get('/search-links/?q=tag')
-    self.assertEquals(response.status_code, 200)
-
-    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
-    self.assertEquals(len(objs), 3)
-    self.assertIn(self.link1, objs)
-    self.assertIn(self.link2, objs)
-    self.assertIn(self.link3, objs)
+    libraries = self.user.libraries.all()
+    self.assertEquals(libraries.count(), 2)
+    self.assertEquals(libraries[0].name, link_library1.name)
+    self.assertEquals(libraries[1].name, link_library2.name)
 
 
 class LoginTest(TestCase):
@@ -153,7 +88,7 @@ class LoginTest(TestCase):
 
     self.assertTrue(self.client.session.has_key('_auth_user_id'))
 
-    #print '\nPassed the login test.'
+    # print '\nPassed the login test.'
 
 
 class LogoutTest(TestCase):
@@ -207,14 +142,14 @@ class TrophyTest(TestCase):
     self.assertEqual(TrophyCase.objects.all().count(), 1)
 
     trophy_case = TrophyCase.objects.get(pk=1)
-    self.assertEquals(trophy_case.trophy.name, 'Captain Blackbeard Trophy')
+    self.assertEquals(trophy_case.trophy.name, 'Captain Blackbeard')
     self.assertEquals(trophy_case.date_earned, datetime.date.today())
 
     #print '\nPassed the e-mail test'
     #print '\nPassed the signal test.'
 
   def test_registration_trophy_earned(self):
-    self.client.post('/save-user/', {'sid': 'something', 'username': 'bubba', 'first_name': 'Bubba', 'last_name': 'Smith',
+    self.client.post('/create-user/', {'sid': 'something', 'username': 'bubba', 'first_name': 'Bubba', 'last_name': 'Smith',
       'password': 'somethinghere', 'email':'prcoleman2@gmail.com', 'phone_number':'(555)555-4444'})
 
     self.assertEquals(TrophyCase.objects.all().count(), 1)
@@ -222,7 +157,7 @@ class TrophyTest(TestCase):
     trophy_case = TrophyCase.objects.get(pk=1)
 
     self.assertEquals(trophy_case.user.username, 'bubba')
-    self.assertEquals(trophy_case.trophy.name, 'Successful Registration Trophy')
+    self.assertEquals(trophy_case.trophy.name, 'Successful Registration')
 
     #print 'Passed the registration trophy test.'
 
@@ -275,6 +210,205 @@ class KmzTest(TestCase):
     os.remove('download.kmz')
     
     #print 'Passed the get_kmz test.'
+
+
+class SearchTest(TestCase):
+  def setUp(self):
+    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
+        phone_number='9221112222')
+    self.user.set_password('2pass')
+    self.user.save()
+
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
+    # create a POC
+    self.poc = POC.objects.create(first_name='Bob', last_name='Dole', phone_number='1234567890', email='bob@dole.net')
+
+    # create some Tags
+    self.tag1 = Tag.objects.create(name='tag1', type='P')
+    self.tag2 = Tag.objects.create(name='tag2', type='P')
+    self.tag3 = Tag.objects.create(name='tag3', type='P')
+    self.tag4 = Tag.objects.create(name='tag4', type='P')
+
+    # create some Links
+    self.link1 = Link.objects.create(name='link1', desc='this is link1 desc', url='http://www.link1.com', poc=self.poc)
+    self.link1.tags.add(self.tag1, self.tag2)
+
+    self.link2 = Link.objects.create(name='link2', desc='this is link2 desc', url='http://www.link2.com', poc=self.poc)
+    self.link2.tags.add(self.tag1, self.tag3)
+
+    self.link3 = Link.objects.create(name='link3', desc='this is link3 desc', url='http://www.link3.com', poc=self.poc)
+    self.link3.tags.add(self.tag1, self.tag4)
+
+    # create some LinkLibraries (don't need to worry about adding links, since we don't search libraries based on links)
+    self.library1 = LinkLibrary.objects.create(name='sample1', desc='This is a description', creator=self.user)
+    self.library1.tags.add(self.tag1, self.tag2)
+
+    self.library2 = LinkLibrary.objects.create(name='sample2', desc='This LinkLibrary will rock your socks', creator=self.user)
+    self.library2.tags.add(self.tag1, self.tag3)
+
+  # tests for only searching Links
+  def test_search_links_none(self):
+    response = self.client.get('/search/links/?q=empty')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 0)
+
+  def test_name_search_links_single(self):
+    response = self.client.get('/search/links/?q=link2')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+    self.assertIn(self.link2, objs)
+
+  def test_name_search_links_multi(self):
+    response = self.client.get('/search/links/?q=link')
+    self.assertEquals(response.status_code, 200)
+    
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 3)
+    self.assertIn(self.link1, objs)
+    self.assertIn(self.link2, objs)
+    self.assertIn(self.link3, objs)
+
+  def test_desc_search_links_single(self):
+    response = self.client.get('/search/links/?q=link1%20desc')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+    self.assertIn(self.link1, objs)
+
+  def test_desc_search_links_multi(self):
+    response = self.client.get('/search/links/?q=desc')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 3)
+    self.assertIn(self.link1, objs)
+    self.assertIn(self.link2, objs)
+    self.assertIn(self.link3, objs)
+
+  def test_tag_search_links_single(self):
+    response = self.client.get('/search/links/?q=tag4')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+    self.assertIn(self.link3, objs)
+
+  def test_tag_search_links_multi(self):
+    response = self.client.get('/search/links/?q=tag')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 3)
+    self.assertIn(self.link1, objs)
+    self.assertIn(self.link2, objs)
+    self.assertIn(self.link3, objs)
+
+  # tests for only searching LinkLibraries
+  def test_search_libraries_none(self):
+    response = self.client.get('/search/libraries/?q=none')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 0)
+
+  def test_name_search_libraries_single(self):
+    response = self.client.get('/search/libraries/?q=sample1')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+    self.assertIn(self.library1, objs)
+
+  def test_name_search_libraries_multi(self):
+    response = self.client.get('/search/libraries/?q=sample')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 2)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  def test_desc_search_libraries_single(self):
+    response = self.client.get('/search/libraries/?q=rock,socks')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+    self.assertIn(self.library2, objs)
+
+  def test_desc_search_libraries_multi(self):
+    response = self.client.get('/search/libraries/?q=this')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 2)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  def test_tag_search_libraries_single(self):
+    response = self.client.get('/search/libraries/?q=tag3')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 1)
+    self.assertIn(self.library2, objs)
+
+  def test_tag_search_libraries_multi(self):
+    response = self.client.get('/search/libraries/?q=tag1')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 2)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  # tests for searching both Links and LinkLibraries
+  def test_search_none(self):
+    response = self.client.get('/search/?q=none')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 0)
+
+  def test_name_search(self):
+    response = self.client.get('/search/?q=link1,sample')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 3)
+    self.assertIn(self.link1, objs)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  def test_desc_search(self):
+    response = self.client.get('/search/?q=this')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 5)
+    self.assertIn(self.link1, objs)
+    self.assertIn(self.link2, objs)
+    self.assertIn(self.link3, objs)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
+
+  def test_tag_search(self):
+    response = self.client.get('/search/?q=tag1')
+    self.assertEquals(response.status_code, 200)
+
+    objs = [obj.object for obj in serializers.deserialize('json', response.content)]
+    self.assertEquals(len(objs), 5)
+    self.assertIn(self.link1, objs)
+    self.assertIn(self.link2, objs)
+    self.assertIn(self.link3, objs)
+    self.assertIn(self.library1, objs)
+    self.assertIn(self.library2, objs)
 
 
 class ShapefileTest(TestCase):
@@ -342,7 +476,7 @@ class NotificationTest(TestCase):
     #print 'Poll notification test has passed.'
 
   def test_post_save_signal(self):
-    self.assertEquals(len(mail.outbox), 1)
+    self.assertEquals(len(mail.outbox), 1) 
 
 
 class RateTest(TestCase):
@@ -362,7 +496,7 @@ class RateTest(TestCase):
     self.link.tags.add(self.link_tags[0])
     self.link.tags.add(self.link_tags[1])
 
-    self.link_library = LinkLibrary.objects.create(name='Test LL', desc='Just a test', user=self.user)
+    self.link_library = LinkLibrary.objects.create(name='Test LL', desc='Just a test', creator=self.user)
     self.link_library.tags.add(self.link_library_tags[0])
     self.link_library.tags.add(self.link_library_tags[1])
     self.link_library.links.add(self.link)
@@ -374,31 +508,33 @@ class RateTest(TestCase):
     rating = Rating.objects.create(rating_fk=rating_fk, score=3, comment='could be better')
 
     response = self.client.get('/rate/link/1/')
+    content = json.loads(response.content)
 
-    self.assertTemplateUsed(response, 'rate.html')
     self.assertEquals(response.status_code, 200)
-    self.assertEquals(response.context['rating'].score, 3)
-    self.assertEquals(response.context['rating'].comment, 'could be better')
-    self.assertEquals(response.context['link'], self.link)
-    self.assertEquals(response.context['link_library'], None)
+    self.assertEquals(content['rating']['fields']['score'], 3)
+    self.assertEquals(content['rating']['fields']['comment'], 'could be better')
+    self.assertEquals(content['link']['pk'], self.link.pk)
+    self.assertEquals(content['link']['fields']['url'], self.link.url)
+    self.assertEquals(content['link_library'], None)
 
   def test_view_link_library_rating(self):
     rating_fk = RatingFK.objects.create(user=self.user, link_library=self.link_library)
     rating = Rating.objects.create(rating_fk=rating_fk, score=5, comment='mint chocolate chip!')
 
     response = self.client.get('/rate/library/1/')
+    content = json.loads(response.content)
 
-    self.assertTemplateUsed(response, 'rate.html')
     self.assertEquals(response.status_code, 200)
-    self.assertEquals(response.context['rating'].score, 5)
-    self.assertEquals(response.context['rating'].comment, 'mint chocolate chip!')
-    self.assertEquals(response.context['link'], None)
-    self.assertEquals(response.context['link_library'], self.link_library)
+    self.assertEquals(content['rating']['fields']['score'], 5)
+    self.assertEquals(content['rating']['fields']['comment'], 'mint chocolate chip!')
+    self.assertEquals(content['link'], None)
+    self.assertEquals(content['link_library']['pk'], self.link_library.pk)
+    self.assertEquals(content['link_library']['fields']['name'], self.link_library.name)
 
   def test_rating_link(self):
     response = self.client.post('/rate/link/1/', {'score': 1, 'comment': 'What is this? A link for ants?!'})
 
-    self.assertRedirects(response, '/success/')
+    self.assertEquals(response.status_code, 200)
     self.assertEquals(RatingFK.objects.all().count(), 1)
     self.assertEquals(Rating.objects.all().count(), 1)
 
@@ -415,7 +551,7 @@ class RateTest(TestCase):
   def test_rating_link_library(self):
     response = self.client.post('/rate/library/1/', {'score': 1, 'comment': 'What is this? A library for ants?!'})
 
-    self.assertRedirects(response, '/success/')
+    self.assertEquals(response.status_code, 200)
     self.assertEquals(RatingFK.objects.all().count(), 1)
     self.assertEquals(Rating.objects.all().count(), 1)
 
@@ -440,5 +576,20 @@ class SettingsTest(TestCase):
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
   def test_settings_created(self):
-    pass
+    self.assertTrue(self.user.settings.wants_emails)
+    self.assertEquals(self.user.settings.skin, Skin.objects.get(name='Default'))
+
+  def test_view_settings(self):
+    response = self.client.get('/settings/')
+    self.assertEquals(response.status_code, 200)
+
+  def test_modify_settings(self):
+    skin = Skin.objects.create(name='Default2', file_path='/default.css')
+    
+    response = self.client.post('/settings/', {'skin': 'Default2'})
+    self.assertRedirects(response, '/settings/')
+
+    settings = CoreUser.objects.get(username=self.user.username).settings
+    self.assertFalse(settings.wants_emails)
+    self.assertEquals(settings.skin, skin)
 
