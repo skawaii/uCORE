@@ -1,5 +1,6 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>uCORE - Register</title>
@@ -13,16 +14,16 @@
     <script src="{{ MEDIA_URL }}javascript/formvalid.js"></script>
     <style type="text/css">
       table {
-        width: 400px;
+        width: 700px;
         padding-bottom:10px;
       }
       th {
-        width: 30px;
+        width: 200px;
         text-align: right;
       }
 
       td {
-        width: 150px;
+        width: 250px;
         padding-bottom:10px;
       } 
       
@@ -45,7 +46,7 @@
                     <div>{% csrf_token %}</div>
                         <input name="sid" type="hidden">
                         <table>
-                          <tr style="width:40px">
+                          <tr>
                             <th>
                               <label>Username</label>
                             </th>
