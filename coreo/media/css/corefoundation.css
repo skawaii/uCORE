@@ -1,6 +1,6 @@
 /* Core Foundation CSS */
 
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,caption, table, td, tr, th
 { margin:0;
   padding:0;
   border:0;
@@ -16,15 +16,48 @@ body
 ol,ul
 { list-style:none; }
 
-table
-{ border-collapse:separate;
-  border-spacing:0;
-  vertical-align:middle; }
-
-caption,th,td
+caption /** th,td */
 { text-align:left;
   font-weight:normal;
   vertical-align:middle; }
+
+
+table
+{
+  border-collapse:separate;
+  border-spacing:0;
+  /* vertical-align:middle; */
+}
+
+
+input[type="text"],input[type="password"]
+{ /* border:1px solid #b3b3b3; */
+  height:18px;
+  padding:5px 9px;
+  font:13px/18px "Helvetica Neue",Arial,sans-serif;
+  background:#fff;
+  /* vertical-align:bottom;*/
+  outline:none;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px;
+  -o-border-radius:3px;
+  -ms-border-radius:3px;
+  -khtml-border-radius:3px;
+  border-radius:3px;
+  -moz-transition-property:border-color;
+  -webkit-transition-property:border-color;
+  -o-transition-property:border-color;
+  transition-property:border-color;
+  -moz-transition-duration:0.1s;
+  -webkit-transition-duration:0.1s;
+  -o-transition-duration:0.1s;
+  transition-duration:0.1s;
+  -moz-transition-timing-function:linear;
+  -webkit-transition-timing-function:linear;
+  -o-transition-timing-function:linear;
+  transition-timing-function:linear;
+}
+
 
 q,blockquote
 { quotes:"" ""; }
@@ -45,9 +78,9 @@ a.button
   line-height:18px;
   font-weight:bold;
   color:#fff !important;
-  border:1px solid #ff920d;
+  /* border:1px solid #ff920d; */
   min-width:40px;
-  cursor:pointer;
+  /* cursor:pointer; */
   text-shadow:#de6e00 0 -1px 0;
   -moz-border-radius:15px;
   -webkit-border-radius:15px;
@@ -74,7 +107,7 @@ a.button
   -moz-transition-timing-function:linear;
   -webkit-transition-timing-function:linear;
   -o-transition-timing-function:linear;
-  transition-timing-function:linear; }
+   transition-timing-function:linear; }
 
 a.button:hover,a.button:focus
 { border-color:#de6e00;
@@ -82,11 +115,11 @@ a.button:hover,a.button:focus
   -moz-box-shadow:#ffc039 0 0 5px 0;
   -webkit-box-shadow:#ffc039 0 0 5px 0;
   -o-box-shadow:#ffc039 0 0 5px 0;
-  box-shadow:#ffc039 0 0 5px 0; }
+  box-shadow:#ffc039 0 0 5px 0; } 
 
 a.button:active
 { text-shadow:#b55a00 0 -1px 0;
-  background-color:#de6e00;
+  background-color:#de6e00; 
   background-image:-webkit-gradient(linear,0% 0%,0% 100%,color-stop(0%,#ff920d),color-stop(100%,#de6e00));
   background-image:-moz-linear-gradient(top,#ff920d 0%,#de6e00 100%);
   background-image:linear-gradient(top,#ff920d 0%,#de6e00 100%); }
@@ -96,7 +129,7 @@ a.button.fit
 
 a.button.alt
 { border-color:#b3b3b3;
-  cursor:default;
+  cursor:default; 
   font-size:14px;
   padding:8px 0 8px;
   text-shadow:#b3b3b3 0 -1px 0;
@@ -117,14 +150,14 @@ a.button.alt
 
 a.button.alt:hover,a.button.alt:focus
 { border-color:#8c8c8c;
-  -moz-box-shadow:#b3b3b3 0 0 5px 0;
+  -moz-box-shadow: #b3b3b3 0 0 5px 0;
   -webkit-box-shadow:#b3b3b3 0 0 5px 0;
   -o-box-shadow:#b3b3b3 0 0 5px 0;
   box-shadow:#b3b3b3 0 0 5px 0; }
 
 a.button.alt:active
 { text-shadow:#8c8c8c 0 -1px 0;
-  background-color:#de6e00;
+  background-color: #de6e00;
   background-image:-webkit-gradient(linear,0% 0%,0% 100%,color-stop(0%,#b3b3b3),color-stop(100%,#8c8c8c));
   background-image:-moz-linear-gradient(top,#b3b3b3 0%,#8c8c8c 100%);
   background-image:linear-gradient(top,#b3b3b3 0%,#8c8c8c 100%); }
@@ -136,7 +169,7 @@ a.button.small
 
 a.button.large
 { padding:9px 25px 11px;
-  font-size:24px;
+  font-size:24px; 
   line-height:28px;
   font-weight:normal;
   -moz-border-radius:30px;
@@ -203,39 +236,13 @@ a.button.disabled:active,a.button.disabled:hover
 { -moz-box-shadow:rgba(0,0,0,0.1) 1px 0 5px 0;
   -webkit-box-shadow:rgba(0,0,0,0.1) 1px 0 5px 0;
   -o-box-shadow:rgba(0,0,0,0.1) 1px 0 5px 0;
-  box-shadow:rgba(0,0,0,0.1) 1px 0 5px 0; }
+  box-shadow:rgba(0,0,0 ,0.1) 1px 0 5px 0; }
 
 a.button.spinner span
 { display:block;
-  padding-right:30px;
+  padding-right:30px; 
   background:url(/images/spinner-orange.gif) no-repeat right center; }
 
-input[type="text"],input[type="password"]
-{ border:1px solid #b3b3b3;
-  height:18px;
-  padding:5px 9px;
-  font:13px/18px "Helvetica Neue",Arial,sans-serif;
-  background:#fff;
-  vertical-align:bottom;
-  outline:none;
-  -moz-border-radius:3px;
-  -webkit-border-radius:3px;
-  -o-border-radius:3px;
-  -ms-border-radius:3px;
-  -khtml-border-radius:3px;
-  border-radius:3px;
-  -moz-transition-property:border-color;
-  -webkit-transition-property:border-color;
-  -o-transition-property:border-color;
-  transition-property:border-color;
-  -moz-transition-duration:0.1s;
-  -webkit-transition-duration:0.1s;
-  -o-transition-duration:0.1s;
-  transition-duration:0.1s;
-  -moz-transition-timing-function:linear;
-  -webkit-transition-timing-function:linear;
-  -o-transition-timing-function:linear;
-  transition-timing-function:linear; }
 
 input[type="text"]::-webkit-input-placeholder,input[type="password"]::-webkit-input-placeholder
 { color:#b3b3b3; }
@@ -253,10 +260,6 @@ input[type="text"]:focus,input[type="password"]:focus
   -o-box-shadow:#b5dff1 0 0 5px 0;
   box-shadow:#b5dff1 0 0 5px 0; }
 
-input[type="text"].large,input[type="password"].large
-{ font-size:24px;
-  height:38px;
-  padding:5px 14px; }
 
 input[type="submit"].button
 { display:block;
@@ -293,11 +296,6 @@ input[type="submit"].button
 
 input[type="submit"].button.hover,input[type="submit"].button:hover
 { border-color:#de6e00;
-  text-decoration:none;
-  -moz-box-shadow:#ffc039 0 0 5px 0;
-  -webkit-box-shadow:#ffc039 0 0 5px 0;
-  -o-box-shadow:#ffc039 0 0 5px 0;
-  box-shadow:#ffc039 0 0 5px 0; }
 
 input[type="submit"].button:active
 { text-shadow:#b55a00 0 -1px 0;
@@ -620,7 +618,7 @@ input.text:focus,input.password:focus,textarea.uniform:focus
 { padding-bottom:10px; }
 
 #signup_page input
-{ width:200px; }
+{ width:100px; }
 
 #signup_page label
 { float:left;
