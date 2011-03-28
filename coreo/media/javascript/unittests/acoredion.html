@@ -16,6 +16,7 @@
 	<script type="text/javascript" src="../jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="../jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="../jstree/jquery.jstree.bettercheckbox.js"></script>
+	<script type="text/javascript" src="../core.geo/kmlfeaturetype.js"></script>
 	<script type="text/javascript" src="../core.util/idsequence.js"></script>
 	<script type="text/javascript" src="../core.util/assert.js"></script>
 	<script type="text/javascript" src="../core.util/callbackutils.js"></script>
@@ -26,18 +27,76 @@
 	<script type="text/javascript" src="../core.util/kmlutils.js"></script>
 	<script type="text/javascript" src="../core.geo/geodatastore.js"></script>
 	<script type="text/javascript" src="../core.geo/geodata.js"></script>
+	<script type="text/javascript" src="../core.geo/networklinkgeodata.js"></script>
 	<script type="text/javascript" src="../core.geo/kmlnodegeodata.js"></script>
+	
+	<script type="text/javascript" src="../core.events/event.js"></script>
+	<script type="text/javascript" src="../core.events/geodataevent.js"></script>
+	<script type="text/javascript" src="../core.events/showfeatureevent.js"></script>
+	<script type="text/javascript" src="../core.events/hidefeatureevent.js"></script>
+	<script type="text/javascript" src="../core.events/geodataloadedevent.js"></script>
+	<script type="text/javascript" src="../core.events/geodataupdatebeginevent.js"></script>
+	<script type="text/javascript" src="../core.events/geodataupdateendevent.js"></script>
+	<script type="text/javascript" src="../core.events/viewchangedevent.js"></script>
+	<script type="text/javascript" src="../core.events/featureinfoevent.js"></script>
+	<script type="text/javascript" src="../core.events/eventchannel.js"></script>
+	
 	<script type="text/javascript" src="../core.ui/geodatatree.js"></script>
 	<script type="text/javascript" src="../core.ui/acoredion.js"></script>
 	<script type="text/javascript" src="../core.services/searchservice.js"></script>
 	<script type="text/javascript" src="../core.services/kmlretriever.js"></script>
 	<script type="text/javascript" src="../core.services/ggeoxmlkmlretriever.js"></script>
+	<script type="text/javascript" src="../core.services/geodataretriever.js"></script>
+	<script type="text/javascript" src="../core.services/kmlgeodataretriever.js"></script>
 	<script type="text/javascript" src="../core.services/searchstrategy.js"></script>
+	<script type="text/javascript" src="../core.geo/networklinkqueue.js"></script>
 
 	<script type="text/javascript">
 		google.load("maps", "2");
 
 		$(document).ready(function() {
+			/*
+			var geoxml = new google.maps.GeoXml("http://localhost:8080/site_media/kml/top_eleven.kml");
+			google.maps.Event.addListener(geoxml, "load", function() {
+				console.log(core.util.ObjectUtils.describeFunctions(geoxml));
+			});
+			*/
+
+			var kmlRetriever = new core.services.GGeoXmlKmlRetriever();
+			var geodataRetriever = new core.services.KmlGeoDataRetriever(kmlRetriever);
+			var eventChannel = new core.events.EventChannel();
+			var currentBbox = null;
+			var currentAltitude = null;
+			var networkLinkQueue = new core.geo.NetworkLinkQueue(geodataRetriever, 
+					eventChannel, currentBbox, currentAltitude);
+
+			var searchService = new core.services.SearchService("/search-links", "/search-libraries");
+			var MAX_RESULTS = 3;
+			var resultFilter = {
+				cb: null,
+				resultCount: 0,
+				begin: $.proxy(function(callback) {
+					this.cb = callback;
+					this.resultCount = 0;
+				}, this),
+				result: $.proxy(function(data) {
+					this.resultCount++;
+					if (this.resultCount <= MAX_RESULTS) {
+						core.util.CallbackUtils.invokeOptionalCallback(this.cb, "result", data);
+					}
+					else {
+						console.log("Skipping - too many results");
+					}
+				}, this),
+				end: $.proxy(function() {}, this),
+				error: $.proxy(function(err) {
+					console.log("ERROR: " + err);
+				}, this)
+			};
+			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, kmlRetriever);
+			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel);
+			
+			/*
 			var kml = "<k:kml xmlns:k=\"" + core.util.KmlUtils.KML_NS[0] + "\">"
 				+ "<k:Document id=\"3\">"
 				+ "  <k:name>Test Document</k:name>"
@@ -81,6 +140,7 @@
 			var kmlRetriever = new core.services.GGeoXmlKmlRetriever();
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, kmlRetriever);
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy);
+			*/
 		});
 	</script>
 </head>

@@ -7,6 +7,9 @@
  * Dependencies:
  *   - jQuery
  *   - core.ui.GeoDataTree
+ *   - core.events.ShowFeatureEvent
+ *   - core.events.HideFeatureEvent
+ *   - core.events.FeatureInfoEvent
  */
 if (!window.core)
 	window.core = {};
@@ -15,6 +18,22 @@ if (!window.core.ui)
 
 (function($, ns) {
 	var GeoDataTree = core.ui.GeoDataTree;
+	if (!GeoDataTree)
+		throw "Dependency not found: core.ui.GeoDataTree";
+	var ShowFeatureEvent = core.events.ShowFeatureEvent;
+	if (!ShowFeatureEvent)
+		throw "Dependency not found: core.events.ShowFeatureEvent";
+	var HideFeatureEvent = core.events.HideFeatureEvent;
+	if (!HideFeatureEvent)
+		throw "Dependency not found: core.events.HideFeatureEvent";
+	var FeatureInfoEvent = core.events.FeatureInfoEvent;
+	if (!FeatureInfoEvent)
+		throw "Dependency not found: core.events.FeatureInfoEvent";
+	var GeoDataLoadedEvent = core.events.GeoDataLoadedEvent;
+	if (!GeoDataLoadedEvent)
+		throw "Dependency not found: core.events.GeoDataLoadedEvent";
+	var GeoDataUpdateBeginEvent = core.events.GeoDataUpdateBeginEvent;
+	var GeoDataUpdateEndEvent = core.events.GeoDataUpdateEndEvent;
 	
 	/**
 	 * Constructor: Acoredion
@@ -25,12 +44,15 @@ if (!window.core.ui)
 	 *   el - HTML DOM Element. Required. Element where accordion will be 
 	 *         rendered.
 	 *   searchStrategy - <SearchStrategy>. Invoked by the search form.
+	 *   eventChannel - <EventChannel>.
 	 */
-	var Acoredion = function(el, searchStrategy) {
+	var Acoredion = function(el, searchStrategy, eventChannel) {
 		this.el = el;
 		this.searchStrategy = searchStrategy;
+		this.eventChannel = eventChannel;
 		this._init();
 	};
+	Acoredion.EVENT_PUBLISHER_NAME = "Acoredion";
 	Acoredion.prototype = {
 		el: null,
 
@@ -40,24 +62,27 @@ if (!window.core.ui)
 		
 		searchInput: null,
 		
+		eventChannel: null,
+		
 		addGeoData: function(geodata, publishEvent) {
 			var treeEl = $("<div>").addClass("acoredion-tree").appendTo($(this.treeContainer));
 			var tree = new GeoDataTree(geodata, treeEl);
+			
 			tree.onCheck = $.proxy(function(geodata) {
-				// TODO
-				console.log("Checked " + geodata.id);
+				this.eventChannel.publish(new ShowFeatureEvent(
+						Acoredion.EVENT_PUBLISHER_NAME, geodata));
 			}, this);
 			tree.onUncheck = $.proxy(function(geodata) {
-				// TODO
-				console.log("Unchecked " + geodata.id);
+				this.eventChannel.publish(
+						new HideFeatureEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 			}, this);
 			tree.onSelect = $.proxy(function(geodata) {
-				// TODO
-				console.log("Selected " + geodata.id);
+				this.eventChannel.publish(
+						new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 			}, this);
 			if (publishEvent === true) {
-				// TODO
-				console.log("PUBLISH GeoDataLoadedEvent");
+				this.eventChannel.publish(
+						new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 			}
 		},
 
@@ -127,6 +152,15 @@ if (!window.core.ui)
 			$(this.el).accordion({
 				fillSpace: true
 			});
+			
+			this.eventChannel.subscribe(GeoDataUpdateBeginEvent.type, $.proxy(function(geoDataUpdateBeginEvent) {
+				// TODO
+				console.log("Tree icon should be updated to spinning for " + geoDataUpdateBeginEvent.geoData.id);
+			}, this));
+			this.eventChannel.subscribe(GeoDataUpdateEndEvent.type, $.proxy(function(geoDataUpdateEndEvent) {
+				// TODO
+				console.log("Tree node children need to be updated for " + geoDataUpdateEndEvent.geoData.id);
+			}, this));
 			
 			/*
 			this.el.append("<h3><a href=\"#\">KML Documents</a></h3>"
