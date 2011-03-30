@@ -76,14 +76,31 @@ if (!window.core.geo)
 	 *   node - XML DOM node. KML document node.
 	 *   nsPrefix - Namespace prefix assigned to the <KmlNodeGeoData> 
 	 *         XML namespace
+	 *   path - String. URL to this KML.
 	 */
-	var KmlNodeGeoData = function(id, node, nsPrefix) {
+	var KmlNodeGeoData = function(id, node, nsPrefix, path) {
 		GeoData.call(this, id);
+		this.path = $.trim(path);
 		this.node = node;
 		this.nsPrefix = nsPrefix;
 		if (this.getKmlFeatureType() === KmlFeatureType.NETWORK_LINK) {
 			var linkNode = $(this.node).children("link:first");
 			var href = $.trim(linkNode.children("href").text());
+			if (href.length > 0 && href.charAt(0) !== '/') {
+				// handle relative URL
+				if (this.path && this.path.length > 0) {
+					if (this.path.charAt(this.path.length - 1) !== '/') {
+						href = this.path + '/' + href;
+					}
+					else {
+						href = this.path + href;
+					}
+				}
+				else {
+					throw "Must specify base path to KML file to handle " +
+							"relative URL in NetworkLink";
+				}
+			}
 			NetworkLinkGeoData.call(this, id, href);
 			// $.extend(this, NetworkLinkGeoData.prototype);
 			this.refreshMode = $.trim(linkNode.children("refreshMode").text());
@@ -113,11 +130,12 @@ if (!window.core.geo)
 	 * 
 	 * Parameters:
 	 *   kmlDoc - XML DOM. The KML document.
+	 *   url - String. URL where document was retrieved from.
 	 *   
 	 * Returns:
 	 *   <KmlNodeGeoData>.
 	 */
-	KmlNodeGeoData.fromKmlDoc = function(kmlDoc) {
+	KmlNodeGeoData.fromKmlDoc = function(kmlDoc, url) {
 		var root = kmlDoc.documentElement;
 		var nsPrefix = XmlUtils.declareNamespace(root, KmlNodeGeoData.NS_URI);
 		var localName = root.tagName.substring(root.tagName.indexOf(":") + 1).toLowerCase();
@@ -129,7 +147,7 @@ if (!window.core.geo)
 				}
 			});
 		}
-		var kmlNodeGeoData = new KmlNodeGeoData(null, root, nsPrefix);
+		var kmlNodeGeoData = new KmlNodeGeoData(null, root, nsPrefix, url);
 		GeoDataStore.persist(kmlNodeGeoData);
 		return kmlNodeGeoData;
 	};
@@ -235,6 +253,13 @@ if (!window.core.geo)
 	$.extend(KmlNodeGeoData.prototype, GeoData.prototype, {
 
 		/**
+		 * Property: path
+		 * 
+		 * String. URL to this KML file.
+		 */
+		path: null,
+		
+		/**
 		 * Function: getKmlFeatureType
 		 * 
 		 * See Also:
@@ -281,7 +306,7 @@ if (!window.core.geo)
 			var parentNode = KmlUtils.findNextKmlElementParent(this.node);
 			if (parentNode != null) {
 				var parentId = KmlNodeGeoData.getIdFromElement(parentNode, this.nsPrefix);
-				var parent = new KmlNodeGeoData(parentId, parentNode, this.nsPrefix);
+				var parent = new KmlNodeGeoData(parentId, parentNode, this.nsPrefix, this.path);
 				return parent;
 			}
 			else {
@@ -302,12 +327,12 @@ if (!window.core.geo)
 			}
 			else {
 				var nsPrefix = this.nsPrefix;
-				KmlUtils.iterateChildKmlElements(this.node, function(child) {
+				KmlUtils.iterateChildKmlElements(this.node, $.proxy(function(child) {
 					var id = KmlNodeGeoData.getIdFromElement(child, nsPrefix);
-					var childFeature = new KmlNodeGeoData(id, child, nsPrefix);
+					var childFeature = new KmlNodeGeoData(id, child, nsPrefix, this.path);
 					GeoDataStore.persist(childFeature);
 					CallbackUtils.invokeCallback(callback, childFeature);
-				});
+				}, this));
 			}
 		},
 		
@@ -324,7 +349,7 @@ if (!window.core.geo)
 			else {
 				var el = KmlNodeGeoData.getChildElementById(this.node, id, this.nsPrefix);
 				if (el && el != null) {
-					return new KmlNodeGeoData(id, el, this.nsPrefix);
+					return new KmlNodeGeoData(id, el, this.nsPrefix, this.path);
 				}
 				return null;
 			}
@@ -355,7 +380,7 @@ if (!window.core.geo)
 				var nsPrefix = this.nsPrefix;
 				$(this.node).find(tagName).each($.proxy(function(index, el) {
 					var id = KmlNodeGeoData.getIdFromElement(el, nsPrefix);
-					var childFeature = new KmlNodeGeoData(id, el, nsPrefix);
+					var childFeature = new KmlNodeGeoData(id, el, nsPrefix, this.path);
 					GeoDataStore.persist(childFeature);
 					CallbackUtils.invokeCallback(callback, childFeature);
 				}, this));

@@ -45,7 +45,7 @@
 	<script type="text/javascript" src="../core.ui/acoredion.js"></script>
 	<script type="text/javascript" src="../core.services/searchservice.js"></script>
 	<script type="text/javascript" src="../core.services/kmlretriever.js"></script>
-	<script type="text/javascript" src="../core.services/ggeoxmlkmlretriever.js"></script>
+	<script type="text/javascript" src="../core.services/proxykmlretriever.js"></script>
 	<script type="text/javascript" src="../core.services/geodataretriever.js"></script>
 	<script type="text/javascript" src="../core.services/kmlgeodataretriever.js"></script>
 	<script type="text/javascript" src="../core.services/searchstrategy.js"></script>
@@ -62,7 +62,7 @@
 			});
 			*/
 
-			var kmlRetriever = new core.services.GGeoXmlKmlRetriever();
+			var kmlRetriever = new core.services.ProxyKmlRetriever("/kmlproxy");
 			var geodataRetriever = new core.services.KmlGeoDataRetriever(kmlRetriever);
 			var eventChannel = new core.events.EventChannel();
 			var currentBbox = null;
@@ -70,7 +70,7 @@
 			var networkLinkQueue = new core.geo.NetworkLinkQueue(geodataRetriever, 
 					eventChannel, currentBbox, currentAltitude);
 
-			var searchService = new core.services.SearchService("/search-links", "/search-libraries");
+			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
 			var MAX_RESULTS = 3;
 			var resultFilter = {
 				cb: null,

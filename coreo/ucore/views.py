@@ -4,8 +4,13 @@
   Jason Cooper, Jason Hotelling, Paul Coleman, and Paul Boone.
 """
 
-import csv, datetime, json, logging, os, re, time, urllib2, zipfile
+import csv, datetime, json, logging, os, re, time, urllib2, zipfile, pickle
 from cStringIO import StringIO
+from urlparse import urlparse
+from xml.dom.minidom import parse, parseString
+from xml.parsers import expat
+from kmlparser import KmlParser
+import xml.dom.expatbuilder
 
 from django.core.mail import send_mail
 from django.conf import settings
@@ -14,13 +19,16 @@ from django.core import serializers
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect,\
+    HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponseServerError,\
+    HttpResponseNotFound
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils import simplejson as json
 
 from coreo.ucore.models import *
 from coreo.ucore import shapefile, utils
+from httplib import HTTPResponse, HTTPConnection
 
 
 def add_library(request):
@@ -727,3 +735,51 @@ def user_profile(request):
   
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
+def header_name(name):
+    """Convert header name like HTTP_XXXX_XXX to Xxxx-Xxx:"""
+    words = name[5:].split('_')
+    for i in range(len(words)):
+        words[i] = words[i][0].upper() + words[i][1:].lower()
+    result = '-'.join(words) + ':'
+    return result
+
+def kmlproxy(request):
+    if not request.user.is_authenticated():
+        return render_to_response('login.html', context_instance=RequestContext(request))
+    if (request.method != 'GET'):
+        return HttpResponseNotAllowed(['GET'])
+    remoteUrl = request.META['QUERY_STRING']
+    parsedRemoteUrl = urlparse(remoteUrl)
+    if (parsedRemoteUrl.scheme != 'http' and parsedRemoteUrl.scheme != 'https'):
+        return HttpResponseBadRequest()
+    conn = None
+    try:
+        conn = HTTPConnection(parsedRemoteUrl.hostname, parsedRemoteUrl.port)
+        headers = {}
+        conn.request('GET', parsedRemoteUrl.path + '?' + parsedRemoteUrl.query, None, headers)
+        remoteResponse = conn.getresponse()
+        kmlDom = parse(remoteResponse)
+        # print kmlDom.toprettyxml('  ')
+        try:
+            kmlParser = KmlParser()
+            dict = None
+            try:
+                dict = kmlParser.kml_to_dict(node = kmlDom.documentElement, 
+                                             baseUrl = parsedRemoteUrl.geturl())
+            except ValueError, e:
+                print 'ERROR: failed to serialize KML document to dictionary - %s' % e
+                return HttpResponseNotFound()
+            jsonTxt = None
+            try:
+                jsonTxt = json.dumps(dict, indent = 2)
+            except ValueError, e:
+                print 'ERROR: Failed to serialize dictionary to JSON - %s' % e
+                return HttpResponseServerError()
+            response = HttpResponse(jsonTxt)
+            response.status_code = remoteResponse.status
+            return response
+        finally:
+            kmlDom.unlink()
+    finally:
+        if (conn != None):
+            conn.close()

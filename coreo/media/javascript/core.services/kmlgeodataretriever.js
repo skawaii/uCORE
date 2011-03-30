@@ -60,7 +60,7 @@ if (!window.core.services)
 		fetch: function(url, callback) {
 			var localCb = {
 				success: function(kml) {
-					var geodata = KmlNodeGeoData.fromKmlString(kml);
+					var geodata = KmlNodeGeoData.fromKmlString(kml, url);
 					CallbackUtils.invokeCallback(callback, geodata, "success");
 				},
 				error: function(errorThrown) {

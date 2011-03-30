@@ -78,15 +78,18 @@ if (!window.core.geo)
 						var idx = $.inArray(showFeatureEvent.geoData.id, this._hidden);
 						if (idx >= 0) {
 							this._hidden.splice(idx, 1);
+							this.resetTimer();
 						}
-						this.add(showFeatureEvent.geoData.id);
+						else {
+							this.add(showFeatureEvent.geoData.id);
+						}
 					}
 				}, this));
 				this.eventChannel.subscribe(HideFeatureEvent.type, $.proxy(function(hideFeatureEvent) {
 					if (hideFeatureEvent && hideFeatureEvent.geoData
 							&& hideFeatureEvent.geoData.id
 							&& hideFeatureEvent.geoData.getKmlFeatureType() === KmlFeatureType.NETWORK_LINK) {
-						_hidden.push(hideFeatureEvent.geoData.id);
+						this._hidden.push(hideFeatureEvent.geoData.id);
 						this.resetTimer();
 					}
 				}, this));
@@ -168,7 +171,11 @@ if (!window.core.geo)
 				var resetTimerAfterAllLinks = function() {
 					count++;
 					if (finishedLooping && count == total) {
+						alert("RESET");
 						this.resetTimer();
+					}
+					else {
+						console.log(count + "/" + total);
 					}
 				};
 				for (var linkId in this._links) {
@@ -177,7 +184,7 @@ if (!window.core.geo)
 						var link = GeoDataStore.getById(linkId);
 						var record = this._links[linkId];
 						if (link && record) {
-							this._update(link, record, false, $.proxy(resetTimerAfterAllLinks, this));
+							this._update(link, record, false, resetTimerAfterAllLinks);
 							total++;
 						}
 					}

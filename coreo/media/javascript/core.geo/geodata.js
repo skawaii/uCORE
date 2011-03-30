@@ -130,6 +130,20 @@ if (!window.core.geo)
 		 *   String. KML text.
 		 */
 		getKmlString: function() {}
+		
+		/**
+		 * Function: getKmlJson
+		 * 
+		 * Generates a Javascript object to represent the KML for this 
+		 * feature. This is the same javascript object that would be 
+		 * returned from the CORE KML Proxy service.
+		 * 
+		 *  Parameters:
+		 *    callback - Function. Invoked upon successful javascript 
+		 *          object creation. Invoked with one parameter - the 
+		 *          javascript object.
+		 */
+		getKmlJson: function(callback) {}
 	};
 	ns.GeoData = GeoData;
 

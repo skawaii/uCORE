@@ -95,7 +95,7 @@ if (!window.core.services)
 			}
 			if (searchLinksVal && searchLibrariesVal) {
 				var self = this;
-				var keepQuering = true;
+				var keepQuerying = true;
 				this.searchLinks(term, {
 					result: function(link) {
 						keepQuerying = CallbackUtils.invokeCallback(callback, link, "result");
