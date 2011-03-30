@@ -4,17 +4,17 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
   border:0;
   outline:0;
   font:inherit inherit 100% inherit;
-  vertical-align: middle;   
+  vertical-align: middle;
 }
 
 /*The user welcome message in the page header!*/
 #user-info {
-   position:relative; 
-   /* position:absolute; */
-   float:right;
-   padding-right: 5px;
-   padding-top:5px;
-   display:block; 
+  position:relative;
+  /* position:absolute; */
+  float:right;
+  padding-right: 5px;
+  padding-top:5px;
+  display:block;
 }
 #core-logo {
   margin: 3px 3px 3px 3px;
@@ -26,7 +26,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 }
 
 #gefooter {
-  background-color: #1E3A7C; 
+  background-color: #1E3A7C;
   padding:0px;
   margin:0px;
   height: 28px;
@@ -34,7 +34,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 }
 
 #header-mainpage {
-  float:right; 
+  float:right;
   padding:10px;
   font-family: sans-serif;
   color:#B3B3B3 
@@ -88,7 +88,7 @@ body {
   width: 650px;
   min-height: 250px;
   margin-left: -225px;  /** width / 2 ***/
-  position: absolute; 
+  position: absolute;
   top: -125px; /*** height / 2 ***/
   left: 50%;
 }
@@ -116,128 +116,128 @@ body {
 }
 
 .ui-kmlaccordion > h3 {
-	white-space: nowrap;
+  white-space: nowrap;
 }
 
 .ui-kmlaccordion-kmltreecontainer {
 }
 
 .ui-kmlaccordion-kmltreecontainer > div {
-	margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .gearthapp {
-	display: block;
-	position: relative; /* was relative */
+  display: block;
+  position: relative; /* was relative */
 }
 
 .gearthapp .gearthapp-controlpanel {
-	display: block;
-	clear: none;
-	float: left;
-	width: 30%;
-	margin: 0;
-	padding: 0;
-	height: 100%;
-	z-index: 100;
-	background: #fff
+  display: block;
+  clear: none;
+  float: left;
+  width: 30%;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  z-index: 100;
+  background: #fff
 }
 
 .gearthapp .gearthapp-controlpanel > div {
-	height: 100%;
+  height: 100%;
 }
 
 .gearthapp .gearthapp-earthpanel {
-	display: block;
-	clear: none;
-	float: left;
-	width: 70%;
-	padding: 0;
-	margin: 0;
-	height: 100%;
+  display: block;
+  clear: none;
+  float: left;
+  width: 70%;
+  padding: 0;
+  margin: 0;
+  height: 100%;
 }
 
 .gearthapp .ui-resizable-e {
-	cursor: col-resize;
+  cursor: col-resize;
 }
 
 .kmlaccordion-searchform {
-	width: 100%;
-	margin-bottom: 20px;
+  width: 100%;
+  margin-bottom: 20px;
   white-space: nowrap;
 } 
 
 .kmlaccordion-searchform table {
-	width: 100%;
- 	table-layout: fixed;
+  width: 100%;
+  table-layout: fixed;
 }
 
 .kmlaccordion-searchform table td.buttonContainer {
-	width: 2.3em;
+  width: 2.3em;
 }
 
 .kmlaccordion-searchform input {
- 	vertical-align: middle;
-	font-size: 1.1em !important;
-	height: 1.9em !important;
-	 width: 100%;
+  vertical-align: middle;
+  font-size: 1.1em !important;
+  height: 1.9em !important;
+  width: 100%;
 }
 
 .kmlaccordion-searchform button {
-	width: 2.3em;
-	height: 2.3em;
-  	vertical-align: middle;
+  width: 2.3em;
+  height: 2.3em;
+  vertical-align: middle;
 }
 
 .ui-emptytext {
-	font-weight: bold;
-	color: #ccc;
- 	letter-spacing: 1.1;
+  font-weight: bold;
+  color: #ccc;
+  letter-spacing: 1.1;
 }
 
 div.kmltree > ul:first-child > li.root-heading:first-child > span.name {
-	font-weight: bold;
-	font-size: 110%;
- 	color: #6C7C90;
+  font-weight: bold;
+  font-size: 110%;
+  color: #6C7C90;
 }
 
 .gearthapp-controlpanel .ui-kmlaccordion {
-	position: relative;
+  position: relative;
 }
 
 a {
   color:#39B2E5;
   font-weight:bold;
-   text-decoration:none;
+  text-decoration:none;
 }
 
 .collapser {
-	height: 18px;
- 	cursor: pointer;
+  height: 18px;
+  cursor: pointer;
 }
  
 .collapser span {
- 	margin: 1px 2px 1px 1px;
-	float: right;
+  margin: 1px 2px 1px 1px;
+  float: right;
 }
 
 iframe.core-controlpanel {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
 }
 
 div.core-controlpanel-collapsed {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 18px;
-	height: 100%;
-	cursor: pointer;
-	z-index: 100; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 18px;
+  height: 100%;
+  cursor: pointer;
+  z-index: 100;
 }
 
 div.core-controlpanel-collapsed span {
-	margin: 1px 2px 1px 1px;
+  margin: 1px 2px 1px 1px;
 }
