@@ -44,7 +44,7 @@
                 <div>{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
                 <form action="/create-user/" method="post" name="frmPhone">
                     <div>{% csrf_token %}</div>
-                        <input name="sid" type="hidden">
+                    <input name="sid" type="hidden"></input>
                         <table>
                           <tr>
                             <th>
