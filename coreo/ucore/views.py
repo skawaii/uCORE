@@ -163,7 +163,7 @@ def earn_trophy(request):
     tc.save()
     custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
     user_email = userc.email
-    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
+    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=True)
 
 
 def ge_index(request):

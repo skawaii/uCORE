@@ -61,9 +61,12 @@ if (!window.core.geo)
 			if (!id) {
 				id = GeoDataStore.generateId();
 				feature.id = id;
+			}
+			
 				if (!feature.owner) {
 					// this is a root-level feature
 					store[id] = feature;
+					console.log("persisting root level feature");
 				}
 				else {
 					// persist this in the store directly if the owner isn't 
@@ -71,13 +74,16 @@ if (!window.core.geo)
 					var ownerId = feature.owner.id;
 					if (!(ownerId in store)) {
 						store[id] = feature;
+						console.log("persisting child without owner");
+					}
+					else {
+						console.log("not persisting");
 					}
 				}
 				if ("postSave" in feature 
 						&& typeof feature.postSave === "function") {
 					feature.postSave();
 				}
-			}
 			return feature;
 		},
 		

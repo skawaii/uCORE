@@ -27,6 +27,7 @@
  *  - core.util.CallbackUtils
  *  - core.util.Assert
  *  - core.geo.KmlFeatureType
+ *  - core.geo.NetworkLinkGeoData
  */
 if (!window.core)
 	window.core = {};
@@ -41,7 +42,8 @@ if (!window.core.geo)
 	var CallbackUtils = core.util.CallbackUtils;
 	var Assert = core.util.Assert;
 	var KmlFeatureType = core.geo.KmlFeatureType;
-
+	var NetworkLinkGeoData = core.geo.NetworkLinkGeoData;
+	
 	var tagNameForKmlFeature = function(kmlFeatureType) {
 		if (kmlFeatureType) {
 			switch(kmlFeatureType) {
@@ -79,6 +81,29 @@ if (!window.core.geo)
 		GeoData.call(this, id);
 		this.node = node;
 		this.nsPrefix = nsPrefix;
+		if (this.getKmlFeatureType() === KmlFeatureType.NETWORK_LINK) {
+			var linkNode = $(this.node).children("link:first");
+			var href = $.trim(linkNode.children("href").text());
+			NetworkLinkGeoData.call(this, id, href);
+			// $.extend(this, NetworkLinkGeoData.prototype);
+			this.refreshMode = $.trim(linkNode.children("refreshMode").text());
+			var str = $.trim(linkNode.children("refreshInterval").text());
+			if (str && typeof str === "string" && str.length > 0) {
+				this.refreshInterval = parseInt(str, 10);
+			}
+			this.viewRefreshMode = $.trim(linkNode.children("viewRefreshMode").text());
+			str = $.trim(linkNode.children("viewRefreshTime").text());
+			if (str && typeof str === "string" && str.length > 0) {
+				this.viewRefreshTime = parseInt(str, 10);
+			}
+			str = $.trim(linkNode.children("viewBoundScale").text());
+			if (str && typeof str === "string" && str.length > 0) {
+				this.viewBoundScale = parseInt(str, 10);
+			}
+			this.viewFormat = $.trim(linkNode.children("viewFormat").text());
+			this.httpQuery = $.trim(linkNode.children("httpQuery").text());
+			this.linkData = null;
+		}
 	};
 
 	/**
@@ -227,7 +252,8 @@ if (!window.core.geo)
 		 *   <GeoData.hasChildren>
 		 */
 		hasChildren: function() {
-			return (KmlUtils.hasChildKmlElements(this.node)
+			return ((this.linkData && this.linkData.hasChildren()) 
+					|| KmlUtils.hasChildKmlElements(this.node)
 					|| this.getKmlFeatureType() === "NetworkLink");
 		},
 
@@ -271,13 +297,18 @@ if (!window.core.geo)
 		 *   <GeoData.iterateChildren>
 		 */
 		iterateChildren: function(callback) {
-			var nsPrefix = this.nsPrefix;
-			KmlUtils.iterateChildKmlElements(this.node, function(child) {
-				var id = KmlNodeGeoData.getIdFromElement(child, nsPrefix);
-				var childFeature = new KmlNodeGeoData(id, child, nsPrefix);
-				GeoDataStore.persist(childFeature);
-				CallbackUtils.invokeCallback(callback, childFeature);
-			});
+			if (this.linkData) {
+				this.linkData.iterateChildren(callback);
+			}
+			else {
+				var nsPrefix = this.nsPrefix;
+				KmlUtils.iterateChildKmlElements(this.node, function(child) {
+					var id = KmlNodeGeoData.getIdFromElement(child, nsPrefix);
+					var childFeature = new KmlNodeGeoData(id, child, nsPrefix);
+					GeoDataStore.persist(childFeature);
+					CallbackUtils.invokeCallback(callback, childFeature);
+				});
+			}
 		},
 		
 		/**
@@ -287,11 +318,16 @@ if (!window.core.geo)
 		 *   <GeoData.getChildById>
 		 */
 		getChildById: function(id) {
-			var el = KmlNodeGeoData.getChildElementById(this.node, id, this.nsPrefix);
-			if (el && el != null) {
-				return new KmlNodeGeoData(id, el, this.nsPrefix);
+			if (this.linkData) {
+				return this.linkData.getChildById(id);
 			}
-			return null;
+			else {
+				var el = KmlNodeGeoData.getChildElementById(this.node, id, this.nsPrefix);
+				if (el && el != null) {
+					return new KmlNodeGeoData(id, el, this.nsPrefix);
+				}
+				return null;
+			}
 		},
 
 		/**
@@ -311,14 +347,19 @@ if (!window.core.geo)
 		 *   <GeoData.findByKmlFeatureType>
 		 */
 		findByKmlFeatureType: function(kmlFeatureType, callback) {
-			var tagName = tagNameForKmlFeature(kmlFeatureType);
-			var nsPrefix = this.nsPrefix;
-			$(this.node).find(tagName).each($.proxy(function(index, el) {
-				var id = KmlNodeGeoData.getIdFromElement(el, nsPrefix);
-				var childFeature = new KmlNodeGeoData(id, el, nsPrefix);
-				GeoDataStore.persist(childFeature);
-				CallbackUtils.invokeCallback(callback, childFeature);
-			}, this));
+			if (this.linkData) {
+				return this.linkData.findByKmlFeatureType(kmlFeatureType, callback);
+			}
+			else {
+				var tagName = tagNameForKmlFeature(kmlFeatureType);
+				var nsPrefix = this.nsPrefix;
+				$(this.node).find(tagName).each($.proxy(function(index, el) {
+					var id = KmlNodeGeoData.getIdFromElement(el, nsPrefix);
+					var childFeature = new KmlNodeGeoData(id, el, nsPrefix);
+					GeoDataStore.persist(childFeature);
+					CallbackUtils.invokeCallback(callback, childFeature);
+				}, this));
+			}
 		},
 		
 		/**

@@ -35,6 +35,7 @@
 	<script type="text/javascript" src="../core.events/mapunloadedevent.js"></script>
 	<script type="text/javascript" src="../core.events/showfeatureevent.js"></script>
 	<script type="text/javascript" src="../core.events/featureupdatedevent.js"></script>
+	<script type="text/javascript" src="../core.events/viewchangedevent.js"></script>
 
 	<script type="text/javascript" src="../core.geo/geodata.js"></script>
 	<script type="text/javascript" src="../core.geo/geodatastore.js"></script>
@@ -57,7 +58,16 @@
     	//google.load("maps", "2");
 
        	$(document).ready(function() {
+       		test("foo", function() {
+       			var kml = new google.maps.GeoXml("http://localhost:8080/site_media/AAAAAAAAAAAAAAAAAAAAAAAAA?foo=x&j=a");
+       			kml.getKml(function(kml) {
+       				start();
+       			});
+       			stop();
+       		});
+       		
        		// dynamically load unit tests - google API's need to be loaded first
+       		$.getScript("core.events/viewchangedevent.js");
        		$.getScript("core.ui/geodatatree.js");
        		
        		$.getScript("core.services/userchoiceresultfilter.js");

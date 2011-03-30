@@ -94,7 +94,14 @@ if (!window.core.geo)
 		 * String. Appends information to the query string, based on the 
 		 * parameters specified.
 		 */
-		httpQuery: null
+		httpQuery: null,
+		
+		/**
+		 * Property: linkData
+		 * 
+		 * <GeoData>. Root node of the data retrieved from the link.
+		 */
+		linkData: null
 	});
 	ns.NetworkLinkGeoData = NetworkLinkGeoData;
 	
