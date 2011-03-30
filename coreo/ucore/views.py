@@ -163,7 +163,7 @@ def earn_trophy(request):
     tc.save()
     custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
     user_email = userc.email
-    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=False)
+    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=True)
 
 
 def ge_index(request):
@@ -294,7 +294,20 @@ def get_library(request, username, lib_name):
 
   uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
 
-  return HttpResponse(uri)
+  return HttpResponse(uri) 
+
+
+def check_username(request):
+  if request.method == 'GET':
+    user = request.GET['username'].strip()
+    dbCheck = CoreUser.objects.filter(username=user)
+    if (dbCheck.count() > 0):
+      boolReturn = True;
+    else:
+      boolReturn = False;
+    return HttpResponse(json.dumps(boolReturn))
+  else:
+    return HttpResponse('index.html') 
 
 
 def get_shapefile(request):
@@ -643,7 +656,7 @@ def trophy_room(request):
 
 
 def test_chart(request):
-  return render_to_response('chart.html', context_instance=RequestContext(request))
+   return render_to_response('chart.html', context_instance=RequestContext(request))
 
 
 def update_user(request):
