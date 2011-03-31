@@ -48,8 +48,9 @@ class KmlParser:
     def element_value(self, element):
         txt = ''
         for child in element.childNodes:
-            if (child.nodeType == Node.TEXT_NODE):
-                txt = txt + child.nodeValue
+            if (child.nodeType == Node.TEXT_NODE
+                or child.nodeType == Node.CDATA_SECTION_NODE):
+                txt = txt + child.data
         return txt
     
     def child_element_value(self, parentElement, childName = None, childNS = None):

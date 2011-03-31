@@ -196,7 +196,6 @@ if (!window.core.ui)
 				lazyload: {
 					data: this._createTreeNode(this.geodata),
 					loadChildren: function(parent, dataFn, completeFn, errorFn) {
-						console.log("loadChildren");
 						var parentGeoDataId = _this._getGeoDataId(parent);
 						var parentGeoData = GeoDataStore.getById(parentGeoDataId);
 						Assert.hasFunction(parentGeoData, "iterateChildren", 
@@ -204,9 +203,7 @@ if (!window.core.ui)
 								+ " returned from GeoDataStore doesn't "
 								+ "contain function iterateChildren");
 						var iterate = $.proxy(function() {
-							console.log("iterate");
 							parentGeoData.iterateChildren(function(childGeoData) {
-								console.log("child: " + childGeoData.id);
 								var childNode = _this._createTreeNode(childGeoData);
 								dataFn.call(dataFn, childNode);
 							});
@@ -218,7 +215,6 @@ if (!window.core.ui)
 						else {
 							iterate();
 						}
-						console.log("DONE loading children");
 					}
 				},
 				themes: {

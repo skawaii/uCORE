@@ -759,7 +759,7 @@ def kmlproxy(request):
         conn.request('GET', parsedRemoteUrl.path + '?' + parsedRemoteUrl.query, None, headers)
         remoteResponse = conn.getresponse()
         kmlDom = parse(remoteResponse)
-        # print kmlDom.toprettyxml('  ')
+        # print remoteUrl + kmlDom.toprettyxml('  ')
         try:
             kmlParser = KmlParser()
             dict = None

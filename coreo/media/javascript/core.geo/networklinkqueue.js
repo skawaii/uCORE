@@ -205,7 +205,7 @@ if (!window.core.geo)
 				finishedLooping = true;
 			}
 		},
-		
+
 		forceUpdate: function(geodataId, callback) {
 			var geodata = GeoDataStore.getById(geodataId);
 			if (geodata) {
@@ -303,7 +303,7 @@ if (!window.core.geo)
 						}
 					});
 				}
-				else {
+				else if (callback) {
 					callback.call(this);
 				}
 			}

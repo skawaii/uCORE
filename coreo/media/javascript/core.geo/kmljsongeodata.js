@@ -303,8 +303,10 @@ if (!window.core.geo)
 					this.parentGeoData.getEnclosingKmlUrl(callback);
 				}
 			}
-			// this is the root
-			CallbackUtils.invokeCallback(callback, this.kmlRoot.baseUrl);
+			else {
+				// this is the root
+				CallbackUtils.invokeCallback(callback, this.kmlRoot.baseUrl);
+			}
 		},
 		
 		getKmlString: function() {
