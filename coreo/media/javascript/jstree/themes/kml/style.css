@@ -136,7 +136,7 @@
 .jstree-kml .jstree-clicked { background:navy; border:1px solid navy; padding:0 2px 0 1px; color:white; }
 .jstree-kml a .jstree-icon { background-position:-56px -19px; }
 .jstree-kml .jstree-open > a .jstree-icon { background-position:-56px -36px; }
-.jstree-kml a.jstree-loading .jstree-icon { background:url("throbber.gif") center center no-repeat !important; }
+.jstree-kml a.jstree-loading .jstree-icon { background:url("ajax-loader16.gif") center center no-repeat !important; }
 
 .jstree-kml.jstree-focused { background:white; }
 

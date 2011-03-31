@@ -13,6 +13,7 @@
  *   - jsTree bettercheckbox plugin
  *   - core.geo.GeoDataStore
  *   - core.util.Assert
+ *   - core.geo.KmlFeatureType
  */
 
 if (!window.core)
@@ -23,7 +24,9 @@ if (!window.core.ui)
 (function($, ns) {
 	var GeoDataStore = core.geo.GeoDataStore;
 	var Assert = core.util.Assert;
-
+	var KmlFeatureType = core.geo.KmlFeatureType;
+	if (!KmlFeatureType)
+		throw ("Dependency not found: core.geo.KmlFeatureType");
 	
 	/**
 	 * Constructor: GeoDataTree
@@ -34,12 +37,13 @@ if (!window.core.ui)
 	 *   geodata - <GeoData>. Required. Root tree node.
 	 *   el - HTML DOM Element. Element to contain the tree.
 	 */
-	var GeoDataTree = function(geodata, el) {
+	var GeoDataTree = function(geodata, el, networkLinkQueue) {
 		Assert.notNull(geodata, "geodata cannot be null");
 		Assert.type(geodata, "object", "geodata must be of type core.geo.GeoData");
 		Assert.notNull(el, "el cannot be null");
 		this.el = el;
 		this.geodata = geodata;
+		this.networkLinkQueue = networkLinkQueue;
 		this._init();
 	};
 	/**
@@ -49,6 +53,13 @@ if (!window.core.ui)
 	 */
 	GeoDataTree.GEODATA_ATTR = "core-geodata-id";
 	GeoDataTree.prototype = {
+		/**
+		 * Property: networkLinkQueue
+		 * 
+		 * <NetworkLinkQueue>.
+		 */
+		networkLinkQueue: null,
+
 		/**
 		 * Property: el
 		 * 
@@ -185,18 +196,29 @@ if (!window.core.ui)
 				lazyload: {
 					data: this._createTreeNode(this.geodata),
 					loadChildren: function(parent, dataFn, completeFn, errorFn) {
+						console.log("loadChildren");
 						var parentGeoDataId = _this._getGeoDataId(parent);
 						var parentGeoData = GeoDataStore.getById(parentGeoDataId);
 						Assert.hasFunction(parentGeoData, "iterateChildren", 
 								"GeoData with ID " + parentGeoDataId 
 								+ " returned from GeoDataStore doesn't "
 								+ "contain function iterateChildren");
-						parentGeoData.iterateChildren(function(childGeoData) {
-							console.log("child: " + childGeoData.id);
-							var childNode = _this._createTreeNode(childGeoData);
-							dataFn(childNode);
-						});
-						completeFn();
+						var iterate = $.proxy(function() {
+							console.log("iterate");
+							parentGeoData.iterateChildren(function(childGeoData) {
+								console.log("child: " + childGeoData.id);
+								var childNode = _this._createTreeNode(childGeoData);
+								dataFn.call(dataFn, childNode);
+							});
+							completeFn.call(completeFn);
+						}, this);
+						if (parentGeoData.getKmlFeatureType() === KmlFeatureType.NETWORK_LINK) {
+							_this.networkLinkQueue.forceUpdate(parentGeoDataId, iterate);
+						}
+						else {
+							iterate();
+						}
+						console.log("DONE loading children");
 					}
 				},
 				themes: {

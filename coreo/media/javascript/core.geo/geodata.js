@@ -147,7 +147,14 @@ if (!window.core.geo)
 
 		removeAllChildren: function() {},
 
-		addChild: function(geodata) {}
+		addChild: function(geodata) {},
+		
+		/**
+		 * Function: getEnclosingKmlUrl
+		 * 
+		 * Gets the URL of the enclosing KML
+		 */
+		getEnclosingKmlUrl: function() {}
 	};
 	ns.GeoData = GeoData;
 

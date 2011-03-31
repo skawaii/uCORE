@@ -17,6 +17,7 @@
 	<script type="text/javascript" src="../jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="../jstree/jquery.jstree.bettercheckbox.js"></script>
 	<script type="text/javascript" src="../core.geo/kmlfeaturetype.js"></script>
+	<script type="text/javascript" src="../core.util/uri.js"></script>
 	<script type="text/javascript" src="../core.util/idsequence.js"></script>
 	<script type="text/javascript" src="../core.util/assert.js"></script>
 	<script type="text/javascript" src="../core.util/callbackutils.js"></script>
@@ -97,7 +98,7 @@
 				}, this)
 			};
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
-			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel);
+			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
 			
 			/*
 			var kml = "<k:kml xmlns:k=\"" + core.util.KmlUtils.KML_NS[0] + "\">"

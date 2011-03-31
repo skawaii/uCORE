@@ -15,6 +15,7 @@
  *   - core.events.ShowFeatureEvent
  *   - core.events.HideFeatureEvent
  *   - core.events.ViewChangedEvent
+ *   - core.util.URI
  */
 
 if (!window.core)
@@ -44,6 +45,9 @@ if (!window.core.geo)
 	var KmlFeatureType = core.geo.KmlFeatureType;
 	if (!KmlFeatureType)
 		throw "Dependency not found: core.geo.KmlFeatureType";
+	var URI = core.util.URI;
+	if (!URI)
+		throw "Dependency not found: core.util.URI";
 	
 	var NetworkLinkQueue = function(geodataRetriever, eventChannel, currentBbox, currentAltitude) {
 		this.geodataRetriever = geodataRetriever;
@@ -118,14 +122,15 @@ if (!window.core.geo)
 				this._timer = null;
 			}
 			var nextPollInterval = this.computeNextPollInterval();
-			console.log("Will poll next in " + nextPollInterval + " ms");
 			if (nextPollInterval >= 0) {
-				nextPollInterval = Math.min(nextPollInterval, 1);
+				nextPollInterval = Math.max(nextPollInterval, 1);
 				this._timer = window.setTimeout(
 						$.proxy(this.execute, this), 
 						nextPollInterval);				
 			}
 		},
+
+		RETRY_INTERVAL: 3000,
 
 		computeNextPollInterval: function() {
 			var nextUpdate = -1;
@@ -136,13 +141,21 @@ if (!window.core.geo)
 						var record = this._links[linkId];
 						var link = GeoDataStore.getById(linkId);
 						if (link && record) {
-							if (record.lastUpdateTime < 0) {
-								// this link has never been populated, so do it now
-								return 0;
+							if (record.successTime < 0) {
+								// this link has never been populated
+								// update now if it hasn't been attempted
+								if (record.attemptTime < 0) {
+									return 0;
+								}
+								// retry this link after a period of time (RETRY_INTERVAL)
+								var tmp = record.attemptTime + this.RETRY_INTERVAL;
+								if (nextUpdate == -1 || tmp < nextUpdate) {
+									nextUpdate = tmp;
+								}
 							}
 							else if (this.isTimeBasedUpdate(link)) {
 								var tmp = this.getNextDesiredUpdateTime(
-										link, record.lastUpdateTime);
+										link, record.successTime);
 								if (nextUpdate == -1 || tmp < nextUpdate) {
 									nextUpdate = tmp;
 								}
@@ -156,35 +169,35 @@ if (!window.core.geo)
 			}
 			if (nextUpdate > -1) {
 				// some links use onInterval refresh mode
-				return Math.min(nextUpdate - new Date().getTime(), 0);
+				return Math.max(nextUpdate - new Date().getTime(), 0);
 			}
 			// none of the links use onInterval refresh mode
 			return -1;
 		},
 
 		execute: function() {
-			console.log("execute queue");
 			if (this._links) {
 				var finishedLooping = false;
 				var total = 0;
 				var count = 0;
-				var resetTimerAfterAllLinks = function() {
+				var resetTimerAfterAllLinks = $.proxy(function() {
 					count++;
 					if (finishedLooping && count == total) {
-						alert("RESET");
 						this.resetTimer();
 					}
-					else {
-						console.log(count + "/" + total);
-					}
-				};
+				}, this);
 				for (var linkId in this._links) {
 					// don't update hidden links (hidden link data is now stale)
 					if ($.inArray(linkId, this._hidden) < 0) {
-						var link = GeoDataStore.getById(linkId);
+						var geodata = GeoDataStore.getById(linkId);
 						var record = this._links[linkId];
-						if (link && record) {
-							this._update(link, record, false, resetTimerAfterAllLinks);
+						if (geodata && record) {
+							geodata.getEnclosingKmlUrl($.proxy(function(enclosingKmlUrl) {
+								geodata.getKmlJson($.proxy(function(kmlJson) {
+									var absoluteUrl = new URI(kmlJson.link.href).resolve(new URI(enclosingKmlUrl)).toString();
+									this._update(geodata, kmlJson, record, false, absoluteUrl, resetTimerAfterAllLinks);								
+								}, this));
+							}, this));
 							total++;
 						}
 					}
@@ -193,28 +206,44 @@ if (!window.core.geo)
 			}
 		},
 		
-		_update: function(link, record, forceUpdate, callback) {
-			console.log("update " + link.id);
-			console.log(core.util.ObjectUtils.describe(link));
+		forceUpdate: function(geodataId, callback) {
+			var geodata = GeoDataStore.getById(geodataId);
+			if (geodata) {
+				var record = this._links[geodataId];
+				if (!record) {
+					record = new NetworkLinkQueue.Record(geodataId);
+					// record isn't persisted. this prevents link from being
+					// periodically updated.
+				}
+				geodata.getEnclosingKmlUrl($.proxy(function(enclosingKmlUrl) {
+					geodata.getKmlJson($.proxy(function(kmlJson) {
+						var absoluteUrl = new URI(kmlJson.link.href).resolve(new URI(enclosingKmlUrl)).toString();
+						this._update(geodata, kmlJson, record, true, absoluteUrl, callback);								
+					}, this));
+				}, this));
+			}
+		},
+
+		_update: function(geodata, kmlJsonLink, record, forceUpdate, absoluteUrl, callback) {
 			var now = new Date().getTime();
-			var doUpdate = forceUpdate || record.lastUpdateTime < 0;
-			if (!doUpdate) {
-				if (this.isTimeBasedUpdate(link)) {
+			var doUpdate = forceUpdate || record.successTime < 0 
+				|| record.attemptTime < 0;
+			if (!doUpdate && (record.successTime >= record.attemptTime
+					|| (new Date().getTime() - record.attemptTime) >= this.RETRY_INTERVAL)) {
+				if (this.isTimeBasedUpdate(kmlJsonLink.link)) {
 					var nextDesiredUpdate = this.getNextDesiredUpdateTime(
-							link, record.lastUpdateTime);
+							kmlJsonLink.link, record.successTime);
 					doUpdate = nextDesiredUpdate <= new Date().getTime();
 				}
-				else if (this.isViewBasedUpdate(link)) {
-					doUpdate = !this._bbox || !record.lastUpdateBbox 
-						|| !record.lastUpdateBbox.equals(this._bbox) 
-						|| record.lastUpdateAltitude != this._altitude;
+				else if (this.isViewBasedUpdate(kmlJsonLink.link)) {
+					doUpdate = !this._bbox || !record.successBbox 
+						|| !record.successBbox.equals(this._bbox) 
+						|| record.successAltitude != this._altitude;
 				}
 			}
 			if (doUpdate) {
-				var href = link.href;
-				if (href) {
-					console.log("updating " + href);
-					var endpoint = href;
+				if (absoluteUrl) {
+					var endpoint = absoluteUrl;
 					if (this._bbox) {
 						// BBOX=[bboxWest],[bboxSouth],[bboxEast],[bboxNorth]
 						var sw = this._bbox.getSouthWest().toUrlValue();
@@ -229,19 +258,19 @@ if (!window.core.geo)
 							endpoint += "?" + params;
 						}
 					}
+					record.attemptTime = now;
 					var eventChannel = this.eventChannel;
 					var bbox = this._bbox;
 					var altitude = this._altitude;
-					var linkId = link.id;
+					var linkId = geodata.id;
 					eventChannel.publish(new GeoDataUpdateBeginEvent(
 							NetworkLinkQueue.EVENT_PUBLISHER_NAME, 
-							link));
+							geodata));
 					this.geodataRetriever.fetch(endpoint, {
 						success: function(geodata) {
-							console.log("successfully updated");
 							var networkLink = GeoDataStore.getById(linkId);
 							if (networkLink) {
-								networkLink.getKmlJson($.proxy(function(kmlJson) {
+								geodata.getKmlJson($.proxy(function(kmlJson) {
 									networkLink.removeAllChildren();
 									if ("children" in kmlJson && "length" in kmlJson.children) {
 										for (var i = 0; i < kmlJson.children.length; i++) {
@@ -253,14 +282,13 @@ if (!window.core.geo)
 								}, this));
 							}
 							networkLink = GeoDataStore.persist(networkLink);
-							console.log("NEW network link: " + core.util.ObjectUtils.describe(geodata));
 							eventChannel.publish(new GeoDataUpdateEndEvent(
 									NetworkLinkQueue.EVENT_PUBLISHER_NAME, 
 									networkLink));
 							// update last update data since update succeeded
-							record.lastUpdateTime = now;
-							record.lastUpdateBbox = bbox;
-							record.lastAltitude = altitude;
+							record.successTime = now;
+							record.successBbox = bbox;
+							record.successAltitude = altitude;
 							if (callback)
 								callback.call(callback);
 						},
@@ -274,6 +302,9 @@ if (!window.core.geo)
 								callback.call(callback);
 						}
 					});
+				}
+				else {
+					callback.call(this);
 				}
 			}
 			else if (callback) {
@@ -311,9 +342,10 @@ if (!window.core.geo)
 
 	var Record = function() {};
 	Record.prototype = {
-		lastUpdateTime: -1,
-		lastUpdateBbox: null,
-		lastUpdateAltitude: null
+		attemptTime: -1,
+		successTime: -1,
+		successBbox: null,
+		successAltitude: null
 	};
 	NetworkLinkQueue.Record = Record;
 })(jQuery, window.core.geo);

@@ -46,10 +46,11 @@ if (!window.core.ui)
 	 *   searchStrategy - <SearchStrategy>. Invoked by the search form.
 	 *   eventChannel - <EventChannel>.
 	 */
-	var Acoredion = function(el, searchStrategy, eventChannel) {
+	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue) {
 		this.el = el;
 		this.searchStrategy = searchStrategy;
 		this.eventChannel = eventChannel;
+		this.networkLinkQueue = networkLinkQueue;
 		this._init();
 	};
 	Acoredion.EVENT_PUBLISHER_NAME = "Acoredion";
@@ -64,9 +65,11 @@ if (!window.core.ui)
 		
 		eventChannel: null,
 		
+		networkLinkQueue: null,
+		
 		addGeoData: function(geodata, publishEvent) {
 			var treeEl = $("<div>").addClass("acoredion-tree").appendTo($(this.treeContainer));
-			var tree = new GeoDataTree(geodata, treeEl);
+			var tree = new GeoDataTree(geodata, treeEl, this.networkLinkQueue);
 			
 			tree.onCheck = $.proxy(function(geodata) {
 				this.eventChannel.publish(new ShowFeatureEvent(

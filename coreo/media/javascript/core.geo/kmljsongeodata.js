@@ -7,6 +7,7 @@
  *   - core.util.CallbackUtils
  *   - core.geo.KmlFeatureType
  *   - core.geo.GeoDataStore
+ *   - core.util.URI
  */
 
 if (!window.core)
@@ -27,6 +28,9 @@ if (!window.core.geo)
 	var GeoDataStore = core.geo.GeoDataStore;
 	if (!GeoDataStore)
 		throw "Dependency not found: core.geo.GeoDataStore";
+	var URI = core.util.URI;
+	if (!URI)
+		throw "Dependency not found: core.util.URI";
 
 	var getKmlFeatureTypeFromJson = function(kmlJsonType) {
 		if (kmlJsonType) {
@@ -109,7 +113,7 @@ if (!window.core.geo)
 					var child = this.kmlJsonObj.children[i];
 					if ("type" in child 
 						&& getKmlFeatureTypeFromJson(child.type) === kmlFeatureType) {
-						var kmlJsonChild = KmlJsonGeoData.fromKmlJson(child);
+						var kmlJsonChild = KmlJsonGeoData.fromKmlJson(child, this.kmlRoot, this);
 						if (CallbackUtils.invokeCallback(callback, kmlJsonChild) === false
 							|| kmlJsonChild.findByKmlFeatureType(kmlFeatureType, callback) === false) {
 							// stop searching
@@ -202,7 +206,7 @@ if (!window.core.geo)
 			if (this.kmlJsonObj && "children" in this.kmlJsonObj) {
 				for (var i = 0; i < this.kmlJsonObj.children.length; i++) {
 					var child = this.kmlJsonObj.children[i];
-					var kmlJsonChild = KmlJsonGeoData.fromKmlJson(child, this);
+					var kmlJsonChild = KmlJsonGeoData.fromKmlJson(child, this.kmlRoot, this);
 					GeoDataStore.persist(kmlJsonChild);
 					if (CallbackUtils.invokeCallback(callback, kmlJsonChild) === false) {
 						// stop iterating
@@ -230,7 +234,7 @@ if (!window.core.geo)
 					// no need to search deeper in the tree if this node 
 					// doesn't have an ID set
 					if (KmlJsonGeoData.hasId(child)) {
-						var childKmlJsonGeoData = KmlJsonGeoData.fromKmlJson(child, this);
+						var childKmlJsonGeoData = KmlJsonGeoData.fromKmlJson(child, this.kmlRoot, this);
 						if (childKmlJsonGeoData.id === id) {
 							return childKmlJsonGeoData;
 						}
@@ -277,6 +281,30 @@ if (!window.core.geo)
 		 */
 		postSave: function() {
 			KmlJsonGeoData.setId(this.kmlJsonObj, this.id);
+		},
+		
+		getEnclosingKmlUrl: function(callback) {
+			if (this.parentGeoData) {
+				if (this.parentGeoData.getKmlFeatureType() === KmlFeatureType.NETWORK_LINK) {
+					// use parent's Link URL
+					this.parentGeoData.getKmlJson($.proxy(function(kmlJson) {
+						var fullParentPath = null;
+						if (kmlJson && kmlJson.link && kmlJson.link.href) {
+							this.parentGeoData.getEnclosingKmlUrl(function(parentEnclosingUrl) {
+								var fullParentPath = new URI(kmlJson.link.href)
+									.resolve(new URI(parentEnclosingUrl))
+									.toString();
+								CallbackUtils.invokeCallback(callback, fullParentPath);
+							});
+						}
+					}, this));
+				}
+				else {
+					this.parentGeoData.getEnclosingKmlUrl(callback);
+				}
+			}
+			// this is the root
+			CallbackUtils.invokeCallback(callback, this.kmlRoot.baseUrl);
 		},
 		
 		getKmlString: function() {
