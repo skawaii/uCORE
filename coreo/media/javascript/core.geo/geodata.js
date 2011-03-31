@@ -129,7 +129,7 @@ if (!window.core.geo)
 		 * Returns:
 		 *   String. KML text.
 		 */
-		getKmlString: function() {}
+		getKmlString: function() {},
 		
 		/**
 		 * Function: getKmlJson
@@ -143,7 +143,11 @@ if (!window.core.geo)
 		 *          object creation. Invoked with one parameter - the 
 		 *          javascript object.
 		 */
-		getKmlJson: function(callback) {}
+		getKmlJson: function(callback) {},
+
+		removeAllChildren: function() {},
+
+		addChild: function(geodata) {}
 	};
 	ns.GeoData = GeoData;
 

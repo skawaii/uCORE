@@ -9,6 +9,6 @@ test("constructor", function() {
 	core.testutils.assertImplements(event, core.events.Event.prototype);
 });
 
-test("TYPE", function() {
-	strictEqual(core.events.ViewChangedEvent.TYPE, "ViewChangedEvent");
+test("type", function() {
+	strictEqual(core.events.ViewChangedEvent.type, "ViewChangedEvent");
 });

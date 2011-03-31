@@ -11,7 +11,6 @@
  *   
  * Dependencies:
  *   - jQuery
- *   - core.geo.KmlNodeGeoData
  *   - core.util.CallbackUtils
  */
 
@@ -21,13 +20,12 @@ if (!window.core.services)
 	window.core.services = {};
 
 (function($, ns) {
-	var KmlNodeGeoData = core.geo.KmlNodeGeoData;
 	var CallbackUtils = core.util.CallbackUtils;
 
 	// private function used by SearchStrategy to retrieve KML and then 
 	// convert it to a GeoData instance.
-	var fetchKml = function(kmlRetriever, url, callback) {
-		kmlRetriever.fetch(url, {
+	var fetchKml = function(geoDataRetriever, url, callback) {
+		geoDataRetriever.fetch(url, {
 			success: function(kml) {
 				var geodata = KmlNodeGeoData.fromKmlString(kml);
 				CallbackUtils.invokeCallback(callback, geodata, "result");
@@ -47,12 +45,12 @@ if (!window.core.services)
 	 * Parameters:
 	 *   searchService - <SearchService>. Required.
 	 *   searchResultFilter - <SearchResultFilter>. Required.
-	 *   kmlRetriever - <KmlRetriever>. Required. 
+	 *   geoDataRetriever - <GeoDataRetriever>. Required. 
 	 */
-	var SearchStrategy = function(searchService, searchResultFilter, kmlRetriever) {
+	var SearchStrategy = function(searchService, searchResultFilter, geoDataRetriever) {
 		this.searchService = searchService;
 		this.searchResultFilter = searchResultFilter;
-		this.kmlRetriever = kmlRetriever;
+		this.geoDataRetriever = geoDataRetriever;
 	};
 	SearchStrategy.prototype = {
 		/**
@@ -77,11 +75,11 @@ if (!window.core.services)
 		searchResultFilter: null,
 
 		/**
-		 * Property: kmlRetriever
+		 * Property: geoDataRetriever
 		 * 
-		 * <KmlRetriever>. Retrieves KML for selected search results.
+		 * <GeoDataRetriever>. Retrieves GeoData for selected search results.
 		 */
-		kmlRetriever: null,
+		geoDataRetriever: null,
 		
 		/**
 		 * Function: search
@@ -102,7 +100,15 @@ if (!window.core.services)
 		 */
 		search: function(text, callback) {
 			if (text.match('^http')) {
-				fetchKml(this.kmlRetriever, text, callback);
+				this.geoDataRetriever.fetch(text, {
+					success: function(geodata) {
+						CallbackUtils.invokeCallback(callback, geodata, "result");
+						CallbackUtils.invokeOptionalCallback(callback, "complete");
+					},
+					error: function(errorThrown) {
+						CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
+					}
+				});
 			}
 			else {
 				// get Links and LinkLibraries matching the search term, 
@@ -115,14 +121,13 @@ if (!window.core.services)
 						// build geodata
 						var kmlUrl = linkOrLibrary.fields.url;
 						// need to prevent complete from being called
-						fetchKml(this.kmlRetriever, kmlUrl, {
-							result: function(geodata) {
+						this.geoDataRetriever.fetch(kmlUrl, {
+							success: function(geodata) {
 								CallbackUtils.invokeCallback(callback, geodata, "result");
 							},
 							error: function(errorThrown) {
 								CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
-							},
-							complete: function() {}
+							}
 						});
 					},
 					complete: function() {

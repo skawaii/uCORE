@@ -192,6 +192,7 @@ if (!window.core.ui)
 								+ " returned from GeoDataStore doesn't "
 								+ "contain function iterateChildren");
 						parentGeoData.iterateChildren(function(childGeoData) {
+							console.log("child: " + childGeoData.id);
 							var childNode = _this._createTreeNode(childGeoData);
 							dataFn(childNode);
 						});

@@ -775,8 +775,9 @@ def kmlproxy(request):
             except ValueError, e:
                 print 'ERROR: Failed to serialize dictionary to JSON - %s' % e
                 return HttpResponseServerError()
-            response = HttpResponse(jsonTxt)
-            response.status_code = remoteResponse.status
+            response = HttpResponse(content = jsonTxt, 
+                                    status = remoteResponse.status,
+                                    content_type = 'application/json')
             return response
         finally:
             kmlDom.unlink()

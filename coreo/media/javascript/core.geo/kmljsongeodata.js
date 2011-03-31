@@ -6,6 +6,7 @@
  *   - core.geo.GeoData
  *   - core.util.CallbackUtils
  *   - core.geo.KmlFeatureType
+ *   - core.geo.GeoDataStore
  */
 
 if (!window.core)
@@ -23,8 +24,11 @@ if (!window.core.geo)
 	var KmlFeatureType = core.geo.KmlFeatureType;
 	if (!KmlFeatureType)
 		throw "Dependency not found - core.geo.KmlFeatureType";
+	var GeoDataStore = core.geo.GeoDataStore;
+	if (!GeoDataStore)
+		throw "Dependency not found: core.geo.GeoDataStore";
 
-	var getKmlFeatureType = function(kmlJsonType) {
+	var getKmlFeatureTypeFromJson = function(kmlJsonType) {
 		if (kmlJsonType) {
 			switch (kmlJsonType) {
 			case "NetworkLink":
@@ -46,34 +50,43 @@ if (!window.core.geo)
 		return null;
 	};
 
-	var KmlJsonGeoData = function(id, kmlJsonObj, parentGeoData) {
+	var KmlJsonGeoData = function(id, kmlJsonObj, kmlRoot, parentGeoData) {
 		GeoData.call(this, id);
 		this.kmlJsonObj = kmlJsonObj;
+		this.kmlRoot = kmlRoot;
 		this.parentGeoData = parentGeoData;
 	};
+	
 	KmlJsonGeoData.ID_PROPERTY = "_coreId";
+	
 	KmlJsonGeoData.hasId = function(kmlJsonObj) {
 		return kmlJsonObj && KmlJsonGeoData.ID_PROPERTY in kmlJsonObj;
 	};
+	
 	KmlJsonGeoData.getId = function(kmlJsonObj) {
 		if (kmlJsonObj && KmlJsonGeoData.ID_PROPERTY in kmlJsonObj) {
 			return kmlJsonObj[KmlJsonGeoData.ID_PROPERTY];
 		}
 		return undefined;
 	};
+	
 	KmlJsonGeoData.setId = function(kmlJsonObj, id) {
 		if (kmlJsonObj)
 			kmlJsonObj[KmlJsonGeoData.ID_PROPERTY] = id;
 	};
-	KmlJsonGeoData.fromKmlJson = function(kmlJson, parent) {
+	
+	KmlJsonGeoData.fromKmlJson = function(kmlJson, kmlRoot, parent) {
 		if (!parent)
 			parent = null;
 		var id = KmlJsonGeoData.getId(kmlJson);
-		return new KmlJsonGeoData(id, kmlJson, parent);
+		return new KmlJsonGeoData(id, kmlJson, kmlRoot, parent);
 	};
+	
 	$.extend(KmlJsonGeoData.prototype, GeoData.prototype, {
 		kmlJsonObj: null,
 		
+		kmlRoot: null,
+
 		parentGeoData: null,
 		
 		/**
@@ -95,7 +108,7 @@ if (!window.core.geo)
 				for (var i = 0; i < this.kmlJsonObj.children.length; i++) {
 					var child = this.kmlJsonObj.children[i];
 					if ("type" in child 
-						&& getKmlFeatureType(child.type) === kmlFeatureType) {
+						&& getKmlFeatureTypeFromJson(child.type) === kmlFeatureType) {
 						var kmlJsonChild = KmlJsonGeoData.fromKmlJson(child);
 						if (CallbackUtils.invokeCallback(callback, kmlJsonChild) === false
 							|| kmlJsonChild.findByKmlFeatureType(kmlFeatureType, callback) === false) {
@@ -119,8 +132,8 @@ if (!window.core.geo)
 		 *   String. KML feature type name.
 		 */
 		getKmlFeatureType: function() {
-			if (this.kmlJsonObj) 
-				return getKmlFeatureType(this.kmlJsonObj);
+			if (this.kmlJsonObj && "type" in this.kmlJsonObj) 
+				return getKmlFeatureTypeFromJson(this.kmlJsonObj.type);
 			return null;
 		},
 
@@ -133,8 +146,19 @@ if (!window.core.geo)
 		 *   String. Feature's name (title).
 		 */
 		getName: function() {
-			if (this.kmlJsonObj && "name" in this.kmlJsonObj)
+			if (this.kmlJsonObj && this.kmlJsonObj.name) {
 				return this.kmlJsonObj.name;
+			}
+			if (!this.parentGeoData) {
+				// This is the root. Use the filename from the KML URL.
+				if (this.kmlRoot && this.kmlRoot.baseUrl) {
+					var slash = this.kmlRoot.baseUrl.lastIndexOf('/');
+					var end = this.kmlRoot.baseUrl.indexOf('.', slash + 1);
+					if (end == -1)
+						end = this.kmlRoot.baseUrl.length();
+					return this.kmlRoot.baseUrl.substring(slash + 1, end);
+				}
+			}
 			return null;
 		},
 
@@ -148,8 +172,8 @@ if (!window.core.geo)
 		 */
 		hasChildren: function() {
 			return (this.kmlJsonObj && (
-					("children" in this.kmlJsonObj && this.kmlJsonObj.length > 0)
-					|| (getKmlFeatureType(this.kmlJsonObj) === KmlFeatureType.NETWORK_LINK)));
+					("children" in this.kmlJsonObj && this.kmlJsonObj.children.length > 0)
+					|| (getKmlFeatureTypeFromJson(this.kmlJsonObj.type) === KmlFeatureType.NETWORK_LINK)));
 		},
 
 		/**
@@ -179,6 +203,7 @@ if (!window.core.geo)
 				for (var i = 0; i < this.kmlJsonObj.children.length; i++) {
 					var child = this.kmlJsonObj.children[i];
 					var kmlJsonChild = KmlJsonGeoData.fromKmlJson(child, this);
+					GeoDataStore.persist(kmlJsonChild);
 					if (CallbackUtils.invokeCallback(callback, kmlJsonChild) === false) {
 						// stop iterating
 						return false;
@@ -225,6 +250,22 @@ if (!window.core.geo)
 			CallbackUtils.invokeCallback(callback, this.kmlJsonObj);
 		},
 		
+		removeAllChildren: function() {
+			if (this.kmlJsonObj && "children" in this.kmlJsonObj) {
+				this.kmlJsonObj.children = [];
+				GeoDataStore.persist(this);
+			}
+		},
+
+		addChild: function(childKmlJsonObj) {
+			if (!("children" in this.kmlJsonObj)
+					|| !this.kmlJsonObj.children 
+					|| !("push" in this.kmlJsonObj.children)) {
+				this.kmlJsonObj.children = [];
+			}
+			this.kmlJsonObj.children.push(childKmlJsonObj);
+		},
+		
 		/**
 		 * Function: postSave
 		 * 
@@ -242,5 +283,6 @@ if (!window.core.geo)
 			throw "Not implemented";
 		}
 	});
-	ns.KmlJsonGeoData = GeoData;
+	
+	ns.KmlJsonGeoData = KmlJsonGeoData;
 })(jQuery, window.core.geo);

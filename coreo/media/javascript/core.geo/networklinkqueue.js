@@ -240,7 +240,18 @@ if (!window.core.geo)
 						success: function(geodata) {
 							console.log("successfully updated");
 							var networkLink = GeoDataStore.getById(linkId);
-							networkLink.linkData = geodata;
+							if (networkLink) {
+								networkLink.getKmlJson($.proxy(function(kmlJson) {
+									networkLink.removeAllChildren();
+									if ("children" in kmlJson && "length" in kmlJson.children) {
+										for (var i = 0; i < kmlJson.children.length; i++) {
+											var childKmlJson = kmlJson.children[i];
+											networkLink.addChild(childKmlJson);
+										}
+									}
+									
+								}, this));
+							}
 							networkLink = GeoDataStore.persist(networkLink);
 							console.log("NEW network link: " + core.util.ObjectUtils.describe(geodata));
 							eventChannel.publish(new GeoDataUpdateEndEvent(

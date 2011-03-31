@@ -29,6 +29,7 @@
 	<script type="text/javascript" src="../core.geo/geodata.js"></script>
 	<script type="text/javascript" src="../core.geo/networklinkgeodata.js"></script>
 	<script type="text/javascript" src="../core.geo/kmlnodegeodata.js"></script>
+	<script type="text/javascript" src="../core.geo/kmljsongeodata.js"></script>
 	
 	<script type="text/javascript" src="../core.events/event.js"></script>
 	<script type="text/javascript" src="../core.events/geodataevent.js"></script>
@@ -48,6 +49,8 @@
 	<script type="text/javascript" src="../core.services/proxykmlretriever.js"></script>
 	<script type="text/javascript" src="../core.services/geodataretriever.js"></script>
 	<script type="text/javascript" src="../core.services/kmlgeodataretriever.js"></script>
+	<script type="text/javascript" src="../core.services/kmljsonproxyservice.js"></script>
+	<script type="text/javascript" src="../core.services/kmljsongeodataretriever.js"></script>
 	<script type="text/javascript" src="../core.services/searchstrategy.js"></script>
 	<script type="text/javascript" src="../core.geo/networklinkqueue.js"></script>
 
@@ -62,8 +65,8 @@
 			});
 			*/
 
-			var kmlRetriever = new core.services.ProxyKmlRetriever("/kmlproxy");
-			var geodataRetriever = new core.services.KmlGeoDataRetriever(kmlRetriever);
+			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
+			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
 			var eventChannel = new core.events.EventChannel();
 			var currentBbox = null;
 			var currentAltitude = null;
@@ -93,7 +96,7 @@
 					console.log("ERROR: " + err);
 				}, this)
 			};
-			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, kmlRetriever);
+			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel);
 			
 			/*

@@ -8,7 +8,7 @@ test("constructor", function() {
 });
 
 test("search", function() {
-	var service = new core.services.SearchService("/search-links/", "/search-libraries/");
+	var service = new core.services.SearchService("/search/links/", "/search/libraries/");
 	var expectedResultCount = 0;
 	var results = [];
 	$.getJSON("/search-links", {q: "Hot"}, function(links) {
@@ -70,7 +70,7 @@ test("search", function() {
 });
 
 test("search - partial result processing", function() {
-	var service = new core.services.SearchService("/search-links/", "/search-libraries/");
+	var service = new core.services.SearchService("/search/links/", "/search/libraries/");
 	var results = [];
 	service.search("Hot", {
 		result: function(linkOrLibrary) {
