@@ -138,17 +138,17 @@ if (!window.core.services)
 					},
 					context: self
 				};
-				this.searchResultFilter.begin(geoDataBuilder);
+				this.searchResultFilter.begin.call(this.searchResultFilter, geoDataBuilder);
 				var searchResultFilterRef = this.searchResultFilter;
 				this.searchService.search(text, true, true, {
 					result: function(linkOrLibrary) {
-						searchResultFilterRef.result(linkOrLibrary);
+						searchResultFilterRef.result.call(searchResultFilterRef, linkOrLibrary);
 					},
 					error: function(errorThrown) {
-						searchResultFilterRef.error(errorThrown);
+						searchResultFilterRef.error.call(searchResultFilterRef, errorThrown);
 					},
 					complete: function() {
-						searchResultFilterRef.end();
+						searchResultFilterRef.end.call(searchResultFilterRef);
 					},
 					context: self
 				});

@@ -153,6 +153,7 @@ if (!window.core.geo)
 			if (this.kmlJsonObj && this.kmlJsonObj.name) {
 				return this.kmlJsonObj.name;
 			}
+			/*
 			if (!this.parentGeoData) {
 				// This is the root. Use the filename from the KML URL.
 				if (this.kmlRoot && this.kmlRoot.baseUrl) {
@@ -163,6 +164,7 @@ if (!window.core.geo)
 					return this.kmlRoot.baseUrl.substring(slash + 1, end);
 				}
 			}
+			*/
 			return null;
 		},
 

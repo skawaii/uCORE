@@ -3,10 +3,19 @@
 	<title>Acoredion Demo</title>
 	
 	<link rel="stylesheet" type="text/css" href="../../css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+	<link rel="stylesheet" type="text/css" href="../../css/jquery.resultslist.css" />
 
 	<style type="text/css">
 		#acoredion {
-			width: 330px;
+			float: left;
+			clear: none;
+			width: 370px;
+			height: 700px;
+		}
+		#results {
+			float: left;
+			width: 300px;
+			height: 100%;;
 		}
 	</style>
 	
@@ -54,6 +63,8 @@
 	<script type="text/javascript" src="../core.services/kmljsongeodataretriever.js"></script>
 	<script type="text/javascript" src="../core.services/searchstrategy.js"></script>
 	<script type="text/javascript" src="../core.geo/networklinkqueue.js"></script>
+	
+	<script type="text/javascript" src="../core.ui/jquery.resultslist.js"></script>
 
 	<script type="text/javascript">
 		google.load("maps", "2");
@@ -75,6 +86,7 @@
 					eventChannel, currentBbox, currentAltitude);
 
 			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
+			/*
 			var MAX_RESULTS = 3;
 			var resultFilter = {
 				cb: null,
@@ -96,6 +108,36 @@
 				error: $.proxy(function(err) {
 					console.log("ERROR: " + err);
 				}, this)
+			};
+			*/
+			var resultFilter = {
+				callback: null,
+				resultCount: 0,
+				begin: function(callback) {
+					this.callback = callback;
+					this.resultCount = 0;
+					$("#results").resultslist({
+						title: "Search Results"
+					});
+					$("#results").resultslist("setMessage", "Searching...");
+					$("#results").bind("clickresult", $.proxy(function(evt, resultId, linkOrLibrary) {
+						core.util.CallbackUtils.invokeCallback(this.callback, linkOrLibrary, "result");
+						$("#results").resultslist("removeResult", resultId);
+					}, this));
+				},
+				result: function(linkOrLibrary) {
+					this.resultCount++;
+					var title = linkOrLibrary.fields.name;
+					var description = linkOrLibrary.fields.desc;
+					var id = linkOrLibrary.pk;
+					$("#results").resultslist("addResult", id, title, description, linkOrLibrary);
+				},
+				end: function() {
+					$("#results").resultslist("setMessage", this.resultCount + " results found.");
+				},
+				error: function(err) {
+					console.log("Search error: " + err);
+				}
 			};
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
@@ -145,10 +187,27 @@
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, kmlRetriever);
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy);
 			*/
+			
+			/*
+			$("#results").resultslist({
+				title: "Search Results"
+			});
+			$("#results").bind("clickresult", function(evt, resultId) {
+				console.log("Clicked result " + resultId);
+				$("#results").resultslist("removeResult", resultId);
+			});
+			for (var i = 0; i < 5; i++) {
+				$("#results").resultslist("addResult", i, "Result " + i, "This is yet another result. Actually, this is result number " + i + ".");
+			}
+			$("#results").resultslist("setMessage", "5 results found for \"test\"");
+			*/
+			
+			
 		});
 	</script>
 </head>
 <body>
 	<div id="acoredion"></div>
+	<div id="results"></div>
 </body>
 </html>

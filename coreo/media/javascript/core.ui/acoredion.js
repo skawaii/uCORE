@@ -35,6 +35,25 @@ if (!window.core.ui)
 	var GeoDataUpdateBeginEvent = core.events.GeoDataUpdateBeginEvent;
 	var GeoDataUpdateEndEvent = core.events.GeoDataUpdateEndEvent;
 	
+	var findFirstNamedChild = function(geodata) {
+		var name = geodata.getName();
+		if (!name) {
+			var firstChild = null;
+			var multipleChildren = false;
+			geodata.iterateChildren($.proxy(function(child) {
+				if (firstChild) {
+					multipleChildren = true;
+					return false;
+				}
+				firstChild = child;
+			}, this));
+			if (!multipleChildren && firstChild) {
+				return findFirstNamedChild(firstChild);
+			}
+		}
+		return geodata;
+	};
+
 	/**
 	 * Constructor: Acoredion
 	 * 
@@ -60,7 +79,7 @@ if (!window.core.ui)
 		searchStrategy: null,
 
 		treeContainer: null,
-		
+
 		searchInput: null,
 		
 		eventChannel: null,
@@ -68,24 +87,41 @@ if (!window.core.ui)
 		networkLinkQueue: null,
 		
 		addGeoData: function(geodata, publishEvent) {
-			var treeEl = $("<div>").addClass("acoredion-tree").appendTo($(this.treeContainer));
-			var tree = new GeoDataTree(geodata, treeEl, this.networkLinkQueue);
-			
-			tree.onCheck = $.proxy(function(geodata) {
-				this.eventChannel.publish(new ShowFeatureEvent(
-						Acoredion.EVENT_PUBLISHER_NAME, geodata));
+			geodata = findFirstNamedChild(geodata);
+			var buildTree = $.proxy(function(name) {
+				var treeEl = $("<div>").addClass("acoredion-tree").appendTo($(this.treeContainer));
+				var tree = new GeoDataTree(name, geodata, treeEl, this.networkLinkQueue);
+				
+				tree.onCheck = $.proxy(function(geodata) {
+					this.eventChannel.publish(new ShowFeatureEvent(
+							Acoredion.EVENT_PUBLISHER_NAME, geodata));
+				}, this);
+				tree.onUncheck = $.proxy(function(geodata) {
+					this.eventChannel.publish(
+							new HideFeatureEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
+				}, this);
+				tree.onSelect = $.proxy(function(geodata) {
+					this.eventChannel.publish(
+							new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
+				}, this);
+				if (publishEvent === true) {
+					this.eventChannel.publish(
+							new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
+				}
 			}, this);
-			tree.onUncheck = $.proxy(function(geodata) {
-				this.eventChannel.publish(
-						new HideFeatureEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
-			}, this);
-			tree.onSelect = $.proxy(function(geodata) {
-				this.eventChannel.publish(
-						new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
-			}, this);
-			if (publishEvent === true) {
-				this.eventChannel.publish(
-						new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
+			var name = geodata.getName();
+			if (!name) {
+				geodata.getEnclosingKmlUrl($.proxy(function(url) {
+					var slash = url.lastIndexOf('/');
+					var end = url.indexOf('.', slash + 1);
+					if (end == -1)
+						end = url.length();
+					name = url.substring(slash + 1, end);
+					buildTree(name);
+				}, this));
+			}
+			else {
+				buildTree(name);
 			}
 		},
 
@@ -117,7 +153,8 @@ if (!window.core.ui)
 			var _this = this;
 			var doSearch = function() {
 				var searchText = _this.searchInput.val();
-				_this.searchStrategy.search(searchText, {
+				_this.searchStrategy.search.call(_this.searchStrategy, 
+					searchText, {
 					result: function(geodata) {
 						_this.addGeoData(geodata, true);
 					},

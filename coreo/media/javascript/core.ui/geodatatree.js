@@ -37,14 +37,14 @@ if (!window.core.ui)
 	 *   geodata - <GeoData>. Required. Root tree node.
 	 *   el - HTML DOM Element. Element to contain the tree.
 	 */
-	var GeoDataTree = function(geodata, el, networkLinkQueue) {
+	var GeoDataTree = function(name, geodata, el, networkLinkQueue) {
 		Assert.notNull(geodata, "geodata cannot be null");
 		Assert.type(geodata, "object", "geodata must be of type core.geo.GeoData");
 		Assert.notNull(el, "el cannot be null");
 		this.el = el;
 		this.geodata = geodata;
 		this.networkLinkQueue = networkLinkQueue;
-		this._init();
+		this._init(name);
 	};
 	/**
 	 * Constant: GEODATA_ATTR
@@ -112,7 +112,7 @@ if (!window.core.ui)
 		 * Returns:
 		 *   Object.
 		 */
-		_createTreeNode: function(geodata) {
+		_createTreeNode: function(geodata, name) {
 			Assert.hasFunction(geodata, "getName", 
 					"geodata doesn't contain function getName");
 			Assert.hasFunction(geodata, "getKmlFeatureType", 
@@ -121,7 +121,6 @@ if (!window.core.ui)
 					"geodata doesn't contain function hasChildren");
 			geodata = GeoDataStore.persist(geodata);
 			var treeNode = {};
-			var name = geodata.getName();
 			if (!name) {
 				name = geodata.getKmlFeatureType();
 			}
@@ -158,7 +157,7 @@ if (!window.core.ui)
 		 * 
 		 * Invoked by the constructor. Renders a jsTree.
 		 */
-		_init: function() {
+		_init: function(name) {
 			var getGeoDataFromTreeNode = function(node) {
 				var geodataId = node.attr(GeoDataTree.GEODATA_ATTR);
 				var geodata = GeoDataStore.getById(geodataId);
@@ -194,7 +193,7 @@ if (!window.core.ui)
 					animation: 70
 				},
 				lazyload: {
-					data: this._createTreeNode(this.geodata),
+					data: this._createTreeNode(this.geodata, name),
 					loadChildren: function(parent, dataFn, completeFn, errorFn) {
 						var parentGeoDataId = _this._getGeoDataId(parent);
 						var parentGeoData = GeoDataStore.getById(parentGeoDataId);
@@ -203,8 +202,13 @@ if (!window.core.ui)
 								+ " returned from GeoDataStore doesn't "
 								+ "contain function iterateChildren");
 						var iterate = $.proxy(function() {
+							console.log("iterate");
 							parentGeoData.iterateChildren(function(childGeoData) {
-								var childNode = _this._createTreeNode(childGeoData);
+								var name = childGeoData.getName();
+								if (!name) {
+									name = childGeoData.getKmlFeatureType();
+								}
+								var childNode = _this._createTreeNode(childGeoData, name);
 								dataFn.call(dataFn, childNode);
 							});
 							completeFn.call(completeFn);
