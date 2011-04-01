@@ -4,22 +4,44 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>uCORE - Profile</title>
 
-    <style type="text/css">
+        <style type="text/css">
+          
       table {
-        width: 500px;
+        width: 700px;
         padding-bottom:10px;
+        vertical-align:middle;
       }
       th {
-        width: 150px;
         text-align: right;
-        padding-right: 30px;
+        padding-right: 50px;
+      }
+      input {
+        padding-bottom:10px;
+        vertical-align:middle;
+      }
+      label {
+        padding-bottom:10px;
+        vertical-align:middle;
       }
 
+      td {
+        padding:10px 10px 10px 10px;
+
+      }
+      </style>
+
+      <!--
       td {
         width: 250px;
         padding-bottom:10px;
       } 
-    </style>
+
+      label {
+        padding-right: 50px;
+      } 
+
+    </style> -->
+
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
     </head>
@@ -35,38 +57,38 @@
               <h1 style="padding-left:120px">{{ user.first_name }}'s Profile</h1><br/><br/>
               <table>
                 <tr>
-                  <th>
+                  <td>
                     <label>SID</label>
-                  </th>
+                  </td>
                   <td>
                         <input name="id" readonly="readonly" type="text" value="{{ user.sid }}">
                       </td>
                     </tr>
                     <tr>
-                      <th>
-                        <label>Name</label></th>
+                      <td>
+                        <label>Name</label></td>
                         <td>
                         <input name="name" type="text" readonly="readonly" value="{{ user.first_name }} {{ user.last_name }}">
                       </td>
                        </tr>
                        <tr>
-                         <th> 
-                           <label>Phone</label></th>
+                         <td> 
+                           <label>Phone</label></td>
                          <td>
                            <input name="phone" type="text" readonly="readonly" value="{{ user.phone_number }}">
                          </td>
                       </tr>
                       <tr>
-                        <th>
+                        <td>
                           <label>Email</label>
-                        </th>
+                        </td>
                         <td>
                         <input name="email" type="text" readonly="readonly" value="{{ user.email }}">
                       </td>
                     </tr>
                     <tr>
-                    <th>
-                      <label>Skin</label></th>
+                    <td>
+                      <label>Skin</label></td>
                     <td>
                         <input name="skin" type="text" readonly="readonly" value="{{ user.skin }}">
                       </td>
@@ -81,7 +103,7 @@
             <br/>
             <br/>
             <!--           <div id="userprofile_links"> -->
-                <span><h1 style="padding-left:120px">{{ user.first_name }}'s Links</h1></span>
+              <span><h1 style="padding-left:120px">{{ user.first_name }}'s Links</h1></span><br/>
                 {% for link in user.links.all %}
                     <a href="{{ link.url }}">{{ link.name }}</a><br />
                     {% endfor %}
