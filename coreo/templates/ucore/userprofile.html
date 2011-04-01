@@ -1,56 +1,97 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>uCORE - Profile</title>
-    </head>
 
-    <!-- CSS -->
+    <style type="text/css">
+      table {
+        width: 500px;
+        padding-bottom:10px;
+      }
+      th {
+        width: 150px;
+        text-align: right;
+        padding-right: 30px;
+      }
+
+      td {
+        width: 250px;
+        padding-bottom:10px;
+      } 
+    </style>
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
-
+    </head>
+    <!-- CSS -->
     <body>
         <div id="geheader">
             <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" /></a>
-            <div id="user-info"><a href="/ge/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="FutureFeature">Help</a> | <a href="FutureFeature">About</a> | <a href="/logout/">Sign Out</a></div>
+            <div id="user-info"><a href="/ge/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="../FutureFeature/">Help</a> | <a href="../FutureFeature/">About</a> | <a href="/logout/">Sign Out</a></div>
         </div>
-        <div id="userprofile_div">
+        <div class="main_div">
+           <div class="center_div">
             <form>
-                <h1>{{ user.first_name }}'s Profile</h1>
-                <ol>
-                    <li>
-                        <label>SID</label>
+              <h1 style="padding-left:120px">{{ user.first_name }}'s Profile</h1><br/><br/>
+              <table>
+                <tr>
+                  <th>
+                    <label>SID</label>
+                  </th>
+                  <td>
                         <input name="id" readonly="readonly" type="text" value="{{ user.sid }}">
-                    </li>
-                    <li>
-                        <label>Name</label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>
+                        <label>Name</label></th>
+                        <td>
                         <input name="name" type="text" readonly="readonly" value="{{ user.first_name }} {{ user.last_name }}">
-                    </li>
-                    <li>
-                        <label>Phone</label>
-                        <input name="phone" type="text" readonly="readonly" value="{{ user.phone_number }}">
-                    </li>
-                    <li>
-                        <label>Email</label>
+                      </td>
+                       </tr>
+                       <tr>
+                         <th> 
+                           <label>Phone</label></th>
+                         <td>
+                           <input name="phone" type="text" readonly="readonly" value="{{ user.phone_number }}">
+                         </td>
+                      </tr>
+                      <tr>
+                        <th>
+                          <label>Email</label>
+                        </th>
+                        <td>
                         <input name="email" type="text" readonly="readonly" value="{{ user.email }}">
-                    </li>
-                    <li>
-                        <label>Skin</label>
+                      </td>
+                    </tr>
+                    <tr>
+                    <th>
+                      <label>Skin</label></th>
+                    <td>
                         <input name="skin" type="text" readonly="readonly" value="{{ user.skin }}">
-                    </li>
-                </ol>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td></td>
+                      <td>
+                        <a href="/ge/"><input type="button" value="Back"></a></td>
+                    </tr>
+                </table>
             </form>
-
-            <div id="userprofile_back">
-                <a href="/ge/"><input type="button" value="Back"></a>
-            </div>
-
-            <div id="userprofile_links">
-                <span><h2>{{ user.first_name }}'s Links</h2></span>
+            <br/>
+            <br/>
+            <!--           <div id="userprofile_links"> -->
+                <span><h1 style="padding-left:120px">{{ user.first_name }}'s Links</h1></span>
                 {% for link in user.links.all %}
                     <a href="{{ link.url }}">{{ link.name }}</a><br />
-                {% endfor %}
-            </div>
-        </div> <!-- End user_profile_div -->
+                    {% endfor %}
+                    {% if not user.links %}
+                    <div style="padding-left: 120px">NO LINKS TO DISPLAY</div>
+                    {% endif %}
+
+            <!-- </div> -->
+            <!--  </div> End user_profile_div -->
+        </div> <!-- end of center_div -->
+      </div> <!-- end of main_div -->
     </body>
 </html>

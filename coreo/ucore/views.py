@@ -310,6 +310,10 @@ def check_username(request):
     return HttpResponse('index.html') 
 
 
+def future_feature(request):
+  return render_to_response('future.html', context_instance=RequestContext(request))
+
+
 def get_shapefile(request):
   w = shapefile.Writer(shapefile.POLYLINE)
   w.line(parts=[[[1,5],[5,5],[5,1],[3,1],[1,1]]])
