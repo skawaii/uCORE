@@ -10,6 +10,7 @@
  *   - core.events.ShowFeatureEvent
  *   - core.events.HideFeatureEvent
  *   - core.events.FeatureInfoEvent
+ *   - core.util.IdSequence
  */
 if (!window.core)
 	window.core = {};
@@ -17,6 +18,9 @@ if (!window.core.ui)
 	window.core.ui = {};
 
 (function($, ns) {
+	var IdSequence = core.util.IdSequence;
+	if (!IdSequence)
+		throw "Dependency not found: core.util.IdSequence";
 	var GeoDataTree = core.ui.GeoDataTree;
 	if (!GeoDataTree)
 		throw "Dependency not found: core.ui.GeoDataTree";
@@ -86,10 +90,19 @@ if (!window.core.ui)
 		
 		networkLinkQueue: null,
 		
-		addGeoData: function(geodata, publishEvent) {
+		_beginTree: function(id, name) {
+			var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
+				.attr({ "resultid": id, "resultname": name })
+				.prependTo($(this.treeContainer));
+			treeEl.append($("<span>").html("Loading " + name));
+		},
+		
+		_treeLoaded: function(id, geodata) {
 			geodata = findFirstNamedChild(geodata);
+			var treeEl = $(this.treeContainer).find("div.acoredion-tree-loading[resultid=\"" + id + "\"]");
 			var buildTree = $.proxy(function(name) {
-				var treeEl = $("<div>").addClass("acoredion-tree").appendTo($(this.treeContainer));
+				treeEl.removeClass("acoredion-tree-loading ui-state-highlight");
+				treeEl.empty();
 				var tree = new GeoDataTree(name, geodata, treeEl, this.networkLinkQueue);
 				
 				tree.onCheck = $.proxy(function(geodata) {
@@ -104,10 +117,8 @@ if (!window.core.ui)
 					this.eventChannel.publish(
 							new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
-				if (publishEvent === true) {
-					this.eventChannel.publish(
-							new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
-				}
+				this.eventChannel.publish(
+						new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 			}, this);
 			var name = geodata.getName();
 			if (!name) {
@@ -123,6 +134,21 @@ if (!window.core.ui)
 			else {
 				buildTree(name);
 			}
+		},
+		
+		_treeLoadFailed: function(id, error) {
+			var treeEl = $(this.treeContainer).find("div.acoredion-tree-loading[resultid=\"" + id + "\"]");
+			treeEl.empty();
+			treeEl.removeClass("acoredion-tree-loading");
+			treeEl.removeClass("ui-state-highlight");
+			treeEl.addClass("ui-state-error");
+			treeEl.append($("<a>").attr("href", "#").css({ "float": "right"})
+					.append($("<span>").addClass("ui-icon ui-icon-circle-close"))
+					.bind("click", function() {
+						treeEl.remove();
+					}));
+			treeEl.append($("<p>").html("Error loading " + treeEl.attr("resultname") + ": " + error)
+					.prepend($("<span>").addClass("ui-icon ui-icon-alert").css({ "float": "left", "margin-right": ".3em" })));
 		},
 
 		_addPanel: function(title) {
@@ -142,7 +168,11 @@ if (!window.core.ui)
 			return content;
 		},
 
+		_resultIdSequence: new IdSequence("result-"),
+		
 		_init: function() {
+			$(this.el).addClass("core-acoredion");
+			
 			// add markup for the skeleton of the accordion panels
 
 			// create KML Documents panel containing the search form and 
@@ -152,22 +182,33 @@ if (!window.core.ui)
 			var searchForm = $("<div>").addClass("acoredion-search").appendTo(content);
 			var _this = this;
 			var doSearch = function() {
+				var idMap = {};
 				var searchText = _this.searchInput.val();
 				_this.searchStrategy.search.call(_this.searchStrategy, 
 					searchText, {
-					result: function(geodata) {
-						_this.addGeoData(geodata, true);
+					resultBegin: function(id, name) {
+						var myId = _this._resultIdSequence.nextId();
+						idMap["" + id] = myId;
+						_this._beginTree(myId, name);
+					},
+					resultSuccess: function(id, geodata) {
+						var myId = idMap["" + id];
+						_this._treeLoaded(myId, geodata);
+					},
+					resultError: function(id, errorThrown) {
+						var myId = idMap["" + id];
+						_this._treeLoadFailed(myId, errorThrown);
 					},
 					complete: function() {
 						console.log("Finished processing results.");
 					},
-					error: function() {
-						console.log("Search error.");
+					error: function(errorThrown) {
+						console.log("Search error: " + errorThrown);
 					}
 				});
 			};
-			this.searchInput = $("<input type='text'>").appendTo($("<span>")
-					.addClass("acoredion-search-input").appendTo(searchForm));
+			this.searchInput = $("<input type='text'>").appendTo(searchForm)
+					.emptytext({ text: "search" });
 			this.searchInput.keypress($.proxy(function(event) {
 						// perform search when return key is pressed
 						if (event.keyCode == "13") {
@@ -176,8 +217,7 @@ if (!window.core.ui)
 						}
 					}, this));
 			var searchButton = $("<button>").text("Search")
-				.appendTo($("<span>").addClass("acoredion-search-button")
-				.appendTo(searchForm))
+				.appendTo(searchForm)
 				.button({
 					icons: {
 						primary: "ui-icon-search"

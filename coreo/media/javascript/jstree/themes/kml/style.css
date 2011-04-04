@@ -138,7 +138,7 @@
 .jstree-kml .jstree-open > a .jstree-icon { background-position:-56px -36px; }
 .jstree-kml a.jstree-loading .jstree-icon { background:url("ajax-loader16.gif") center center no-repeat !important; }
 
-.jstree-kml.jstree-focused { background:white; }
+.jstree-kml.jstree-focused { background: transparent; }
 
 .jstree-kml .jstree-no-dots li, 
 .jstree-kml .jstree-no-dots .jstree-leaf > ins { background:transparent; }

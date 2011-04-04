@@ -1,0 +1,34 @@
+.core-acoredion {
+}
+
+.core-acoredion .acoredion-search > * {
+	vertical-align: middle;
+}
+
+.core-acoredion .acoredion-search input[type="text"] {
+	height: 1.9em;
+	width: 250px;
+}
+
+.core-acoredion .acoredion-search .ui-emptytext-empty {
+	font-weight: bold;
+	color: #ccc;
+ 	letter-spacing: 1.1;
+}
+
+.core-acoredion .acoredion-search .ui-emptytext-filled {
+}
+
+.core-acoredion .acoredion-search button {
+}
+
+.core-acoredion .acoredion-tree {
+	margin-top: 1em;
+}
+
+.core-acoredion .acoredion-tree-loading {
+	background-image:url("../javascript/jstree/themes/apple/throbber.gif") !important;
+	background-repeat:no-repeat !important;
+	background-position: 0 0 !important;
+	padding-left: 20px;
+}

@@ -2,8 +2,11 @@
 <head>
 	<title>Acoredion Demo</title>
 	
+	<link rel="stylesheet" type="text/css" href="../../css/corefoundation.css" />
 	<link rel="stylesheet" type="text/css" href="../../css/ui-lightness/jquery-ui-1.8.6.custom.css" />
 	<link rel="stylesheet" type="text/css" href="../../css/jquery.resultslist.css" />
+	
+	<link rel="stylesheet" type="text/css" href="../../css/acoredion.css" />
 
 	<style type="text/css">
 		#acoredion {
@@ -65,6 +68,7 @@
 	<script type="text/javascript" src="../core.geo/networklinkqueue.js"></script>
 	
 	<script type="text/javascript" src="../core.ui/jquery.resultslist.js"></script>
+	<script type="text/javascript" src="../core.ui/jquery.emptytext.js"></script>
 
 	<script type="text/javascript">
 		google.load("maps", "2");
@@ -119,10 +123,21 @@
 					$("#results").resultslist({
 						title: "Search Results"
 					});
+					$("#results").resultslist("setLoading", true);
 					$("#results").resultslist("setMessage", "Searching...");
-					$("#results").bind("clickresult", $.proxy(function(evt, resultId, linkOrLibrary) {
+					$("#results").bind("clickresult", $.proxy(function(evt, resultId, linkOrLibrary, el) {
 						core.util.CallbackUtils.invokeCallback(this.callback, linkOrLibrary, "result");
 						$("#results").resultslist("removeResult", resultId);
+					}, this));
+					$("#results").bind("mouseenterresult", $.proxy(function(evt, resultId, linkOrLibrary, el) {
+						console.log("Hovering on " + resultId);
+					}, this));
+					$("#results").bind("mouseleaveresult", $.proxy(function(evt, resultId, linkOrLibrary, el) {
+						console.log("Done hovering on " + resultId);
+					}, this));
+					$("#results").bind("close", $.proxy(function(evt) {
+						console.log("results list closed");
+						core.util.CallbackUtils.invokeCallback(this.callback, "complete");
 					}, this));
 				},
 				result: function(linkOrLibrary) {
@@ -130,10 +145,13 @@
 					var title = linkOrLibrary.fields.name;
 					var description = linkOrLibrary.fields.desc;
 					var id = linkOrLibrary.pk;
-					$("#results").resultslist("addResult", id, title, description, linkOrLibrary);
+					var footer = linkOrLibrary.fields.url;
+					$("#results").resultslist("addResult", id, title, description, footer, linkOrLibrary);
 				},
 				end: function() {
+					$("#results").resultslist("setLoading", false);
 					$("#results").resultslist("setMessage", this.resultCount + " results found.");
+					// window.setTimeout(function() { $("#results").resultslist("clear"); }, 3000);
 				},
 				error: function(err) {
 					console.log("Search error: " + err);

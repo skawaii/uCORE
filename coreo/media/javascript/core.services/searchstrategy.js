@@ -22,21 +22,6 @@ if (!window.core.services)
 (function($, ns) {
 	var CallbackUtils = core.util.CallbackUtils;
 
-	// private function used by SearchStrategy to retrieve KML and then 
-	// convert it to a GeoData instance.
-	var fetchKml = function(geoDataRetriever, url, callback) {
-		geoDataRetriever.fetch(url, {
-			success: function(kml) {
-				var geodata = KmlNodeGeoData.fromKmlString(kml);
-				CallbackUtils.invokeCallback(callback, geodata, "result");
-				CallbackUtils.invokeOptionalCallback(callback, "complete", []);
-			},
-			error: function(errorThrown) {
-				CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
-			}
-		});
-	};
-
 	/**
 	 * Constructor: SearchStrategy
 	 * 
@@ -118,15 +103,17 @@ if (!window.core.services)
 				var self = this;
 				var geoDataBuilder = {
 					result: function(linkOrLibrary) {
+						var id = linkOrLibrary.pk;
+						CallbackUtils.invokeOptionalCallback(callback, "resultBegin", [id, linkOrLibrary.fields.name]);
 						// build geodata
 						var kmlUrl = linkOrLibrary.fields.url;
 						// need to prevent complete from being called
 						this.geoDataRetriever.fetch(kmlUrl, {
 							success: function(geodata) {
-								CallbackUtils.invokeCallback(callback, geodata, "result");
+								CallbackUtils.invokeCallback(callback, [id, geodata], "resultSuccess");
 							},
 							error: function(errorThrown) {
-								CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
+								CallbackUtils.invokeOptionalCallback(callback, "resultError", [id, errorThrown]);
 							}
 						});
 					},

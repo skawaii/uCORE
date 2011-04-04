@@ -41,3 +41,28 @@
 	margin-bottom: 0.1em;
 	font-size: 0.9em;
 }
+
+.ui-resultslist .ui-resultslist-result .ui-resultslist-result-title {
+}
+
+.ui-resultslist .ui-resultslist-result .ui-resultslist-result-desc {
+}
+
+.ui-resultslist .ui-resultslist-result .ui-resultslist-result-footer {
+	font-weight: normal;
+	font-style: italic;
+	font-size: 0.9em;
+	color: #555;
+}
+
+.ui-resultslist .ui-resultslist-loading {
+	display: inline-block;
+	margin-left: 8px;
+	background-image:url("../javascript/jstree/themes/apple/throbber.gif") !important;
+	background-repeat:no-repeat !important;
+	background-position: 0 0 !important;
+	height: 16px !important;
+	width: 16px !important;
+	vertical-align: middle;
+	margin-top: -4px;
+}
