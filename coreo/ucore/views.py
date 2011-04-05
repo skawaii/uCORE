@@ -166,19 +166,6 @@ def create_user(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
 
 
-def earn_trophy(request):
-  if request.method == 'POST':
-    user2 = request.POST['user'].strip()
-    trophy2 = request.POST['trophy'].strip()
-    trophyc = Trophy.objects.get(pk=trophy2)
-    userc = CoreUser.objects.get(username=user2)
-    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
-    tc.save()
-    custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
-    user_email = userc.email
-    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=True)
-
-
 def ge_index(request):
   # This is a quick hack at getting our Google Earth app integrated with Django.
   if not request.user.is_authenticated():
@@ -751,8 +738,7 @@ def save_profile(request):
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
-    return HttpResponseRedirect(reverse('coreo.ucore.views.user_profile'))
-
+    return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
 
 def upload_csv(request):
   if request.method == 'POST':
