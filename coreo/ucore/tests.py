@@ -212,6 +212,30 @@ class KmzTest(TestCase):
     #print 'Passed the get_kmz test.'
 
 
+class ProfileTest(TestCase):
+  def setUp(self):
+    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
+        phone_number='9221112222')
+    self.user.set_password('2pass')
+    self.user.save()
+
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
+  def test_save_profile(self):
+    response = self.client.get('/userprofile/')
+    self.assertEquals(response.status_code, 200)
+    user = CoreUser.objects.get(sid='anything')
+    self.assertEquals(user.first_name, 'Joe')
+    self.assertEquals(user.last_name, 'Anybody')
+    response = self.client.post('/save-profile/', { 'id' : 'anything', 'first_name' : 'Harry', 'last_name' : 'Somebody', 'phone' : '4442229999', 'email' : 'johnjacobs@aol.com' })
+    user = CoreUser.objects.get(sid='anything')
+    self.assertEquals(user.first_name, 'Harry')
+    self.assertEquals(user.last_name, 'Somebody')
+    self.assertEquals(user.phone_number, long('4442229999'))
+    self.assertEquals(user.email, 'johnjacobs@aol.com')
+    # print 'Passed the saveProfile test.'
+
+
 class SearchTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
