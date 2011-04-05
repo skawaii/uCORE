@@ -17,6 +17,7 @@
       }
       input {
         padding-bottom:10px;
+        width: 200px;
         vertical-align:middle;
       }
       label {
@@ -53,7 +54,8 @@
         </div>
         <div class="main_div">
            <div class="center_div">
-            <form>
+            <form action="/save-profile/" method="POST">
+              <div>{% csrf_token %}</div>
               <h1 style="padding-left:120px">{{ user.first_name }}'s Profile</h1><br/><br/>
               <table>
                 <tr>
@@ -61,21 +63,25 @@
                     <label>SID</label>
                   </td>
                   <td>
-                        <input name="id" readonly="readonly" type="text" value="{{ user.sid }}">
+                    <input name="id" type="text" value="{{ user.sid }}" readonly="readonly"></input>
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <label>Name</label></td>
+                        <label>First Name</label></td>
                         <td>
-                        <input name="name" type="text" readonly="readonly" value="{{ user.first_name }} {{ user.last_name }}">
+                          <input name="first_name" type="text" value="{{ user.first_name }}"></input>
                       </td>
-                       </tr>
+                    </tr>
+                    <tr>
+                       <td><label>Last Name</label></td>
+                       <td><input name="last_name" type="text" value="{{ user.last_name }}"></input></td>
+                    </tr>
                        <tr>
                          <td> 
                            <label>Phone</label></td>
                          <td>
-                           <input name="phone" type="text" readonly="readonly" value="{{ user.phone_number }}">
+                           <input name="phone" type="text" value="{{ user.phone_number }}">
                          </td>
                       </tr>
                       <tr>
@@ -83,36 +89,16 @@
                           <label>Email</label>
                         </td>
                         <td>
-                        <input name="email" type="text" readonly="readonly" value="{{ user.email }}">
+                        <input name="email" type="text" value="{{ user.email }}">
                       </td>
                     </tr>
-                    <tr>
-                    <td>
-                      <label>Skin</label></td>
-                    <td>
-                        <input name="skin" type="text" readonly="readonly" value="{{ user.skin }}">
-                      </td>
-                    </tr>
-                    <tr>
-                      <td></td>
-                      <td>
-                        <a href="/ge/"><input type="button" value="Back"></a></td>
-                    </tr>
-                </table>
+                  </table>
+                  <br/>
+                  <br/>
+                <input type="submit" value="Save Changes"/>
+                <a href="/ge/"><input type="button" value="Back"></a>
             </form>
             <br/>
-            <br/>
-            <!--           <div id="userprofile_links"> -->
-              <span><h1 style="padding-left:120px">{{ user.first_name }}'s Links</h1></span><br/>
-                {% for link in user.links.all %}
-                    <a href="{{ link.url }}">{{ link.name }}</a><br />
-                    {% endfor %}
-                    {% if not user.links %}
-                    <div style="padding-left: 120px">NO LINKS TO DISPLAY</div>
-                    {% endif %}
-
-            <!-- </div> -->
-            <!--  </div> End user_profile_div -->
         </div> <!-- end of center_div -->
       </div> <!-- end of main_div -->
     </body>
