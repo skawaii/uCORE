@@ -693,7 +693,7 @@ def update_user(request):
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
-    return HttpResponseRedirect(reverse('core o.ucore.views.user_profile'))
+    return HttpResponseRedirect(reverse('coreo.ucore.views.user_profile'))
 
 
 def update_password(request):
