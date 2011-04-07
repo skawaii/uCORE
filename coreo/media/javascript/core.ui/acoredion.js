@@ -182,8 +182,10 @@ if (!window.core.ui)
 			var searchForm = $("<div>").addClass("acoredion-search").appendTo(content);
 			var _this = this;
 			var doSearch = function() {
+				var searchText = $(_this.searchInput).emptytext("getValue");
+				if (!searchText || searchText.length <= 0)
+					return;
 				var idMap = {};
-				var searchText = _this.searchInput.val();
 				_this.searchStrategy.search.call(_this.searchStrategy, 
 					searchText, {
 					resultBegin: function(id, name) {
@@ -206,6 +208,7 @@ if (!window.core.ui)
 						console.log("Search error: " + errorThrown);
 					}
 				});
+				$(_this.searchInput).emptytext("clear");
 			};
 			this.searchInput = $("<input type='text'>").appendTo(searchForm)
 					.emptytext({ text: "search" });
@@ -241,23 +244,6 @@ if (!window.core.ui)
 				// TODO
 				console.log("Tree node children need to be updated for " + geoDataUpdateEndEvent.geoData.id);
 			}, this));
-			
-			/*
-			this.el.append("<h3><a href=\"#\">KML Documents</a></h3>"
-					+ "<div>"
-					+ "<div id=\"" + searchFormElId + "\" class=\"" + SEARCH_FORM_CLASS + "\">"
-					+ "<table><tr>"
-					+ "<td><input class=\"" + SEARCH_INPUT_CLASS + "\" id=\"" + searchInputElId + "\" type=\"text\" /></td>"
-					+ "<td class=\"buttonContainer\"><button>Search</button></td>"
-					+ "</tr></table>"
-					+ "</div>"
-					+ "<div class=\"" + KMLTREE_CONTAINER_CLASS + "\" id=\"" + kmlDocsElId + "\"></div>"
-					+ "</div>"
-					+ "<h3><a href=\"#\">Google Earth Layers</a></h3>"
-					+ "<div><div id=\"" + layersElId + "\"></div></div>"
-					+ "<h3><a href=\"#\">Google Maps Options</a></h3>"
-					+ "<div><div id=\"" + optionsElId + "\"></div></div>");
-			*/
 		}
 	};
 	ns.Acoredion = Acoredion;

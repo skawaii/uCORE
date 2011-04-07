@@ -138,6 +138,103 @@ if (!window.core.geo)
 		 * feature. This is the same javascript object that would be 
 		 * returned from the CORE KML Proxy service.
 		 * 
+		 * KML JSON looks like this:
+		 * 
+		 * (start code)
+		 * {
+		 *   "name": "1 0", 
+		 *   "type": "Document", 
+		 *   "region": {
+		 *     "lod": {
+		 *       "maxLodPixels": -1.0, 
+		 *       "type": "Lod", 
+		 *       "id": "", 
+		 *       "minLodPixels": 4000.0
+		 *     }, 
+		 *     "type": "Region", 
+		 *     "id": "", 
+		 *     "latLonAltBox": {
+		 *       "altitudeMode": null, 
+		 *       "north": 180.0, 
+		 *       "west": -180.0, 
+		 *       "east": 180.0, 
+		 *       "type": "LatLonAltBox", 
+		 *       "id": "", 
+		 *       "south": -180.0
+		 *     }
+		 *   }, 
+		 *   "visibility": false, 
+		 *   "children": [
+		 *     {
+		 *       "name": "00", 
+		 *       "type": "NetworkLink", 
+		 *       "region": {
+		 *         "lod": {
+		 *           "maxLodPixels": -1.0, 
+		 *           "type": "Lod", 
+		 *           "id": "", 
+		 *           "minLodPixels": 4000.0
+		 *         }, 
+		 *         "type": "Region", 
+		 *         "id": "", 
+		 *         "latLonAltBox": {
+		 *           "altitudeMode": null, 
+		 *           "north": 180.0, 
+		 *           "west": -180.0, 
+		 *           "east": 0.0, 
+		 *           "type": "LatLonAltBox", 
+		 *           "id": "", 
+		 *           "south": 0.0
+		 *         }
+		 *       }, 
+		 *       "flyToView": false, 
+		 *       "visibility": false, 
+		 *       "snippet": null, 
+		 *       "phoneNumber": null, 
+		 *       "address": null, 
+		 *       "link": {
+		 *         "refreshMode": null, 
+		 *         "viewFormat": "", 
+		 *         "href": "2.kml", 
+		 *         "httpQuery": null, 
+		 *         "type": "Link", 
+		 *         "id": "", 
+		 *         "viewRefreshMode": "onRegion"
+		 *       }, 
+		 *       "refreshVisibility": false, 
+		 *       "open": false, 
+		 *       "id": "", 
+		 *       "description": null
+		 *     }, 
+		 *     {
+		 *       "name": "THREE GORGES", 
+		 *       "geometry": {
+		 *         "extrude": false, 
+		 *         "altitudeMode": null, 
+		 *         "type": "Point", 
+		 *         "id": "", 
+		 *         "coordinates": "111.017200,30.810000"
+		 *       }, 
+		 *       "type": "Placemark", 
+		 *       "timePrimitive": {
+		 *         "end": "2009-12", 
+		 *         "begin": "2001-01", 
+		 *         "type": "TimeSpan", 
+		 *         "id": ""
+		 *       }, 
+		 *       "visibility": false, 
+		 *       "snippet": null, 
+		 *       "styleUrl": "../s/2007_raw_abs_energy.txt#v_00ff00_1.5\n", 
+		 *       "phoneNumber": null, 
+		 *       "address": null, 
+		 *       "open": false, 
+		 *       "id": "pm30295", 
+		 *       "description": "<table border=0 cellpadding=\"0\" cellspacing=\"0\" padding=\"0\" width=\"300\">  <tr>    <td colspan=2 align=center>      <font size=\"+1\">Source: <a href=\"http://www.thedaysarenumbered.com\">The Days Are Numbered</a>&amp;nbsp;&amp;nbsp;&amp;#124;&amp;nbsp;&amp;nbsp;Data: <a href=\"http://www.carma.org\">CARMA.org</a></font>    </td>  </tr>  <tr>    <td colspan=2 align=center>      <hr />    </td>  </tr>  <tr>    <td colspan=2 align=center>      <font size=\"+3\">2007</font>    </td>  </tr>  <tr>  <tr>    <td colspan=2 align=center>      <hr />    </td>  </tr>  <tr>    <td colspan=2 align=center>      <font size=\"+3\">THREE GORGES, Sandoupin, Hubei, China</font> <a href=http://carma.org/plant/detail/45316>More</a>    </td>  </tr>  <tr>    <td colspan=2 align=center>      <hr />    </td>  </tr>  <tr>    <td colspan=2 align=center>      <table border=0 cellpadding=\"0\" cellspacing=\"0\" padding=\"0\" width=\"250\" bgcolor=\"#F3F3F3\">        <tr>          <td align=\"left\">            <font size=\"+1\">CO2 emissions:</font>          </td>          <td align=\"left\">            <font size=\"+2\"><b>0</b> short tons</font>          </td>        </tr>        <tr>          <td align=\"left\">            <font size=\"+1\">Energy output:</font>          </td>          <td align=\"left\">            <font size=\"+2\"><b>63,300,000</b> MWh</font>          </td>        </tr>        <tr>          <td align=\"left\">            <font size=\"+1\">CO2 intensity:</font>          </td>          <td align=\"left\">            <font size=\"+2\"><b>0</b> lb/MWh</font>          </td>        </tr>                <tr>          <td align=\"left\">            <font size=\"+1\">Owner:</font>          </td>          <td align=\"left\">            <font size=\"+2\"><b>CHINA THREE GORGES PROJ CORP</b></font>           </td>        </tr>     </table>      </table>    </td>  </tr>  <tr>    <td colspan=2 align=center>      <hr />    </td>  </tr>  <tr>    <td colspan=2 align=center>      <table border=0 cellpadding=\"0\" cellspacing=\"0\" padding=\"0\" width=\"250\">        <tr>          <td align=\"left\">            <font size=\"+1\">ID:</font>          </td>          <td align=\"left\">            <font size=\"+1\">45316</font>          </td>        </tr>      </table>    </td>  </tr>  <tr>    <td colspan=2 align=center>      Explanation of <a href=\"http://carma.org/blog/about/plantinfo/\">fuel types</a> and <a href=\"http://carma.org/blog/glossary/abouticons/\">icons</a>.    </td>  </tr></table>"
+		 *     }
+		 *   ]
+		 * }
+		 * (end code)
+		 * 
 		 *  Parameters:
 		 *    callback - Function. Invoked upon successful javascript 
 		 *          object creation. Invoked with one parameter - the 

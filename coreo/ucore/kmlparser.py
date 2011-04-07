@@ -321,8 +321,32 @@ class KmlParser:
                 dict['itemIcons'].append(self.itemicon_to_dict(child, {}))
         return dict
     
+    def iconstyle_to_dict(self, node, dict = {}):
+        return dict;
+    
+    def labelstyle_to_dict(self, node, dict = {}):
+        return dict;
+    
+    def linestyle_to_dict(self, node, dict = {}):
+        kmlNS = node.namespaceURI
+        dict['width'] = self.child_element_value(node, 'width', kmlNS)
+        return dict;
+    
+    def polystyle_to_dict(self, node, dict = {}):
+        return dict;
+    
     def colorstyle_to_dict(self, node, dict = {}):
-        print '***** Not implemented: %s' % node.tagName
+        kmlNS = node.namespaceURI
+        dict['color'] = self.child_element_value(node, 'color', kmlNS)
+        dict['colorMode'] = self.child_element_value(node, 'colorMode', kmlNS)
+        if (node.tagName == 'IconStyle'):
+            self.iconstyle_to_dict(node, dict);
+        if (node.tagName == 'LabelStyle'):
+            self.labelstyle_to_dict(node, dict)
+        if (node.tagName == 'LineStyle'):
+            self.linestyle_to_dict(node, dict);
+        if (node.tagName == 'PolyStyle'):
+            self.polystyle_to_dict(node, dict);
         return dict
     
     def substyle_to_dict(self, node, dict = {}):
@@ -385,9 +409,34 @@ class KmlParser:
     def find_abstractview_child(self, parent):
         kmlNS = parent.namespaceURI
         return self.child_element(parent, self.KML_ABSTRACTVIEW_NAMES, kmlNS)
+
+    def camera_to_dict(self, node, dict = {}):
+        kmlNS = node.namespaceURI;
+        dict['longitude'] = self.child_element_value(node, 'longitude', kmlNS)
+        dict['latitude'] = self.child_element_value(node, 'latitude', kmlNS)
+        dict['altitude'] = self.child_element_value(node, 'altitude', kmlNS)
+        dict['heading'] = self.child_element_value(node, 'heading', kmlNS)
+        dict['tilt'] = self.child_element_value(node, 'tilt', kmlNS)
+        dict['roll'] = self.child_element_value(node, 'roll', kmlNS)
+        dict['altitudeMode'] = self.child_element_value(node, 'altitudeMode', kmlNS)
+        return dict
     
+    def lookat_to_dict(self, node, dict = {}):
+        kmlNS = node.namespaceURI;
+        dict['longitude'] = self.child_element_value(node, 'longitude', kmlNS)
+        dict['latitude'] = self.child_element_value(node, 'latitude', kmlNS)
+        dict['altitude'] = self.child_element_value(node, 'altitude', kmlNS)
+        dict['heading'] = self.child_element_value(node, 'heading', kmlNS)
+        dict['tilt'] = self.child_element_value(node, 'tilt', kmlNS)
+        dict['range'] = self.child_element_value(node, 'range', kmlNS)
+        dict['altitudeMode'] = self.child_element_value(node, 'altitudeMode', kmlNS)
+        return dict
+        
     def abstractview_to_dict(self, node, dict = {}):
-        print '***** Not implemented: %s' % node.tagName
+        if (node.tagName == 'Camera'):
+            dict = self.camera_to_dict(node, dict)
+        elif (node.tagName == 'LookAt'):
+            dict = self.lookat_to_dict(node, dict)
         return dict
     
     def region_to_dict(self, node, dict = {}):

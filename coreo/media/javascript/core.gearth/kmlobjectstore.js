@@ -13,7 +13,8 @@
  *  core.gearth
  * 
  * Dependencies:
- *  None
+ *  - jQuery
+ *  - core.ge.KmlObjectCreator
  */
 
 if (!window.core)
@@ -22,6 +23,10 @@ if (!window.core.gearth)
 	window.core.gearth = {};
 
 (function(ns) {
+	var KmlObjectCreator = core.gearth.KmlObjectCreator;
+	if (!KmlObjectCreator)
+		throw "Dependency not found: core.gearth.KmlObjectCreator";
+	
 	/**
 	 * Constructor: KmlObjectStore
 	 * 
@@ -34,21 +39,16 @@ if (!window.core.gearth)
 	var KmlObjectStore = function(ge) {
 		this.ge = ge;
 		this.datastore = {};
+		this.kmlObjectCreator = new KmlObjectCreator(ge);
 	};
 	KmlObjectStore.prototype = {
 		
 		/**
-		 * Function: createKmlObject
+		 * Property: kmlObjectCreator
 		 * 
-		 * Generates a new KmlObject representing a <GeoData> object.
-		 * 
-		 * Parameters:
-		 *   geoData - <GeoData>. Object for which to create a KmlObject 
-		 *        instance.
+		 * <KmlObjectCreator>. Used to convert <GeoData> into KmlObjects.
 		 */
-		createKmlObject: function(geoData) {
-			return this.ge.parseKml(geoData.getKmlString());
-		},
+		kmlObjectCreator: null,
 
 		/**
 		 * Function: getKmlObject
@@ -58,14 +58,21 @@ if (!window.core.gearth)
 		 * 
 		 * Parameters:
 		 *   geoData - <GeoData>. Linked GeoData object.
+		 *   callback - Function. Invoked upon successful KmlObject retrieval.
 		 */
-		getKmlObject: function(geoData) {
+		getKmlObject: function(geoData, callback) {
+			console.log("getKmlObject(" + geoData + ")");
 			var id = geoData.id;
-			if (!(id in this.datastore)) {
-				var kmlObject = this.createKmlObject(geoData);
-				this.datastore[id] = kmlObject;
+			if (id in this.datastore) {
+				var kmlObject = this.datastore[id];
+				callback.call(callback, kmlObject);
 			}
-			return this.datastore[id];
+			else {
+				this.kmlObjectCreator.createFromGeoData(geoData, $.proxy(function(kmlObject) {
+					this.datastore[id] = kmlObject;
+					callback.call(callback, kmlObject);
+				}, this));
+			}
 		},
 		
 		/**
