@@ -658,13 +658,7 @@ def update_user(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
   if request.method == 'GET':
     user = CoreUser.objects.filter(username=request.user)
-    print 'request user is : %s' % request.user
-    if user:
-      print 'user found.'
-    else:
-      print 'no CoreUser found with that username.'
     first_name = user.first_name
-    print 'first_name is : %s' % first_name
     return render_to_response('register.html', context_instance=RequestContext(request))
   else:
     first_name = request.POST['first_name'].strip()
