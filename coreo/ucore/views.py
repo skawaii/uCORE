@@ -657,58 +657,16 @@ def update_user(request):
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
   if request.method == 'GET':
-    user = CoreUser.objects.filter(username=request.user)
-    first_name = user.first_name
+    user = CoreUser.objects.get(username=request.user.username)
     return render_to_response('register.html', context_instance=RequestContext(request))
   else:
+    user = CoreUser.objects.filter(username=request.user.username)
+    print 'user is : %s' % user
     first_name = request.POST['first_name'].strip()
     last_name = request.POST['last_name'].strip()
-    password = request.POST['password'].strip()
     email = request.POST['email'].strip()
     phone_number = request.POST['phone_number'].strip()
-
-    try:
-      if (len(phone_number) != 10):
-        prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
-        result = prog.match(phone_number)
-        phone_number = result.group(1) + result.group(2) + result.group(3)
-    except Exception, e:
-      logging.error('Exception parsing phone number: %s' % e.message)
-
-    if not (first_name and last_name and password and email and phone_number):
-    # redisplay the registration page
-      return render_to_response('register.html',
-          {'sid': sid,
-           'error_message': 'Please fill in all required fields.'
-          }, context_instance=RequestContext(request))
-
-    # update the user to the DB
-    user = CoreUser.objects.get(sid=sid)
-    user.first_name = first_name
-    user.last_name = last_name
-    user.email = email
-    user.phone_number = phone_number
-    user.set_password(password)
-    user.save()
-
-  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
-  # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
-    return HttpResponseRedirect(reverse('coreo.ucore.views.user_profile'))
-
-
-def save_profile(request):
-  """
-  Update the user's record in the DB.
-  """
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
-  if request.method == 'POST':
-    sid = request.POST['id'].strip()
-    first_name = request.POST['first_name'].strip()
-    last_name = request.POST['last_name'].strip()
-    email = request.POST['email'].strip()
-    phone_number = request.POST['phone'].strip()
-    user = CoreUser.objects.get(sid=sid)
+    sid = request.POST['sid'].strip()
 
     try:
       if (len(phone_number) != 10):
@@ -719,20 +677,83 @@ def save_profile(request):
       logging.error('Exception parsing phone number: %s' % e.message)
 
     if not (first_name and last_name and email and phone_number):
-    # redisplay the userprofile page
+    # redisplay the registration page
       return render_to_response('userprofile.html',
           {'user': user }, context_instance=RequestContext(request))
 
     # update the user to the DB
+    user = CoreUser.objects.get(sid=sid)
     user.first_name = first_name
     user.last_name = last_name
     user.email = email
     user.phone_number = phone_number
+    # if password:
+    #   user.set_password(password)
     user.save()
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
-    return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+    return HttpResponseRedirect(reverse('core o.ucore.views.user_profile'))
+
+
+def update_password(request):
+  if request.method == 'GET':
+    return render_to_response('password.html', context_instance=RequestContext(request))
+  else:
+    user = CoreUser.objects.get(username=request.user)
+    if user:
+      print 'Got the user OK.'
+    oldpassword = request.POST['old'].strip()
+    newpassword = request.POST['password'].strip()
+    if user.check_password(oldpassword):
+      user.set_password(newpassword)
+      user.save()
+      return render_to_response('password.html',
+          {'success_message': 'Password successfully changed.'},
+          context_instance=RequestContext(request))
+    else:
+      return render_to_response('password.html',
+          {'error_message': 'Old Password Does Not Match'},
+           context_instance=RequestContext(request))
+
+# def save_profile(request):
+#  """
+#  Update the user's record in the DB.
+#  """
+#  if not request.user.is_authenticated():
+#    return render_to_response('login.html', context_instance=RequestContext(request))
+#  if request.method == 'POST':
+#    sid = request.POST['id'].strip()
+#    first_name = request.POST['first_name'].strip()
+#    last_name = request.POST['last_name'].strip()
+#    email = request.POST['email'].strip()
+#    phone_number = request.POST['phone'].strip()
+#    user = CoreUser.objects.get(sid=sid)
+
+#    try:
+#      if (len(phone_number) != 10):
+#        prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+#        result = prog.match(phone_number)
+#        phone_number = result.group(1) + result.group(2) + result.group(3)
+#    except Exception, e:
+#      logging.error('Exception parsing phone number: %s' % e.message)
+
+#    if not (first_name and last_name and email and phone_number):
+    # redisplay the userprofile page
+#      return render_to_response('userprofile.html',
+#          {'user': user }, context_instance=RequestContext(request))
+
+    # update the user to the DB
+#    user.first_name = first_name
+#    user.last_name = last_name
+#    user.email = email
+#    user.phone_number = phone_number
+#    user.save()
+
+  # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
+  # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
+
+ #   return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
 
 def upload_csv(request):
   if request.method == 'POST':
