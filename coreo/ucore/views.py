@@ -661,7 +661,6 @@ def update_user(request):
     return render_to_response('register.html', context_instance=RequestContext(request))
   else:
     user = CoreUser.objects.filter(username=request.user.username)
-    print 'user is : %s' % user
     first_name = request.POST['first_name'].strip()
     last_name = request.POST['last_name'].strip()
     email = request.POST['email'].strip()
@@ -702,8 +701,6 @@ def update_password(request):
     return render_to_response('password.html', context_instance=RequestContext(request))
   else:
     user = CoreUser.objects.get(username=request.user)
-    if user:
-      print 'Got the user OK.'
     oldpassword = request.POST['old'].strip()
     newpassword = request.POST['password'].strip()
     if user.check_password(oldpassword):

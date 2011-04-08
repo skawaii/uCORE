@@ -212,7 +212,7 @@ class KmzTest(TestCase):
     #print 'Passed the get_kmz test.'
 
 
-class ProfileTest(TestCase):
+class PasswordUpdateTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
@@ -221,20 +221,38 @@ class ProfileTest(TestCase):
 
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
-  def test_save_profile(self):
-    response = self.client.get('/userprofile/')
+  def test_password_update(self):
+    response = self.client.get('/update-password/')
     self.assertEquals(response.status_code, 200)
-    user = CoreUser.objects.get(sid='anything')
-    self.assertEquals(user.first_name, 'Joe')
-    self.assertEquals(user.last_name, 'Anybody')
-    response = self.client.post('/save-profile/', { 'id' : 'anything', 'first_name' : 'Harry', 'last_name' : 'Somebody', 'phone' : '4442229999', 'email' : 'johnjacobs@aol.com' })
-    user = CoreUser.objects.get(sid='anything')
-    self.assertEquals(user.first_name, 'Harry')
-    self.assertEquals(user.last_name, 'Somebody')
-    self.assertEquals(user.phone_number, long('4442229999'))
-    self.assertEquals(user.email, 'johnjacobs@aol.com')
-    # print 'Passed the saveProfile test.'
+    response = self.client.post('/update-password/', { 'old' : '2pass', 'password' : 'newpass'})
+    self.assertEquals(response.status_code, 200)
+    self.assertTrue(self.client.login(username='testuser', password='newpass'))
+    response = self.client.post('/update-password/', { 'old' : 'nothing', 'password' : 'anything'})
+    self.assertContains(response, 'Old Password Does Not Match', count=1, status_code=200)
+    # print 'Passed the password update test.'
 
+
+class ProfileUpdateTest(TestCase):
+  def setUp(self):
+    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
+        phone_number='9221112222')
+    self.user.set_password('2pass')
+    self.user.save()
+
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+
+  def test_profile_update(self):
+    response = self.client.get('/user-profile/')
+    self.assertEquals(response.status_code, 200)
+    response = self.client.post('/update-user/', { 'sid' : 'anything', 'first_name' : 'Bill', 'last_name' : 'Somebody', 'phone_number': '9998887777', 'email': 'pcol@anywhere.com'})
+    self.assertEquals(response.status_code, 200)
+    self.assertContains(response, 'Profile successfully changed', count=1, status_code=200)
+    user = CoreUser.objects.get(sid='anything')
+    self.assertEquals(user.first_name, 'Bill')
+    self.assertEquals(user.last_name, 'Somebody')
+    self.assertEquals(user.email, 'pcol@anywhere.com')
+    self.assertEquals(user.phone_number, long('9998887777'))
+    # print 'Passed the UpdateProfile test.'
 
 class SearchTest(TestCase):
   def setUp(self):
