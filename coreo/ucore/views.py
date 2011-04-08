@@ -755,7 +755,7 @@ def header_name(name):
     for i in range(len(words)):
         words[i] = words[i][0].upper() + words[i][1:].lower()
     result = '-'.join(words) + ':'
-    return result
+    return result 
 
 def kmlproxy(request):
     if not request.user.is_authenticated():
@@ -772,6 +772,27 @@ def kmlproxy(request):
         headers = {}
         conn.request('GET', parsedRemoteUrl.path + '?' + parsedRemoteUrl.query, None, headers)
         remoteResponse = conn.getresponse()
+        # print remoteResponse.getheader('content-type')
+        
+        # KMZ stuff should go here
+
+        if remoteResponse.getheader('content-type') == 'application/vnd.google-earth.kmz':
+          print 'Got a KMZ here.'
+          # print 'here it is: %s' % remoteResponse.read()
+          data1 = remoteResponse.read()
+          fileSample = open('sample', 'w')
+          pickle.dump(data1, fileSample)
+          fileSample.close()
+          # fileSample.write(data1)
+          # fileSample.close()
+          # file1.write(data1)
+          # file1.close()
+          file = ZipFile.open(fileSample, 'r')
+          for name in file.namelist():
+            data = file.read(name)
+            print data
+        else:
+          print remoteResponse.getheader('content-type')
         kmlDom = parse(remoteResponse)
         # print remoteUrl + kmlDom.toprettyxml('  ')
         try:
