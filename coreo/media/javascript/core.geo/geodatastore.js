@@ -61,6 +61,8 @@ if (!window.core.geo)
 			if (!id) {
 				id = GeoDataStore.generateId();
 				feature.id = id;
+			}
+			
 				if (!feature.owner) {
 					// this is a root-level feature
 					store[id] = feature;
@@ -77,7 +79,6 @@ if (!window.core.geo)
 						&& typeof feature.postSave === "function") {
 					feature.postSave();
 				}
-			}
 			return feature;
 		},
 		

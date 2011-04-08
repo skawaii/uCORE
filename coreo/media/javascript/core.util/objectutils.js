@@ -75,6 +75,29 @@ if (!window.core.util)
 				}
 			}
 			return str;
+		},
+		
+		/**
+		 * Function: describeFunctions
+		 * 
+		 * Generates a string describing the functions defined on an object.
+		 * 
+		 * Parameters:
+		 *   obj - Object. Required. Object to describe.
+		 * 
+		 * Returns:
+		 *   String. Listing of functions.
+		 */
+		describeFunctions: function(obj) {
+			var lineEndingRegex = /[\n\r]/;
+			var str = "";
+			for (var p in obj) {
+				var t = typeof obj[p];
+				if (t == "function") {
+					str += p + "\n";
+				}
+			}
+			return str;			
 		}
 
 	};

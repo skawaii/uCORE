@@ -19,8 +19,12 @@ if (!window.core.util)
 
 (function($, ns) {
 	var XmlUtils = core.util.XmlUtils;
+	if (!XmlUtils)
+		throw "Dependency not found: core.util.XmlUtils";
 	var CallbackUtils = core.util.CallbackUtils;
-
+	if (!CallbackUtils)
+		throw "Dependency not found: core.util.CallbackUtils";
+	
 	var KmlUtils = {
 		/**
 		 * Constant: KML_NS
@@ -35,7 +39,7 @@ if (!window.core.util)
 		 * 
 		 * Array. Tag names of elements defined in the KML schema for features.
 		 */
-		KML_FEATURE_ELEMENTS: "kml NetworkLink Placemark PhotoOverlay ScreenOverlay GroundOverlay Folder Document".split(" "),
+		KML_FEATURE_ELEMENTS: "NetworkLink Placemark PhotoOverlay ScreenOverlay GroundOverlay Folder Document".split(" "),
 
 		/**
 		 * Function: isKmlElement
@@ -81,6 +85,11 @@ if (!window.core.util)
 			return null;
 		},
 
+		hasChildKmlElements: function(element) {
+			var children = $(element).find(KmlUtils.KML_FEATURE_ELEMENTS.join(","));
+			return children.length > 0;
+		},
+
 		/**
 		 * Function: iterateChildKmlElements
 		 * 
@@ -97,7 +106,7 @@ if (!window.core.util)
 			XmlUtils.assertElement(element);
 			// don't retrieve all children with jQuery.children() - might 
 			// return more elements than can fit in memory
-			element = $(element.firstChild);
+			element = $(element).children(":first-child");
 			while (element.length > 0) {
 				if (KmlUtils.isKmlElement(element[0])
 						&& CallbackUtils.invokeCallback(callback, element[0]) === false) {
@@ -105,7 +114,21 @@ if (!window.core.util)
 				}
 				element = element.next();
 			}
-		}
+		},
+		
+		getKmlNsPrefixInUse: function(element) {
+			var nsContext = XmlUtils.getNamespaceContext(element);
+			for (var i = 0; i < KmlUtils.KML_NS.length; i++) {
+				if (KmlUtils.KML_NS[i] === nsContext.getDefault()) {
+					return "";
+				}
+				var prefix = nsContext.getPrefix(KmlUtils.KML_NS[i]);
+				if (prefix !== undefined) {
+					return prefix;
+				}
+			}
+			return undefined;
+		}		
 	};
 	ns.KmlUtils = KmlUtils;
 })(jQuery, window.core.util);

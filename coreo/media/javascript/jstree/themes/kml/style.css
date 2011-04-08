@@ -1,0 +1,225 @@
+/*
+ * jsTree classic theme 1.0
+ * Supported features: dots/no-dots, icons/no-icons, focused, loading
+ * Supported plugins: ui (hovered, clicked), checkbox, contextmenu, search
+ */
+
+/* .jstree-kml li, */ 
+/* .jstree-kml ins { background-image:url("kmlsprite.png"); background-repeat:no-repeat; background-color:transparent; } */
+/* .jstree-kml li { background-position:-90px 0; background-repeat:repeat-y;  } */
+/* .jstree-kml li.jstree-last { background:transparent; } */
+
+.jstree-kml li > ul {
+	padding-left: 4px;
+}
+
+.jstree-kml ins {
+	width: 16px;
+	height: 16px;
+	padding-right: 4px;
+}
+
+.jstree-kml .jstree-open > ins.jstree-icon { 
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position:-105px 0;
+}
+
+.jstree-kml .jstree-open > ins.jstree-icon:hover { 
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position:-126px 0;
+}
+
+.jstree-kml .jstree-closed > ins.jstree-icon { 
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position:-168px 0;
+}
+
+.jstree-kml .jstree-closed > ins.jstree-icon:hover { 
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position:-189px 0;
+}
+
+.jstree-kml .jstree-leaf > ins.jstree-icon {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position:-105px 0;
+}
+
+.jstree-kml a ins.NetworkLink {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: -504px 0;
+}
+
+.jstree-kml a.jstree-loading ins {
+	background-image:url("ajax-loader16.gif") !important;
+	background-repeat:no-repeat !important;
+	background-position: 0 0 !important;
+	height: 16px !important;
+	width: 16px !important;
+}
+  
+.jstree-kml a ins.Folder {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: 0 0;
+}
+
+.jstree-kml li.jstree-open > a ins.Folder {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: -21px 0;
+}
+
+.jstree-kml a ins.Document {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: 0 0;
+}
+
+.jstree-kml li.jstree-open > a ins.Document {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: -21px 0;
+}
+
+.jstree-kml a ins.kml {
+	background-image:url("kmldoc.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+}
+
+.jstree-kml a ins.Placemark {
+	background-image:url("placemark.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+}
+
+.jstree-kml a ins.PhotoOverlay {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: -84px 0;
+}
+
+.jstree-kml a ins.GroundOverlay {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: -84px 0;
+}
+
+.jstree-kml a ins.ScreenOverlay {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: -567px 0;
+}
+
+/* .jstree-kml .jstree-leaf > ins { background-position:-36px 0; } */
+
+.jstree-kml .jstree-hovered { background:#e7f4f9; border:1px solid #e7f4f9; padding:0 2px 0 1px; }
+.jstree-kml .jstree-clicked { background:navy; border:1px solid navy; padding:0 2px 0 1px; color:white; }
+.jstree-kml a .jstree-icon { background-position:-56px -19px; }
+.jstree-kml .jstree-open > a .jstree-icon { background-position:-56px -36px; }
+.jstree-kml a.jstree-loading .jstree-icon { background:url("ajax-loader16.gif") center center no-repeat !important; }
+
+.jstree-kml.jstree-focused { background: transparent; }
+
+.jstree-kml .jstree-no-dots li, 
+.jstree-kml .jstree-no-dots .jstree-leaf > ins { background:transparent; }
+.jstree-kml .jstree-no-dots .jstree-open > ins { background-position:-18px 0; }
+.jstree-kml .jstree-no-dots .jstree-closed > ins { background-position:0 0; }
+
+.jstree-kml .jstree-no-icons a .jstree-icon { display:none; }
+
+.jstree-kml .jstree-search { font-style:italic; }
+
+.jstree-kml .jstree-no-icons .jstree-checkbox { display:inline-block; }
+.jstree-kml .jstree-no-checkboxes .jstree-checkbox { display:none !important; }
+.jstree-kml .jstree-checked > a.jstree-checkbox { 
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	width: 16px;
+	height: 16px;
+	background-position: -315px 0;	
+}
+.jstree-kml .jstree-checked > a.jstree-checkbox:hover {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	width: 16px;
+	height: 16px;
+	background-position: -357px 0;	
+}
+.jstree-kml .jstree-unchecked > a.jstree-checkbox {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	width: 16px;
+	height: 16px;
+	background-position: -231px 0; 
+}
+.jstree-kml .jstree-unchecked > a.jstree-checkbox:hover { 
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	width: 16px;
+	height: 16px;
+	background-position: -273px 0;	
+}
+.jstree-kml .jstree-undetermined > a.jstree-checkbox {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	width: 16px;
+	height: 16px;
+	background-position: -315px 0; 
+}
+.jstree-kml .jstree-undetermined > a.jstree-checkbox:hover {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	width: 16px;
+	height: 16px;
+	background-position: -357px 0;	
+}
+
+/*.jstree-kml .jstree-checked > a > .jstree-checkbox:hover { background-position:-38px -37px; } */
+.jstree-kml .jstree-unchecked > a > .jstree-checkbox:hover { background-position:-273px 0; }
+/* .jstree-kml .jstree-undetermined > a > .jstree-checkbox:hover { background-position:-20px -37px; } */
+
+#vakata-dragged.jstree-kml ins { background:transparent !important; }
+#vakata-dragged.jstree-kml .jstree-ok { background:url("d.png") -2px -53px no-repeat !important; }
+#vakata-dragged.jstree-kml .jstree-invalid { background:url("d.png") -18px -53px no-repeat !important; }
+#jstree-marker.jstree-kml { background:url("d.png") -41px -57px no-repeat !important; }
+
+.jstree-kml a.jstree-search { color:aqua; }
+
+#vakata-contextmenu.jstree-kml-context, 
+#vakata-contextmenu.jstree-kml-context li ul { background:#f0f0f0; border:1px solid #979797; -moz-box-shadow: 1px 1px 2px #999; -webkit-box-shadow: 1px 1px 2px #999; box-shadow: 1px 1px 2px #999; }
+#vakata-contextmenu.jstree-kml-context li { }
+#vakata-contextmenu.jstree-kml-context a { color:black; }
+#vakata-contextmenu.jstree-kml-context a:hover, 
+#vakata-contextmenu.jstree-kml-context .vakata-hover > a { padding:0 5px; background:#e8eff7; border:1px solid #aecff7; color:black; -moz-border-radius:2px; -webkit-border-radius:2px; border-radius:2px; }
+#vakata-contextmenu.jstree-kml-context li.jstree-contextmenu-disabled a, 
+#vakata-contextmenu.jstree-kml-context li.jstree-contextmenu-disabled a:hover { color:silver; background:transparent; border:0; padding:1px 4px; }
+#vakata-contextmenu.jstree-kml-context li.vakata-separator { background:white; border-top:1px solid #e0e0e0; margin:0; }
+#vakata-contextmenu.jstree-kml-context li ul { margin-left:-4px; }
+
+/* TODO: IE6 support - the `>` selectors */

@@ -23,12 +23,12 @@ test("fromKmlDoc", function() {
 	ok(geodata);
 	ok(geodata.id);
 	ok(geodata.node);
-	strictEqual(geodata.node.tagName, "kml");
+	strictEqual(geodata.node.tagName, "Document");
 	ok(geodata.nsPrefix);
 	strictEqual(typeof geodata.nsPrefix, "string");
 	ok(geodata.nsPrefix.length > 0);
 	strictEqual($(kmlDoc.documentElement).attr("xmlns:" + geodata.nsPrefix), core.geo.KmlNodeGeoData.NS_URI);
-	strictEqual($(kmlDoc.documentElement).attr(geodata.nsPrefix + ":id"), geodata.id);
+	strictEqual($(kmlDoc.documentElement).find("Document").attr(geodata.nsPrefix + ":id"), geodata.id);
 });
 
 test("fromKmlString", function() {
@@ -45,11 +45,11 @@ test("fromKmlString", function() {
 	ok(geodata);
 	ok(geodata.id);
 	ok(geodata.node);
-	strictEqual(geodata.node.tagName, "kml");
+	strictEqual(geodata.node.tagName, "Document");
 	ok(geodata.nsPrefix);
 	strictEqual(typeof geodata.nsPrefix, "string");
 	ok(geodata.nsPrefix.length > 0);
-	strictEqual($(geodata.node).attr("xmlns:" + geodata.nsPrefix), core.geo.KmlNodeGeoData.NS_URI);
+	strictEqual($(geodata.node.ownerDocument.documentElement).attr("xmlns:" + geodata.nsPrefix), core.geo.KmlNodeGeoData.NS_URI);
 	strictEqual($(geodata.node).attr(geodata.nsPrefix + ":id"), geodata.id);
 });
 
@@ -224,11 +224,7 @@ test("getParent", function() {
 			+ "</kml>");
 	var geodata = new core.geo.KmlNodeGeoData(null, $(dom.documentElement).find("Document")[0], "ns1");
 	var parent = geodata.getParent();
-	ok(parent);
-	strictEqual(parent.id, "1");
-	ok(parent.node);
-	strictEqual(parent.node.tagName, "kml");
-	strictEqual(parent.nsPrefix, "ns1");
+	strictEqual(parent, null, "'kml' element is not considered a feature");
 	
 	geodata = new core.geo.KmlNodeGeoData(null, $(dom.documentElement).find("Placemark")[0], "ns1");
 	parent = geodata.getParent();
@@ -267,14 +263,10 @@ test("getParent", function() {
 	
 	el = $(dom.documentElement).find("Document")[0];
 	ok(el);
-	ok(core.util.KmlUtils.findNextKmlElementParent(el));
+	strictEqual(core.util.KmlUtils.findNextKmlElementParent(el), null);
 	geodata = new core.geo.KmlNodeGeoData(null, el, "ns1");
 	parent = geodata.getParent();
-	ok(parent);
-	strictEqual(parent.id, null);
-	ok(parent.node);
-	strictEqual(parent.node.tagName, "k:kml");
-	strictEqual(parent.nsPrefix, "ns1");
+	strictEqual(parent, null);
 });
 
 test("iterateChildren", function() {
@@ -442,10 +434,10 @@ test("getKmlString", function() {
 		+ "</k:kml>";
 	var dom = core.util.XmlUtils.createXmlDoc(kml);
 	ok(dom.documentElement);
-	var geodata = new core.geo.KmlNodeGeoData(null, dom.documentElement, "c");
+	var geodata = new core.geo.KmlNodeGeoData(null, $(dom.documentElement).find("Document:first-child")[0], "c");
 	var str = geodata.getKmlString();
 	ok(str);
-	strictEqual(str.substr(0, 6), "<k:kml");
+	strictEqual(str.substr(0, 11), "<k:Document");
 
 	var el = $(dom.documentElement).find("Placemark[c\\:id='7']")[0];
 	ok(el);
@@ -490,4 +482,125 @@ test("postSave", function() {
 	geodata.id = null;
 	geodata.postSave();
 	strictEqual($(geodata.node).attr("c:id"), undefined);
+});
+
+test("getName", function() {
+	var kml = "<k:kml xmlns:k=\"" + core.util.KmlUtils.KML_NS[0] + "\" "
+		+ "xmlns:c=\"" + core.geo.KmlNodeGeoData.NS_URI + "\">"
+		+ "<k:Document id=\"3\" c:id=\"4\">"
+		+ "  <k:name>document name</k:name>"
+		+ "  <k:Folder c:id=\"5\">"
+		+ "    <k:NetworkLink c:id=\"6\" />"
+		+ "    <k:Placemark c:id=\"7\">"
+		+ "      <k:Document>"
+		+ "        <k:Placemark c:id=\"8\" />"
+		+ "      </k:Document>"
+		+ "    </k:Placemark>"
+		+ "  </k:Folder>"
+		+ "  <k:Placemark/>"
+		+ "</k:Document>"
+		+ "<k:NetworkLink/>" +
+		+ "<k:NotAFeature/>"
+		+ "</k:kml>";
+	var dom = core.util.XmlUtils.createXmlDoc(kml);
+	ok(dom.documentElement);
+	var geodata = new core.geo.KmlNodeGeoData(null, dom.documentElement, "c");
+	strictEqual(geodata.getName(), null);
+	
+	strictEqual($(dom.documentElement).children()[0].tagName, "k:Document");
+	geodata = new core.geo.KmlNodeGeoData(null, $(dom.documentElement).children()[0], "c");
+	strictEqual(geodata.getName(), "document name");
+});
+
+test("hasChildren", function() {
+	var kml = "<k:kml xmlns:k=\"" + core.util.KmlUtils.KML_NS[0] + "\" "
+		+ "xmlns:c=\"" + core.geo.KmlNodeGeoData.NS_URI + "\">"
+		+ "<k:Document id=\"3\" c:id=\"4\">"
+		+ "  <k:name>document name</k:name>"
+		+ "  <k:Folder c:id=\"5\">"
+		+ "    <k:NetworkLink c:id=\"6\" />"
+		+ "    <k:Placemark c:id=\"7\">"
+		+ "      <k:Document>"
+		+ "        <k:Placemark c:id=\"8\" />"
+		+ "      </k:Document>"
+		+ "    </k:Placemark>"
+		+ "  </k:Folder>"
+		+ "  <k:Placemark/>"
+		+ "</k:Document>"
+		+ "<k:NetworkLink/>" +
+		+ "<k:NotAFeature/>"
+		+ "</k:kml>";
+	var geodata = core.geo.KmlNodeGeoData.fromKmlString(kml);
+	strictEqual(geodata.hasChildren(), true);
+
+	var dom = core.util.XmlUtils.createXmlDoc(kml);
+	geodata = new core.geo.KmlNodeGeoData(null, $(dom.documentElement).find("NetworkLink")[0], "c");
+	strictEqual(geodata.hasChildren(), true);
+});
+
+test("getKmlFeatureType", function() {
+	var kml = "<k:kml xmlns:k=\"" + core.util.KmlUtils.KML_NS[0] + "\" "
+		+ "xmlns:c=\"" + core.geo.KmlNodeGeoData.NS_URI + "\">"
+		+ "<k:Document id=\"3\" c:id=\"4\">"
+		+ "  <k:name>document name</k:name>"
+		+ "  <k:Folder c:id=\"5\">"
+		+ "    <k:NetworkLink c:id=\"6\" />"
+		+ "    <k:Placemark c:id=\"7\">"
+		+ "      <k:Document>"
+		+ "        <k:Placemark c:id=\"8\" />"
+		+ "      </k:Document>"
+		+ "    </k:Placemark>"
+		+ "  </k:Folder>"
+		+ "  <k:Placemark/>"
+		+ "</k:Document>"
+		+ "<k:NetworkLink/>" +
+		+ "<k:NotAFeature/>"
+		+ "</k:kml>";
+	var geodata = core.geo.KmlNodeGeoData.fromKmlString(kml);
+	strictEqual(geodata.getKmlFeatureType(), "Document");
+
+	var dom = core.util.XmlUtils.createXmlDoc(kml);
+	geodata = new core.geo.KmlNodeGeoData(null, $(dom.documentElement).find("NetworkLink")[0], "c");
+	strictEqual(geodata.getKmlFeatureType(), "NetworkLink");
+});
+
+test("findByKmlFeatureType", function() {
+	var kml = "<kml xmlns=\"" + core.util.KmlUtils.KML_NS[0] + "\">"
+	        + "  <Document>"
+	        + "    <NetworkLink><name>network link 1</name></NetworkLink>"
+	        + "    <Folder>"
+	        + "      <name>folder 1</name>"
+	        + "      <NetworkLink><name>network link 2</name></NetworkLink>"
+	        + "      <Placemark><name>placemark 1</name></Placemark>"
+	        + "    </Folder>"
+	        + "    <NetworkLink><name>network link 3</name></NetworkLink>"
+	        + "  </Document>"
+	        + "</kml>";
+	var geodata = core.geo.KmlNodeGeoData.fromKmlString(kml);
+	
+	var results = [];
+	geodata.findByKmlFeatureType(core.geo.KmlFeatureType.DOCUMENT, function(match) {
+		results.push(match);
+	});
+	strictEqual(results.length, 0);
+	
+	results = [];
+	geodata.findByKmlFeatureType(core.geo.KmlFeatureType.NETWORK_LINK, function(match) {
+		results.push(match);
+	});
+	strictEqual(results.length, 3);
+	strictEqual(results[0].getName(), "network link 1");
+	ok(results[0].id);
+	strictEqual(results[1].getName(), "network link 2");
+	ok(results[1].id);
+	strictEqual(results[2].getName(), "network link 3");
+	ok(results[2].id);
+	
+	results = [];
+	geodata.findByKmlFeatureType(core.geo.KmlFeatureType.PLACEMARK, function(match) {
+		results.push(match);
+	});
+	strictEqual(results.length, 1);
+	ok(results[0].id);
+	strictEqual(results[0].getName(), "placemark 1");
 });

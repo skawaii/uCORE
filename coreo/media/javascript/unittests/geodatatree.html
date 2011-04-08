@@ -1,0 +1,84 @@
+<html>
+	<head>
+		<title>GeoDataTree Demo</title>
+		
+		<link rel="stylesheet" type="text/css" href="../../css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+
+		<style type="text/css">
+			#tree {
+				float: left;
+			}
+			
+			#console {
+				position: absolute;
+				top: 5;
+				left: 400;
+				margin-left: 60px;
+				border: 1px dotted #ccc;
+				padding: 20px;
+				vertical-align: middle;
+				text-align: center;
+				width: 200px;
+			}
+		</style>
+		
+		<script type="text/javascript" src="../jQuery/jquery-1.5.min.js"></script>
+		<script type="text/javascript" src="../jstree/jquery.jstree.js"></script>
+		<script type="text/javascript" src="../jstree/jquery.jstree.lazyload.js"></script>
+		<script type="text/javascript" src="../jstree/jquery.jstree.bettercheckbox.js"></script>
+		<script type="text/javascript" src="../core.util/idsequence.js"></script>
+		<script type="text/javascript" src="../core.util/assert.js"></script>
+		<script type="text/javascript" src="../core.util/callbackutils.js"></script>
+		<script type="text/javascript" src="../core.util/objectutils.js"></script>
+		<script type="text/javascript" src="../core.util/qualifiedname.js"></script>
+		<script type="text/javascript" src="../core.util/namespacecontext.js"></script>
+		<script type="text/javascript" src="../core.util/xmlutils.js"></script>
+		<script type="text/javascript" src="../core.util/kmlutils.js"></script>
+		<script type="text/javascript" src="../core.geo/geodatastore.js"></script>
+		<script type="text/javascript" src="../core.geo/geodata.js"></script>
+		<script type="text/javascript" src="../core.geo/kmlnodegeodata.js"></script>
+		<script type="text/javascript" src="../core.ui/geodatatree.js"></script>
+
+		<script type="text/javascript">
+			$(document).ready(function() {
+				var kml = "<k:kml xmlns:k=\"" + core.util.KmlUtils.KML_NS[0] + "\">"
+					+ "<k:Document id=\"3\">"
+					+ "  <k:name>Test Document</k:name>"
+					+ "  <k:Folder>"
+					+ "    <k:name>All Feature Types</k:name>"
+					+ "    <k:Placemark></k:Placemark>"
+					+ "    <k:PhotoOverlay></k:PhotoOverlay>"
+					+ "    <k:GroundOverlay></k:GroundOverlay>"
+					+ "    <k:ScreenOverlay></k:ScreenOverlay>"
+					+ "    <k:Document></k:Document>"
+					+ "    <k:NetworkLink />"
+					+ "  </k:Folder>"
+					+ "  <k:Placemark />"
+					+ "</k:Document>"
+					+ "</k:kml>";
+				var geodata = core.geo.KmlNodeGeoData.fromKmlString(kml);
+				var tree = new core.ui.GeoDataTree(geodata, $("#tree")[0]);
+				var getDisplayName = function(geodata) {
+					var name = geodata.getName();
+					if (!name) {
+						name = geodata.getKmlFeatureType();
+					}
+					return name;
+				};
+				tree.onCheck = function(geodata) {
+					$("#console").text("Checked \"" + getDisplayName(geodata) + "\"");
+				};
+				tree.onUncheck = function(geodata) {
+					$("#console").text("Unchecked \"" + getDisplayName(geodata) + "\"");
+				};
+				tree.onSelect = function(geodata) {
+					$("#console").text("Selected \"" + getDisplayName(geodata) + "\"");
+				};
+			});
+		</script>
+	</head>
+	<body>
+		<div id="tree"></div>
+		<div id="console">&#160;</div>
+	</body>
+</html>
