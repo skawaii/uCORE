@@ -11,7 +11,7 @@ from xml.dom.minidom import parse, parseString
 from xml.parsers import expat
 from kmlparser import KmlParser
 import xml.dom.expatbuilder
-
+import cStringIO
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -159,8 +159,7 @@ def create_user(request):
 
   # create the user in the DB
   try:
-    user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name,
-                                   email=email, phone_number=phone_number)
+    user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number)
   except IntegrityError:
     return render_to_response('register.html',
         {'sid': sid,
@@ -241,7 +240,7 @@ def get_csv(request):
 
 
 def get_kmz(request):
-  """
+  """ 
   Return a KMZ file that represents the data from a GE view in our webapp.
 
   Parameters:
@@ -777,23 +776,15 @@ def kmlproxy(request):
         # KMZ stuff should go here
 
         if remoteResponse.getheader('content-type') == 'application/vnd.google-earth.kmz':
-          print 'Got a KMZ here.'
-          # print 'here it is: %s' % remoteResponse.read()
-          data1 = remoteResponse.read()
-          fileSample = open('sample', 'w')
-          pickle.dump(data1, fileSample)
-          fileSample.close()
-          # fileSample.write(data1)
-          # fileSample.close()
-          # file1.write(data1)
-          # file1.close()
-          file = ZipFile.open(fileSample, 'r')
-          for name in file.namelist():
-            data = file.read(name)
-            print data
+          #  print 'Got a KMZ here.'
+          fileSample = cStringIO.StringIO(remoteResponse.read()) 
+          zfp = zipfile.ZipFile(fileSample, "r")
+          for name in zfp.namelist():
+            data = zfp.read(name)
+            kmlDom = parseString(data)
         else:
-          print remoteResponse.getheader('content-type')
-        kmlDom = parse(remoteResponse)
+          # print remoteResponse.getheader('content-type')
+          kmlDom = parse(remoteResponse)
         # print remoteUrl + kmlDom.toprettyxml('  ')
         try:
             kmlParser = KmlParser()
