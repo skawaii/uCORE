@@ -128,7 +128,8 @@ if (!window.core.util)
 				}
 			}
 			return undefined;
-		}		
+		}
+		
 	};
 	ns.KmlUtils = KmlUtils;
 })(jQuery, window.core.util);

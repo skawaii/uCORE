@@ -42,5 +42,10 @@ if (!window.core.events)
 		this.publisher = publisher;
 		this.type = type;
 	};
+	Event.prototype = {
+		toString: function() {
+			return this.type + "{publisher='" + this.publisher + "'}";
+		}	
+	};
 	ns.Event = Event;
 })(window.core.events);

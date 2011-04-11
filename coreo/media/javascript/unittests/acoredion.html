@@ -37,9 +37,12 @@
 	<script type="text/javascript" src="../jQuery/jquery-1.5.min.js"></script>
 	<script type="text/javascript" src="../jQuery/jquery-ui-1.8.6.custom.min.js"></script>
 	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
+	<script type="text/javascript" src="../google/extensions-0.2.1.pack.js"></script>
 	<script type="text/javascript" src="../jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="../jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="../jstree/jquery.jstree.bettercheckbox.js"></script>
+	
+	<script type="text/javascript" src="../core.util/console.js"></script>
 	<script type="text/javascript" src="../core.geo/kmlfeaturetype.js"></script>
 	<script type="text/javascript" src="../core.util/uri.js"></script>
 	<script type="text/javascript" src="../core.util/idsequence.js"></script>
@@ -94,13 +97,6 @@
 		google.load("earth", "1");
 
 		$(document).ready(function() {
-			/*
-			var geoxml = new google.maps.GeoXml("http://localhost:8080/site_media/kml/top_eleven.kml");
-			google.maps.Event.addListener(geoxml, "load", function() {
-				console.log(core.util.ObjectUtils.describeFunctions(geoxml));
-			});
-			*/
-
 			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
 			var eventChannel = new core.events.EventChannel();
@@ -115,71 +111,9 @@
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
 			
 			var geController = null;
-			$("#earth").gearth().bind("earthloaded", function(ge) {
-				geController = new core.gearth.GeController(ge, eventChannel);
+			$("#earth").gearth().bind("earthloaded", function(event, ge) {
+				geController = new core.gearth.GeController(ge, eventChannel, kmlJsonProxyService);
 			});
-			
-			/*
-			var kml = "<k:kml xmlns:k=\"" + core.util.KmlUtils.KML_NS[0] + "\">"
-				+ "<k:Document id=\"3\">"
-				+ "  <k:name>Test Document</k:name>"
-				+ "  <k:Folder>"
-				+ "    <k:name>All Feature Types</k:name>"
-				+ "    <k:Placemark></k:Placemark>"
-				+ "    <k:PhotoOverlay></k:PhotoOverlay>"
-				+ "    <k:GroundOverlay></k:GroundOverlay>"
-				+ "    <k:ScreenOverlay></k:ScreenOverlay>"
-				+ "    <k:Document></k:Document>"
-				+ "    <k:NetworkLink />"
-				+ "  </k:Folder>"
-				+ "  <k:Placemark />"
-				+ "</k:Document>"
-				+ "</k:kml>";
-			var geodata = core.geo.KmlNodeGeoData.fromKmlString(kml);
-
-			var searchService = new core.services.SearchService("/search-links", "/search-libraries");
-			var MAX_RESULTS = 3;
-			var resultFilter = {
-				cb: null,
-				resultCount: 0,
-				begin: $.proxy(function(callback) {
-					this.cb = callback;
-					this.resultCount = 0;
-				}, this),
-				result: $.proxy(function(data) {
-					this.resultCount++;
-					if (this.resultCount <= MAX_RESULTS) {
-						core.util.CallbackUtils.invokeOptionalCallback(this.cb, "result", data);
-					}
-					else {
-						console.log("Skipping - too many results");
-					}
-				}, this),
-				end: $.proxy(function() {}, this),
-				error: $.proxy(function(err) {
-					console.log("ERROR: " + err);
-				}, this)
-			};
-			var kmlRetriever = new core.services.GGeoXmlKmlRetriever();
-			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, kmlRetriever);
-			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy);
-			*/
-			
-			/*
-			$("#results").resultslist({
-				title: "Search Results"
-			});
-			$("#results").bind("clickresult", function(evt, resultId) {
-				console.log("Clicked result " + resultId);
-				$("#results").resultslist("removeResult", resultId);
-			});
-			for (var i = 0; i < 5; i++) {
-				$("#results").resultslist("addResult", i, "Result " + i, "This is yet another result. Actually, this is result number " + i + ".");
-			}
-			$("#results").resultslist("setMessage", "5 results found for \"test\"");
-			*/
-			
-			
 		});
 	</script>
 </head>

@@ -16,8 +16,11 @@
  * Dependencies:
  *  - Google Earth browser plugin
  *  - core.gearth.KmlObjectStore
+ *  - core.events.GeoDataLoadedEvent
  *  - core.events.ShowFeatureEvent
  *  - core.events.HideFeatureEvent
+ *  - core.events.FeatureInfoEvent
+ *  - GEarthExtensions
  */
 
 if (!window.core)
@@ -35,7 +38,16 @@ if (!window.core.gearth)
 	var HideFeatureEvent = core.events.HideFeatureEvent;
 	if (!HideFeatureEvent)
 		throw "Dependency not found: core.events.HideFeatureEvent";
-	
+	var FeatureInfoEvent = core.events.FeatureInfoEvent;
+	if (!FeatureInfoEvent)
+		throw "Dependency not found: core.events.FeatureInfoEvent";
+	var GeoDataLoadedEvent = core.events.GeoDataLoadedEvent;
+	if (!GeoDataLoadedEvent)
+		throw "Dependency not found: core.events.GeoDataLoadedEvent";
+	var GeoDataUpdateEndEvent = core.events.GeoDataUpdateEndEvent;
+	if (!GeoDataUpdateEndEvent)
+		throw "Dependency not found: core.events.GeoDataUpdateEndEvent";
+
 	/**
 	 * Constructor: GeController
 	 * 
@@ -44,51 +56,118 @@ if (!window.core.gearth)
 	 * Parameters:
 	 *   ge - <GEPlugin>. Google Earth plugin instance.
 	 *   eventChannel - <EventChannel>.
+	 *   kmlJsonProxyService - <KmlJsonProxyService>.
 	 */
-	var GeController = function(ge, eventChannel) {
+	var GeController = function(ge, eventChannel, kmlJsonProxyService) {
+		if (!GEarthExtensions) {
+			throw "Dependency not found: GEarthExtensions";
+		}
 		this.ge = ge;
+		this.gex = new GEarthExtensions(ge);
 		this.eventChannel = eventChannel;
-		this.kmlObjectStore = new KmlObjectStore(this.ge);
+		this.kmlObjectStore = new KmlObjectStore(this.ge, this.gex, kmlJsonProxyService);
 		this._init();
 	};
 	GeController.prototype = {
 
+		gex: null,
+	
 		/**
 		 * Property: ge
 		 * 
 		 * Google Earth plugin instance.
 		 */
 		ge: null,
-		
+
 		/**
 		 * Property: eventChannel
 		 * 
 		 * <EventChannel>.
 		 */
 		eventChannel: null,
-		
+
 		_init: function() {
 			if (this.eventChannel) {
+				this.eventChannel.subscribe(GeoDataUpdateEndEvent.type, $.proxy(function(event) {
+					console.log(event);
+					this.update(event.geoData);
+				}, this));
+				this.eventChannel.subscribe(GeoDataLoadedEvent.type, $.proxy(function(event) {
+					console.log(event);
+					this.add(event.geoData);
+				}, this));
 				this.eventChannel.subscribe(ShowFeatureEvent.type, $.proxy(function(event) {
-					var geodata = event.geoData;
-					this.show(geodata);
+					console.log(event);
+					this.show(event.geoData);
 				}, this));
 				this.eventChannel.subscribe(HideFeatureEvent.type, $.proxy(function(event) {
-					var geodata = event.geoData;
-					this.hide(geodata);
+					console.log(event);
+					this.hide(event.geoData);
+				}, this));
+				this.eventChannel.subscribe(FeatureInfoEvent.type, $.proxy(function(event) {
+					console.log(event);
+					this.flyTo(event.geoData);
+					this.info(event.geoData);
 				}, this));
 			}
 		},
 
 		/**
+		 * Function: update
+		 */
+		update: function(geodata) {
+			this.remove(geodata);
+			this.add(geodata);
+		},
+		
+		/**
 		 * Function: add
 		 */
 		add: function(geoData) {
-			this.kmlObjectStore.getKmlObject(geoData, $.proxy(function(kmlObject) {
+			console.log("add(" + geoData.id + ")");
+			this.kmlObjectStore.getOrCreateKmlObject(geoData, $.proxy(function(kmlObject) {
+				console.log("KmlObject created");
 				this.ge.getFeatures().appendChild(kmlObject);
 			}, this));
 		},
 
+		/**
+		 * Function: remove
+		 */
+		remove: function(geodata) {
+			var kmlObject = this.kmlObjectStore.getKmlObject.call(this.kmlObjectStore, geodata);
+			if (kmlObject) {
+				this.ge.getFeatures().removeChild(kmlObject);
+			}
+		},
+		
+		_show: function(geoData, showAncestors) {
+			console.log(geoData + " " + showAncestors);
+			this.kmlObjectStore.getOrCreateKmlObject(geoData, $.proxy(function(kmlObject) {
+				if (kmlObject) {
+					kmlObject.setVisibility(true);
+					if (showAncestors) {
+						var parent = kmlObject.getParentNode();
+						while (parent && parent.setVisibility) {
+							parent.setVisibility(true);
+							parent = parent.getParentNode();
+						}
+					}
+					this.gex.dom.walk({
+						rootObject: kmlObject,
+						visitCallback: function(ctx) {
+							this.setVisibility(true);
+						}
+					});
+					/*
+					geoData.iterateChildren($.proxy(function(childGeoData) {
+						this._show(childGeoData, false);
+					}, this));
+					*/
+				}
+			}, this));
+		},
+		
 		/**
 		 * Function: show
 		 * 
@@ -98,9 +177,7 @@ if (!window.core.gearth)
 		 *   geoData - <GeoData>. The feature to display.
 		 */
 		show: function(geoData) {
-			this.kmlObjectStore.getKmlObject(geoData, $.proxy(function(kmlObject) {
-				this.ge.getFeatures().appendChild(kmlObject);
-			}, this));
+			this._show(geoData, true);
 		},
 
 		/**
@@ -112,12 +189,10 @@ if (!window.core.gearth)
 		 *   geoData - <GeoData>. The feature to be removed.
 		 */
 		hide: function(geoData) {
-			// TODO: fix this so getKmlObject() doesn't create a KmlObject if 
-			// one doesn't already exist - maybe add a getOrCreateKmlObject() ?
-			this.kmlObjectStore.getKmlObject(geoData, $.proxy(function(kmlObject) {
-				this.kmlObjectStore.removeKmlObject(geoData);
-				this.ge.getFeatures().removeChild(kmlObject);
-			}, this));
+			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
+			if (kmlObject) {
+				kmlObject.setVisibility(false);
+			}
 		},
 
 		/**
@@ -131,11 +206,12 @@ if (!window.core.gearth)
 		 *         information balloon.
 		 */
 		info: function(geoData) {
-			// TODO: re-implement this to call getKmlObject() with a callback
+			// TODO: look at parent GeoData nodes if this node doesn't exist
+			// TODO: allow showing info of a node even if it isn't being shown (checked)
 			this.ge.setBalloon(null);
 			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
 			if (kmlObject) {
-				var balloon = this.ge.createHtmlStringBalloon('');
+				var balloon = this.ge.createFeatureBalloon('');
 				balloon.setFeature(kmlObject);
 				// balloon.setMinWidth(400);
 				// balloon.setMaxHeight(400);
@@ -153,17 +229,11 @@ if (!window.core.gearth)
 		 *   geoData - <GeoData>. The feature to pan to.
 		 */
 		flyTo: function(geoData) {
-			// TODO: re-implement this to call getKmlObject() with a callback
+			// TODO: look at parent GeoData nodes if this node doesn't exist.
+			// TODO: allow flying to a node even if it isn't being shown (checked)
 			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
 			if (kmlObject) {
-				if ("getAbstractView" in kmlObject 
-						&& typeof kmlObject.getAbstractView === "function") {
-					var lookAt = kmlObject.getAbstractView();
-					this.ge.getView().setAbstractView(lookAt);
-				}
-				else {
-					throw "Unsupported KML object type - " + kmlObject;
-				}
+				this.gex.util.flyToObject(kmlObject, { boundsFallback: true });
 			}
 		}
 
