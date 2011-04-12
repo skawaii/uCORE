@@ -9,31 +9,100 @@
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
 
+	<style type="text/css">
+		#acoredion {
+			width: 330px;
+		}
+	</style>
+
+
 	<!-- Javascript -->
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.min.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.5.min.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
 	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBQtbCeXV1AaC_9GYwinjG7jMEsspxSTIxD1kpEv2TI4AyMEOkPYRiTVPQ"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.lazyload.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.bettercheckbox.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmlfeaturetype.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/idsequence.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/assert.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/callbackutils.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/objectutils.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/qualifiedname.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/namespacecontext.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/xmlutils.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/kmlutils.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodatastore.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodata.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkgeodata.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmlnodegeodata.js"></script>
+	
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/event.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/geodataevent.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/showfeatureevent.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/hidefeatureevent.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/geodataloadedevent.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/geodataupdatebeginevent.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/geodataupdateendevent.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/viewchangedevent.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/featureinfoevent.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/eventchannel.js"></script>
+	
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/geodatatree.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredion.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/searchservice.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/kmlretriever.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/ggeoxmlkmlretriever.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/geodataretriever.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/kmlgeodataretriever.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/searchstrategy.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkqueue.js"></script>
 
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/geo-0.2.pack.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/extensions-0.2.1.pack.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.js"></script>
 
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
+
 
 	<script type="text/javascript">
 	  google.load("earth", "1");
+	  google.load("maps", "2");
+
 
 	  $(document).ready(function() {
-	  	$("#ge").gearthapp({
-	  		layersKml: "{{ MEDIA_URL }}kml/layers.kml",
-	  		optionsKml: "{{ MEDIA_URL }}kml/options.kml",
-	  		// kmlDocs: "{{ MEDIA_URL }}kml/top_eleven.kml"
-	  	});
-	  	$("#ge").fitwindow({
-	  		heightOffset: $("#geheader").outerHeight(true),
-	  		widthOffset: 0
-	  	});
-	  });
+
+		var kmlRetriever = new core.services.GGeoXmlKmlRetriever();
+			var geodataRetriever = new core.services.KmlGeoDataRetriever(kmlRetriever);
+			var eventChannel = new core.events.EventChannel();
+			var currentBbox = null;
+			var currentAltitude = null;
+			var networkLinkQueue = new core.geo.NetworkLinkQueue(geodataRetriever, 
+					eventChannel, currentBbox, currentAltitude);
+
+			var searchService = new core.services.SearchService("/search-links", "/search-libraries");
+			var MAX_RESULTS = 3;
+			var resultFilter = {
+				cb: null,
+				resultCount: 0,
+				begin: $.proxy(function(callback) {
+					this.cb = callback;
+					this.resultCount = 0;
+				}, this),
+				result: $.proxy(function(data) {
+					this.resultCount++;
+					if (this.resultCount <= MAX_RESULTS) {
+						core.util.CallbackUtils.invokeOptionalCallback(this.cb, "result", data);
+					}
+					else {
+						console.log("Skipping - too many results");
+					}
+				}, this),
+				end: $.proxy(function() {}, this),
+				error: $.proxy(function(err) {
+					console.log("ERROR: " + err);
+				}, this)
+			};
+			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, kmlRetriever);
+			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel);
+
+	  	  });
 	</script>
 </head>
 <body>
@@ -44,6 +113,7 @@
 	</div>
 </div>
 <div id="ge"></div>
+<div id="acoredion"></div>
 <div id="gefooter"></div>
 </body>
 </html>
