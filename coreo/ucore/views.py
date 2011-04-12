@@ -11,7 +11,7 @@ from xml.dom.minidom import parse, parseString
 from xml.parsers import expat
 from kmlparser import KmlParser
 import xml.dom.expatbuilder
-
+import cStringIO
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -32,7 +32,7 @@ from httplib import HTTPResponse, HTTPConnection
 
 
 def add_library(request):
-  """ 
+  """
   Add ``LinkLibrary``s to the user's ``LinkLibrary`` collection (i.e. the ``CoreUser.libraries`` field).
   This view accepts only POST requests. The request's ``library_id`` parameter should contain the
   ``LinkLibrary`` IDs to be added to the user's collection.
@@ -55,11 +55,24 @@ def add_library(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
 
 
+def check_username(request):
+  if request.method == 'GET':
+    user = request.GET['username'].strip()
+    dbCheck = CoreUser.objects.filter(username=user)
+
+    if (dbCheck.count() > 0): boolReturn = True;
+    else: boolReturn = False;
+
+    return HttpResponse(json.dumps(boolReturn))
+  else:
+    return HttpResponse('index.html')
+
+
 def create_library(request):
   """
   This view when called will create a link library. It won't work properly unless you are
   already logged in to the webapp in a legitimate way.
- 
+
   Parameters:
     ``links`` - a comma-delimited list of the primary keys of the links you want
                 to add to the created link library. They are passed in from
@@ -120,7 +133,7 @@ def create_library(request):
 def create_user(request):
   """
   Create the user's record in the DB.
-  """ 
+  """
   sid = request.POST['sid'].strip()
   username = request.POST['username'].strip()
   first_name = request.POST['first_name'].strip()
@@ -130,7 +143,7 @@ def create_user(request):
   phone_number = request.POST['phone_number'].strip()
 
   try:
-    if (len(phone_number) != 10): 
+    if (len(phone_number) != 10):
       prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
       result = prog.match(phone_number)
       phone_number = result.group(1) + result.group(2) + result.group(3)
@@ -146,8 +159,7 @@ def create_user(request):
 
   # create the user in the DB
   try:
-    user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name,
-                                   email=email, phone_number=phone_number)
+    user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number)
   except IntegrityError:
     return render_to_response('register.html',
         {'sid': sid,
@@ -161,19 +173,6 @@ def create_user(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
 
 
-def earn_trophy(request):
-  if request.method == 'POST':
-    user2 = request.POST['user'].strip()
-    trophy2 = request.POST['trophy'].strip()
-    trophyc = Trophy.objects.get(pk=trophy2)
-    userc = CoreUser.objects.get(username=user2)
-    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
-    tc.save()
-    custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
-    user_email = userc.email
-    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=True)
-
-
 def ge_index(request):
   # This is a quick hack at getting our Google Earth app integrated with Django.
   if not request.user.is_authenticated():
@@ -182,10 +181,10 @@ def ge_index(request):
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
-    # as long as the login_user view forces them to register if they don't already 
+    # as long as the login_user view forces them to register if they don't already
     # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
-  
+
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
 
@@ -197,16 +196,16 @@ def gm_index(request):
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
-    # as long as the login_user view forces them to register if they don't already 
+    # as long as the login_user view forces them to register if they don't already
     # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
-  
+
   return render_to_response('gmindex.html', {'user': user}, context_instance=RequestContext(request))
 
 
 def get_csv(request):
   """
-  The purpose of this view is to return a csv file that represents the 
+  The purpose of this view is to return a csv file that represents the
   data on a GE view.  As of now, we don't have anything on the client
   side to work with this view.
 
@@ -214,7 +213,7 @@ def get_csv(request):
     Currently no parameters are passed in, but soon we hope to have JSON
     passed in from the client that represents the data from a GE view.
 
-  Returns: 
+  Returns:
     This should return an attachment of type text/csv that will be csv
     from the view.  Right now it returns static data.
   """
@@ -231,7 +230,7 @@ def get_csv(request):
       ('Second', '4', '5', '6'),
       ('Third', '7', '8', '9')
   )
-  
+
   writer = csv.writer(response)
   writer.writerow(['First', '1', '2', '3'])
   writer.writerow(['Second', '4', '5', '6'])
@@ -241,7 +240,7 @@ def get_csv(request):
 
 
 def get_kmz(request):
-  """
+  """ 
   Return a KMZ file that represents the data from a GE view in our webapp.
 
   Parameters:
@@ -281,7 +280,7 @@ def get_kmz(request):
   response['Content-Description'] = 'a sample kmz file.'
   response['Content-Length'] = str(len(response.content))
 
-  return response 
+  return response
 
 
 def get_library(request, username, lib_name):
@@ -302,20 +301,11 @@ def get_library(request, username, lib_name):
 
   uri = settings.SITE_ROOT + 'site_media/kml/' + username + '-' + lib_name + '.kml'
 
-  return HttpResponse(uri) 
+  return HttpResponse(uri)
 
 
-def check_username(request):
-  if request.method == 'GET':
-    user = request.GET['username'].strip()
-    dbCheck = CoreUser.objects.filter(username=user)
-    if (dbCheck.count() > 0):
-      boolReturn = True;
-    else:
-      boolReturn = False;
-    return HttpResponse(json.dumps(boolReturn))
-  else:
-    return HttpResponse('index.html') 
+def future_feature(request):
+  return render_to_response('future.html', context_instance=RequestContext(request))
 
 
 def get_shapefile(request):
@@ -352,7 +342,7 @@ def get_tags(request):
   Returns:
     This view returns a list of all the public tags that match the
     parameter submitted.
-  """           
+  """
   if request.method == 'GET':
     term = request.GET['term'].strip()
 
@@ -388,7 +378,7 @@ def library_demo(request):
     view will return the HTML page that goes with it : testgrid.html.
     Otherwise, it will take the request and redirect to the login page.
   """
-  if not request.user.is_authenticated(): 
+  if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
   else:
     return render_to_response('testgrid.html', context_instance=RequestContext(request))
@@ -435,10 +425,10 @@ def map_view(request):
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
-    # as long as the login_user view forces them to register if they don't already 
+    # as long as the login_user view forces them to register if they don't already
     # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
-  
+
   return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
 
 
@@ -448,7 +438,7 @@ def modify_settings(request):
 
   user = get_object_or_404(CoreUser, username=request.user.username)
 
-  if request.method == 'GET':   
+  if request.method == 'GET':
     return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all()},
         context_instance=RequestContext(request))
   elif request.method == 'POST':
@@ -475,18 +465,18 @@ def poll_notifications(request, notification_id):
   """
   poll_notifications has two methods it supports: GET and DELETE.
   For DELETE you have to submit a ``notification_id``, which will then
-  delete the notification from the DB. 
+  delete the notification from the DB.
 
   If you call a GET, don't send any parameters and the view will
   return a JSON list of all notifications for the logged-in user.
-  """ 
+  """
   # notification_id is passed in on a delete request in the URL.
-  if not request.user.is_authenticated(): 
+  if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   user = CoreUser.objects.filter(username=request.user)
 
-  if not user: 
+  if not user:
     logging.debug('No user retrieved by the username of %s' % request.user)
   response = HttpResponse(mimetype='application/json')
 
@@ -498,11 +488,11 @@ def poll_notifications(request, notification_id):
       json_serializer.serialize(notify_list, ensure_ascii=False, stream=response)
     except Exception, e:
       logging.error(e.message)
-      print e.message 
+      print e.message
 
     return response
   elif request.method == "DELETE":
-    primaryKey = notification_id 
+    primaryKey = notification_id
     logging.debug('Received the following id to delete from notifications : %s' % primaryKey)
     record2delete = Notification.objects.filter(user=user, pk=primaryKey)
     record2delete.delete()
@@ -523,7 +513,7 @@ def rate(request, ratee, ratee_id):
     a JSON object. For GET requests, the JSON object represent the ``Link`` or ``LinkLibrary`` and the
     related ``Rating``, if one already exists. For POST requests, the JSON object is simply the new
     ``Rating`` instance resulting for updating the database.
-  """ 
+  """
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
@@ -600,7 +590,7 @@ def search(request, models):
   if not request.GET['q']:
     return HttpResponse(serializers.serialize('json', ''))
 
-  terms = request.GET['q'].split(',') 
+  terms = request.GET['q'].split(',')
 
   # if the only search term is '*', then search everything
   if len(terms) == 1 and terms[0] == '*': terms[0] = ''
@@ -625,7 +615,7 @@ def trophy_room(request):
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  try: 
+  try:
     user = CoreUser.objects.get(username=request.user.username)
     trophy_list = Trophy.objects.all()
     trophy_case_list = TrophyCase.objects.all()
@@ -634,7 +624,7 @@ def trophy_room(request):
     percentage = []
     for i in trophy_list:
       earn_total += [i.earning_req]
-    # print 'total elements in list: ', earn_total  
+    # print 'total elements in list: ', earn_total
     for t in trophy_list:
       for o in trophy_case_list:
         if (o.trophy == t):
@@ -648,10 +638,10 @@ def trophy_room(request):
         else:
           earn_progress += [0]
           percentage += [(o.count / t.earning_req)*100]
-    # print 'total earn_progress looks like: ', earn_progress        
+    # print 'total earn_progress looks like: ', earn_progress
     combine_list = zip(trophy_list, earn_progress, percentage)
-  except CoreUser.DoesNotExist: 
-    # as long as the login_user view forces them to register if they don't already 
+  except CoreUser.DoesNotExist:
+    # as long as the login_user view forces them to register if they don't already
     # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
   return render_to_response('trophyroom.html',
@@ -670,49 +660,72 @@ def test_chart(request):
 def update_user(request):
   """
   Update the user's record in the DB.
-  """ 
+  """
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
+  if request.method == 'GET':
+    user = CoreUser.objects.get(username=request.user.username)
+    return render_to_response('register.html', context_instance=RequestContext(request))
+  else:
+    user = CoreUser.objects.filter(username=request.user.username)
+    first_name = request.POST['first_name'].strip()
+    last_name = request.POST['last_name'].strip()
+    email = request.POST['email'].strip()
+    phone_number = request.POST['phone_number'].strip()
+    sid = request.POST['sid'].strip()
 
-  first_name = request.POST['first_name'].strip()
-  last_name = request.POST['last_name'].strip()
-  password = request.POST['password'].strip()
-  email = request.POST['email'].strip()
-  phone_number = request.POST['phone_number'].strip()
+    try:
+      if (len(phone_number) != 10):
+        prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+        result = prog.match(phone_number)
+        phone_number = result.group(1) + result.group(2) + result.group(3)
+    except Exception, e:
+      logging.error('Exception parsing phone number: %s' % e.message)
 
-  try:
-    if (len(phone_number) != 10): 
-      prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
-      result = prog.match(phone_number)
-      phone_number = result.group(1) + result.group(2) + result.group(3)
-  except Exception, e:
-    logging.error('Exception parsing phone number: %s' % e.message)
-
-  if not (first_name and last_name and password and email and phone_number):
+    if not (first_name and last_name and email and phone_number):
     # redisplay the registration page
-    return render_to_response('register.html',
-        {'sid': sid,
-         'error_message': 'Please fill in all required fields.'
-        }, context_instance=RequestContext(request))
+      return render_to_response('userprofile.html',
+          {'user': user }, context_instance=RequestContext(request))
 
-  # update the user to the DB
-  user = CoreUser.objects.get(sid=sid)
-  user.first_name = first_name
-  user.last_name = last_name
-  user.email = email
-  user.phone_number = phone_number 
-  user.set_password(password)
-  user.save()
+    # update the user to the DB
+    user = CoreUser.objects.get(sid=sid)
+    user.first_name = first_name
+    user.last_name = last_name
+    user.email = email
+    user.phone_number = phone_number
+    # if password:
+    #   user.set_password(password)
+    user.save()
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
-  return HttpResponseRedirect(reverse('coreo.ucore.views.user_profile'))
+    return render_to_response('userprofile.html',
+        {'success_message': 'Profile successfully changed.', 'user': user },
+          context_instance=RequestContext(request))
+
+def update_password(request):
+  if request.method == 'GET':
+    return render_to_response('password.html', context_instance=RequestContext(request))
+  else:
+    user = CoreUser.objects.get(username=request.user)
+    oldpassword = request.POST['old'].strip()
+    newpassword = request.POST['password'].strip()
+    if user.check_password(oldpassword):
+      user.set_password(newpassword)
+      user.save()
+      return render_to_response('password.html',
+          {'success_message': 'Password successfully changed.'},
+          context_instance=RequestContext(request))
+    else:
+      return render_to_response('password.html',
+          {'error_message': 'Old Password Does Not Match'},
+           context_instance=RequestContext(request))
 
 
 def upload_csv(request):
   if request.method == 'POST':
     utils.insert_links_from_csv(request.FILES['file'])
-      
+
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
 
@@ -732,7 +745,7 @@ def user_profile(request):
     # don't already exist in the db, then we should never actually get here.
     # Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
-  
+
   return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
 
 def header_name(name):
@@ -741,7 +754,7 @@ def header_name(name):
     for i in range(len(words)):
         words[i] = words[i][0].upper() + words[i][1:].lower()
     result = '-'.join(words) + ':'
-    return result
+    return result 
 
 def kmlproxy(request):
     if not request.user.is_authenticated():
@@ -758,8 +771,20 @@ def kmlproxy(request):
         headers = {}
         conn.request('GET', parsedRemoteUrl.path + '?' + parsedRemoteUrl.query, None, headers)
         remoteResponse = conn.getresponse()
-        print remoteResponse.getheaders()
-        kmlDom = parse(remoteResponse)
+        # print remoteResponse.getheader('content-type')
+        
+        # KMZ stuff should go here
+
+        if remoteResponse.getheader('content-type') == 'application/vnd.google-earth.kmz':
+          #  print 'Got a KMZ here.'
+          fileSample = cStringIO.StringIO(remoteResponse.read()) 
+          zfp = zipfile.ZipFile(fileSample, "r")
+          for name in zfp.namelist():
+            data = zfp.read(name)
+            kmlDom = parseString(data)
+        else:
+          # print remoteResponse.getheader('content-type')
+          kmlDom = parse(remoteResponse)
         # print remoteUrl + kmlDom.toprettyxml('  ')
         try:
             kmlParser = KmlParser()

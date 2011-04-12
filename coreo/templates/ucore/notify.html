@@ -19,14 +19,14 @@
      
      function test()
      {
-       $.getJSON('../notifications/', function(jsonstuff) {
+       $.getJSON("../notifications/", function(jsonstuff) {
            if (!jQuery.isEmptyObject(jsonstuff))
            {
-           document.getElementById('msgpart').innerHTML='<h2>' + jsonstuff[0].fields.message + '</h2><br/>';
-           $.post('../notifications/', { "id": jsonstuff[0].pk });
+           document.getElementById("msgpart").innerHTML="<h2>" + jsonstuff[0].fields.message + "</h2><br/>";
+           $.post("../notifications/", { "id": jsonstuff[0].pk });
            } else
            {
-            document.getElementById('msgpart').innerHTML="No notifications.";
+            document.getElementById("msgpart").innerHTML="No notifications.";
            }
            });
           
@@ -35,12 +35,12 @@
   </script>
 
   <body>
-    <div id='geheader'>
-      <a href='/'>
-        <img id='core-logo' height='28px' width='100px' align='bottom' src='{{ MEDIA_URL }}images/corelogobluecog2-100x28.png'' alt='C()RE' />
+    <div id="geheader">
+      <a href="/">
+        <img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
     </a>
 
-    <div id='user-info'><a href="/ge/"><span id='signuptext'>Back to the Visualizer</span></a> | <a href='FutureFeature'>Help</a> | <a href='FutureFeature'>About</a> | <a href='/logout/'>Sign Out</a> </div>
+    <div id="user-info"><a href="/ge/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="/future-feature/">Help</a> | <a href="/future-feature/">About</a> | <a href="/logout/">Sign Out</a> </div>
   </div>
   <br/><br/><br/>
   <h1>Welcome to the notification page!</h1><br/>

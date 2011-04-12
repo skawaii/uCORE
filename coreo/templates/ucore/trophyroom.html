@@ -15,65 +15,53 @@
   <script type="text/javascript" src="{{ MEDIA_URL }}javascript/tscript.js"></script>
 
   <body>
-    <div id='geheader'>
-      <a href='/'>
-        <img id='core-logo' height='28px' width='100px' align='bottom' src='{{ MEDIA_URL }}images/corelogobluecog2-100x28.png'' alt='C()RE' />
-    </a>
-
-    <div id='user-info'><a href="/ge/"><span id='signuptext'>Back to the Visualizer</span></a> | <a href='FutureFeature'>Help</a> | <a href='FutureFeature'>About</a> | <a href='/logout/'>Sign Out</a> </div>
+    <div id="geheader">
+      <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" /></a>
+      <div id="user-info"><a href="/ge/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="/future-feature/">Help</a> | <a href="/future-feature/">About</a> | <a href="/logout/">Sign Out</a></div>
     </div>
-  <div>
-    <table style="border-style: solid;border-width:2px; border-collapse: separate; border-color:black;  margin: 1; padding: 2px;">
-      <tbody>
-      <tr>
-        <td>
-          <img id='trophypic' height='200px' width='100px' src='{{ MEDIA_URL }}images/dart_trophy.JPG''/></td>
-        <td><h1 align='center'>-------------Trophy Room-------------- </h1></td>
-        <td>
-    <img id='trophypic' height='200px' width='100px' src='{{ MEDIA_URL }}images/dart_trophy.JPG''/>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<br/>
-<br/>
-<br/>
-
-       {% if trophy_list %} 
-       <table style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">
-           <thead>
-           <tr>
-             <th style="border-style:solid; border-color: black; border-width: 2px">Image</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Name</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Description</th><th style="border-style:solid; border-color: black; border-width: 2px; padding: 2px; width: 150px">Progress</th>
-           </tr>
-         </thead>
-       <tbody> 
-   {% for trophy, earn_progress, percentage in trophy_list %}
+    <div>
+      <table style="border-style: solid;border-width:2px; border-collapse: separate; border-color:black;  margin: 1; padding: 2px;">
+        <tbody>
         <tr>
-        <td style="border-style:solid; border-color: black; border-width: 2px; padding: 2px"><img src='{{ MEDIA_URL }}{{ trophy.file_path }}' height='100px' width='200px'/></td>
-     <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.name }}</td>
-     <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.desc }}</td>
-     <td style="width: 150px; padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><div id="progress{{ forloop.counter }}"></div>{{ earn_progress }} / {{trophy.earning_req}}</td> 
-   </tr>
-   <script type="text/javascript">
-     $("#progress{{ forloop.counter }}").progressbar({ value: {{ percentage }} });
-    </script>
-      {% endfor %}
-    </tbody>
-  </table>
-    {% else %}
-    <table>
-      <tr>
-       <td>
-         <H2>No Trophies to display</H2>
-       </td>
-      </tr>
-     </table>
-     {% endif %}
-   </div>
-   <br/>
-   <br/>
-   <br/>
-   
- 
-   </body>
+          <td>
+            <img id="trophypic" height="200px" width="100px" src="{{ MEDIA_URL }}images/dart_trophy.JPG"/></td>
+          <td><h1 align="center">-------------Trophy Room-------------- </h1></td>
+          <td>
+            <img id="trophypic" height="200px" width="100px" src="{{ MEDIA_URL }}images/dart_trophy.JPG"/>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <br/><br/><br/>
+      {% if trophy_list %} 
+      <table style="border-width: 1px;border-style: solid;border-color:black;border-collapse: separate; margin: 2px; padding: 2px;">
+        <thead>
+          <tr>
+            <th style="border-style:solid; border-color: black; border-width: 2px">Image</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Name</th><th style="border-style:solid; border-color: black; border-width: 2px">Trophy Description</th><th style="border-style:solid; border-color: black; border-width: 2px; padding: 2px; width: 150px">Progress</th>
+          </tr>
+        </thead>
+        <tbody> 
+          {% for trophy, earn_progress, percentage in trophy_list %}
+          <tr>
+            <td style="border-style:solid; border-color: black; border-width: 2px; padding: 2px"><img src="{{ MEDIA_URL }}{{ trophy.file_path }}" height="100px" width="200px"/></td>
+            <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.name }}</td>
+            <td style="border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;padding: 2px">{{ trophy.desc }}</td>
+            <td style="width: 150px; padding: 2px;border-collapse:separate; border-style:solid; border-color: black; border-width: 2px;"><div id="progress{{ forloop.counter }}"></div>{{ earn_progress }} / {{trophy.earning_req}}</td> 
+          </tr>
+          <script type="text/javascript">
+            $("#progress{{ forloop.counter }}").progressbar({ value: {{ percentage }} });
+          </script>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <table>
+        <tr>
+          <td><h2>No Trophies to display</h2></td>
+        </tr>
+      </table>
+      {% endif %}
+    </div>
+    <br/><br/><br/>
+  </body>
 </html>
