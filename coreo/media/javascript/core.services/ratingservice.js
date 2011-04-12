@@ -72,7 +72,6 @@ if (!window.core.services) window.core.services = {}
                     CallbackUtils.invokeCallback(callback, val);
                 });
             }, "json");
-
         };
     };
 
