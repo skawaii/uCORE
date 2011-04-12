@@ -658,14 +658,20 @@ def test_chart(request):
 
 
 def update_user(request):
-  """
+  """ 
   Update the user's record in the DB.
   """
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user.username)
-    return render_to_response('register.html', context_instance=RequestContext(request))
+    try:
+      saved_status = request.GET['saved'].strip()
+    except Exception:
+      return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
+    return render_to_response('userprofile.html',
+        {'user': user, 'saved' : saved_status }, context_instance=RequestContext(request))
+   #  return render_to_response('register.html', context_instance=RequestContext(request))
   else:
     user = CoreUser.objects.filter(username=request.user.username)
     first_name = request.POST['first_name'].strip()
@@ -685,7 +691,7 @@ def update_user(request):
     if not (first_name and last_name and email and phone_number):
     # redisplay the registration page
       return render_to_response('userprofile.html',
-          {'user': user }, context_instance=RequestContext(request))
+          {'user': user, 'saved': 'False' }, context_instance=RequestContext(request))
 
     # update the user to the DB
     user = CoreUser.objects.get(sid=sid)
@@ -699,13 +705,20 @@ def update_user(request):
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
-    return render_to_response('userprofile.html',
-        {'success_message': 'Profile successfully changed.', 'user': user },
-          context_instance=RequestContext(request))
+    return HttpResponseRedirect('/user-profile/?saved=True')
+    # return render_to_response('userprofile.html',
+    #    {'success_message': 'Profile successfully changed.', 'user': user },
+    #      context_instance=RequestContext(request))
+
 
 def update_password(request):
   if request.method == 'GET':
-    return render_to_response('password.html', context_instance=RequestContext(request))
+    try:
+      saved_status = request.GET['saved'].strip()
+    except Exception:
+      # OK the program couldn't find a saved parameter, so assign null.
+      return render_to_response('password.html', context_instance=RequestContext(request))
+    return render_to_response('password.html', { 'saved': saved_status }, context_instance=RequestContext(request))
   else:
     user = CoreUser.objects.get(username=request.user)
     oldpassword = request.POST['old'].strip()
@@ -713,14 +726,15 @@ def update_password(request):
     if user.check_password(oldpassword):
       user.set_password(newpassword)
       user.save()
-      return render_to_response('password.html',
-          {'success_message': 'Password successfully changed.'},
-          context_instance=RequestContext(request))
+      #return render_to_response('password.html',
+      #    {'success_message': 'Password successfully changed.'},
+      #    context_instance=RequestContext(request))
+      return HttpResponseRedirect('/update-password/?saved=True')
     else:
       return render_to_response('password.html',
-          {'error_message': 'Old Password Does Not Match'},
+           {'error_message': 'Old Password Does Not Match'},
            context_instance=RequestContext(request))
-
+       
 
 def upload_csv(request):
   if request.method == 'POST':
@@ -740,13 +754,16 @@ def user_profile(request):
 
   try:
     user = CoreUser.objects.get(username=request.user.username)
+    saved_status = request.GET['saved'].strip()
   except CoreUser.DoesNotExist:
     # as long as the login_user view forces them to register if they
     # don't already exist in the db, then we should never actually get here.
     # Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
-
-  return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
+  except Exception:
+    # if there is no save_status then don't send anything
+    return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
+  return render_to_response('userprofile.html', {'user': user, 'saved': saved_status}, context_instance=RequestContext(request))
 
 def header_name(name):
     """Convert header name like HTTP_XXXX_XXX to Xxxx-Xxx:"""
