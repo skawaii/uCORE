@@ -11,7 +11,7 @@ from xml.dom.minidom import parse, parseString
 from xml.parsers import expat
 from kmlparser import KmlParser
 import xml.dom.expatbuilder
-
+import cStringIO
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -159,8 +159,7 @@ def create_user(request):
 
   # create the user in the DB
   try:
-    user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name,
-                                   email=email, phone_number=phone_number)
+    user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number)
   except IntegrityError:
     return render_to_response('register.html',
         {'sid': sid,
@@ -172,19 +171,6 @@ def create_user(request):
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
-
-
-def earn_trophy(request):
-  if request.method == 'POST':
-    user2 = request.POST['user'].strip()
-    trophy2 = request.POST['trophy'].strip()
-    trophyc = Trophy.objects.get(pk=trophy2)
-    userc = CoreUser.objects.get(username=user2)
-    tc = TrophyCase(user=userc, trophy=trophyc, date_earned=datetime.datetime.now())
-    tc.save()
-    custom_msg = 'You have won a trophy, %s.  Congratulations' % userc.first_name
-    user_email = userc.email
-    send_mail(custom_msg , 'Testing e-mails', 'trophy@layeredintel.com', [user_email], fail_silently=True)
 
 
 def ge_index(request):
@@ -254,7 +240,7 @@ def get_csv(request):
 
 
 def get_kmz(request):
-  """
+  """ 
   Return a KMZ file that represents the data from a GE view in our webapp.
 
   Parameters:
@@ -677,40 +663,63 @@ def update_user(request):
   """
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
+  if request.method == 'GET':
+    user = CoreUser.objects.get(username=request.user.username)
+    return render_to_response('register.html', context_instance=RequestContext(request))
+  else:
+    user = CoreUser.objects.filter(username=request.user.username)
+    first_name = request.POST['first_name'].strip()
+    last_name = request.POST['last_name'].strip()
+    email = request.POST['email'].strip()
+    phone_number = request.POST['phone_number'].strip()
+    sid = request.POST['sid'].strip()
 
-  first_name = request.POST['first_name'].strip()
-  last_name = request.POST['last_name'].strip()
-  password = request.POST['password'].strip()
-  email = request.POST['email'].strip()
-  phone_number = request.POST['phone_number'].strip()
+    try:
+      if (len(phone_number) != 10):
+        prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
+        result = prog.match(phone_number)
+        phone_number = result.group(1) + result.group(2) + result.group(3)
+    except Exception, e:
+      logging.error('Exception parsing phone number: %s' % e.message)
 
-  try:
-    if (len(phone_number) != 10):
-      prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
-      result = prog.match(phone_number)
-      phone_number = result.group(1) + result.group(2) + result.group(3)
-  except Exception, e:
-    logging.error('Exception parsing phone number: %s' % e.message)
-
-  if not (first_name and last_name and password and email and phone_number):
+    if not (first_name and last_name and email and phone_number):
     # redisplay the registration page
-    return render_to_response('register.html',
-        {'sid': sid,
-         'error_message': 'Please fill in all required fields.'
-        }, context_instance=RequestContext(request))
+      return render_to_response('userprofile.html',
+          {'user': user }, context_instance=RequestContext(request))
 
-  # update the user to the DB
-  user = CoreUser.objects.get(sid=sid)
-  user.first_name = first_name
-  user.last_name = last_name
-  user.email = email
-  user.phone_number = phone_number
-  user.set_password(password)
-  user.save()
+    # update the user to the DB
+    user = CoreUser.objects.get(sid=sid)
+    user.first_name = first_name
+    user.last_name = last_name
+    user.email = email
+    user.phone_number = phone_number
+    # if password:
+    #   user.set_password(password)
+    user.save()
 
   # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
   # XXX should have a success msg when we redirect or the client call is ajax and we return "sucess" that way
-  return HttpResponseRedirect(reverse('coreo.ucore.views.user_profile'))
+    return render_to_response('userprofile.html',
+        {'success_message': 'Profile successfully changed.', 'user': user },
+          context_instance=RequestContext(request))
+
+def update_password(request):
+  if request.method == 'GET':
+    return render_to_response('password.html', context_instance=RequestContext(request))
+  else:
+    user = CoreUser.objects.get(username=request.user)
+    oldpassword = request.POST['old'].strip()
+    newpassword = request.POST['password'].strip()
+    if user.check_password(oldpassword):
+      user.set_password(newpassword)
+      user.save()
+      return render_to_response('password.html',
+          {'success_message': 'Password successfully changed.'},
+          context_instance=RequestContext(request))
+    else:
+      return render_to_response('password.html',
+          {'error_message': 'Old Password Does Not Match'},
+           context_instance=RequestContext(request))
 
 
 def upload_csv(request):
@@ -745,7 +754,7 @@ def header_name(name):
     for i in range(len(words)):
         words[i] = words[i][0].upper() + words[i][1:].lower()
     result = '-'.join(words) + ':'
-    return result
+    return result 
 
 def kmlproxy(request):
     if not request.user.is_authenticated():
@@ -762,7 +771,20 @@ def kmlproxy(request):
         headers = {}
         conn.request('GET', parsedRemoteUrl.path + '?' + parsedRemoteUrl.query, None, headers)
         remoteResponse = conn.getresponse()
-        kmlDom = parse(remoteResponse)
+        # print remoteResponse.getheader('content-type')
+        
+        # KMZ stuff should go here
+
+        if remoteResponse.getheader('content-type') == 'application/vnd.google-earth.kmz':
+          #  print 'Got a KMZ here.'
+          fileSample = cStringIO.StringIO(remoteResponse.read()) 
+          zfp = zipfile.ZipFile(fileSample, "r")
+          for name in zfp.namelist():
+            data = zfp.read(name)
+            kmlDom = parseString(data)
+        else:
+          # print remoteResponse.getheader('content-type')
+          kmlDom = parse(remoteResponse)
         # print remoteUrl + kmlDom.toprettyxml('  ')
         try:
             kmlParser = KmlParser()
