@@ -47,10 +47,10 @@ if (!window.core.ui)
 				jqEl.resultslist("removeResult", resultId);
 			}, this));
 			jqEl.bind("mouseenterresult", $.proxy(function(evt, resultId, linkOrLibrary, el) {
-				console.log("Hovering on " + resultId);
+				// console.log("Hovering on " + resultId);
 			}, this));
 			jqEl.bind("mouseleaveresult", $.proxy(function(evt, resultId, linkOrLibrary, el) {
-				console.log("Done hovering on " + resultId);
+				// console.log("Done hovering on " + resultId);
 			}, this));
 			jqEl.bind("close", $.proxy(function(evt) {
 				core.util.CallbackUtils.invokeCallback(this.callback, "complete");

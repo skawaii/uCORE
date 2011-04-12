@@ -40,7 +40,12 @@ if (!window.core.events)
 		this.geoData = geoData;
 	};
 
-	$.extend(GeoDataEvent.prototype, ns.Event.prototype);
+	$.extend(GeoDataEvent.prototype, ns.Event.prototype, {
+		toString: function() {
+			var geoDataId = this.geoData && this.geoData.id ? this.geoData.id : "null";
+			return this.type + "{geoData.id=" + geoDataId + ",publisher='" + this.publisher + "'}";
+		}
+	});
 	ns.GeoDataEvent = GeoDataEvent;
 
 })(jQuery, window.core.events);
