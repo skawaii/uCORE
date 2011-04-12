@@ -2,11 +2,35 @@
 <head>
 	<title>Acoredion Demo</title>
 	
+	<link rel="stylesheet" type="text/css" href="../../css/corefoundation.css" />
 	<link rel="stylesheet" type="text/css" href="../../css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+	<link rel="stylesheet" type="text/css" href="../../css/jquery.resultslist.css" />
+	
+	<link rel="stylesheet" type="text/css" href="../../css/acoredion.css" />
 
 	<style type="text/css">
 		#acoredion {
-			width: 330px;
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 370px;
+			height: 100%;
+		}
+		#results {
+			position: absolute;
+			top: 0;
+			left: 370px;
+			width: 300px;
+			height: 100%; /* 100% - scrollbar height */
+			z-index: 1000;
+		}
+		#earth {
+			position: absolute;
+			top: 0;
+			left: 370px;
+			width: 630px;
+			height: 100%;
+			background: blue;
 		}
 	</style>
 	
@@ -17,6 +41,7 @@
 	<script type="text/javascript" src="../jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="../jstree/jquery.jstree.bettercheckbox.js"></script>
 	<script type="text/javascript" src="../core.geo/kmlfeaturetype.js"></script>
+	<script type="text/javascript" src="../core.util/uri.js"></script>
 	<script type="text/javascript" src="../core.util/idsequence.js"></script>
 	<script type="text/javascript" src="../core.util/assert.js"></script>
 	<script type="text/javascript" src="../core.util/callbackutils.js"></script>
@@ -29,6 +54,7 @@
 	<script type="text/javascript" src="../core.geo/geodata.js"></script>
 	<script type="text/javascript" src="../core.geo/networklinkgeodata.js"></script>
 	<script type="text/javascript" src="../core.geo/kmlnodegeodata.js"></script>
+	<script type="text/javascript" src="../core.geo/kmljsongeodata.js"></script>
 	
 	<script type="text/javascript" src="../core.events/event.js"></script>
 	<script type="text/javascript" src="../core.events/geodataevent.js"></script>
@@ -45,14 +71,27 @@
 	<script type="text/javascript" src="../core.ui/acoredion.js"></script>
 	<script type="text/javascript" src="../core.services/searchservice.js"></script>
 	<script type="text/javascript" src="../core.services/kmlretriever.js"></script>
-	<script type="text/javascript" src="../core.services/ggeoxmlkmlretriever.js"></script>
+	<script type="text/javascript" src="../core.services/proxykmlretriever.js"></script>
 	<script type="text/javascript" src="../core.services/geodataretriever.js"></script>
 	<script type="text/javascript" src="../core.services/kmlgeodataretriever.js"></script>
+	<script type="text/javascript" src="../core.services/kmljsonproxyservice.js"></script>
+	<script type="text/javascript" src="../core.services/kmljsongeodataretriever.js"></script>
 	<script type="text/javascript" src="../core.services/searchstrategy.js"></script>
 	<script type="text/javascript" src="../core.geo/networklinkqueue.js"></script>
+	
+	<script type="text/javascript" src="../core.ui/jquery.resultslist.js"></script>
+	<script type="text/javascript" src="../core.ui/jquery.emptytext.js"></script>
+	<script type="text/javascript" src="../core.ui/acoredionresultfilter.js"></script>
+	<script type="text/javascript" src="../core.ui/jquery.gearth.js"></script>
+	
+	<script type="text/javascript" src="../core.gearth/kmlobjectcreator.js"></script>
+	<script type="text/javascript" src="../core.gearth/kmlobjectstore.js"></script>
+	<script type="text/javascript" src="../core.gearth/gecontroller.js"></script>
+	
 
 	<script type="text/javascript">
 		google.load("maps", "2");
+		google.load("earth", "1");
 
 		$(document).ready(function() {
 			/*
@@ -62,39 +101,23 @@
 			});
 			*/
 
-			var kmlRetriever = new core.services.GGeoXmlKmlRetriever();
-			var geodataRetriever = new core.services.KmlGeoDataRetriever(kmlRetriever);
+			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
+			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
 			var eventChannel = new core.events.EventChannel();
 			var currentBbox = null;
 			var currentAltitude = null;
 			var networkLinkQueue = new core.geo.NetworkLinkQueue(geodataRetriever, 
 					eventChannel, currentBbox, currentAltitude);
 
-			var searchService = new core.services.SearchService("/search-links", "/search-libraries");
-			var MAX_RESULTS = 3;
-			var resultFilter = {
-				cb: null,
-				resultCount: 0,
-				begin: $.proxy(function(callback) {
-					this.cb = callback;
-					this.resultCount = 0;
-				}, this),
-				result: $.proxy(function(data) {
-					this.resultCount++;
-					if (this.resultCount <= MAX_RESULTS) {
-						core.util.CallbackUtils.invokeOptionalCallback(this.cb, "result", data);
-					}
-					else {
-						console.log("Skipping - too many results");
-					}
-				}, this),
-				end: $.proxy(function() {}, this),
-				error: $.proxy(function(err) {
-					console.log("ERROR: " + err);
-				}, this)
-			};
-			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, kmlRetriever);
-			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel);
+			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
+			var resultFilter = new core.ui.AcoredionResultFilter("#results");
+			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
+			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
+			
+			var geController = null;
+			$("#earth").gearth().bind("earthloaded", function(ge) {
+				geController = new core.gearth.GeController(ge, eventChannel);
+			});
 			
 			/*
 			var kml = "<k:kml xmlns:k=\"" + core.util.KmlUtils.KML_NS[0] + "\">"
@@ -141,10 +164,28 @@
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, kmlRetriever);
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy);
 			*/
+			
+			/*
+			$("#results").resultslist({
+				title: "Search Results"
+			});
+			$("#results").bind("clickresult", function(evt, resultId) {
+				console.log("Clicked result " + resultId);
+				$("#results").resultslist("removeResult", resultId);
+			});
+			for (var i = 0; i < 5; i++) {
+				$("#results").resultslist("addResult", i, "Result " + i, "This is yet another result. Actually, this is result number " + i + ".");
+			}
+			$("#results").resultslist("setMessage", "5 results found for \"test\"");
+			*/
+			
+			
 		});
 	</script>
 </head>
 <body>
 	<div id="acoredion"></div>
+	<div id="results"></div>
+	<div id="earth"></div>
 </body>
 </html>

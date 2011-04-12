@@ -89,6 +89,7 @@ if (!window.core.util)
 		 *   XML DOM.
 		 */
 		createXmlDoc: function(xml) {
+			console.log(xml);
 			if (xml == null || xml == undefined) {
 				return null;
 			}

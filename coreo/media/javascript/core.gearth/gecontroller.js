@@ -16,6 +16,8 @@
  * Dependencies:
  *  - Google Earth browser plugin
  *  - core.gearth.KmlObjectStore
+ *  - core.events.ShowFeatureEvent
+ *  - core.events.HideFeatureEvent
  */
 
 if (!window.core)
@@ -25,7 +27,15 @@ if (!window.core.gearth)
 
 (function(ns) {
 	var KmlObjectStore = core.gearth.KmlObjectStore;
-
+	if (!KmlObjectStore)
+		throw "Dependency not found: core.gearth.KmlObjectStore";
+	var ShowFeatureEvent = core.events.ShowFeatureEvent;
+	if (!ShowFeatureEvent)
+		throw "Dependency not found: core.events.ShowFeatureEvent";
+	var HideFeatureEvent = core.events.HideFeatureEvent;
+	if (!HideFeatureEvent)
+		throw "Dependency not found: core.events.HideFeatureEvent";
+	
 	/**
 	 * Constructor: GeController
 	 * 
@@ -33,19 +43,50 @@ if (!window.core.gearth)
 	 * 
 	 * Parameters:
 	 *   ge - <GEPlugin>. Google Earth plugin instance.
+	 *   eventChannel - <EventChannel>.
 	 */
-	var GeController = function(ge) {
+	var GeController = function(ge, eventChannel) {
 		this.ge = ge;
+		this.eventChannel = eventChannel;
 		this.kmlObjectStore = new KmlObjectStore(this.ge);
+		this._init();
 	};
 	GeController.prototype = {
+
+		/**
+		 * Property: ge
+		 * 
+		 * Google Earth plugin instance.
+		 */
+		ge: null,
+		
+		/**
+		 * Property: eventChannel
+		 * 
+		 * <EventChannel>.
+		 */
+		eventChannel: null,
+		
+		_init: function() {
+			if (this.eventChannel) {
+				this.eventChannel.subscribe(ShowFeatureEvent.type, $.proxy(function(event) {
+					var geodata = event.geoData;
+					this.show(geodata);
+				}, this));
+				this.eventChannel.subscribe(HideFeatureEvent.type, $.proxy(function(event) {
+					var geodata = event.geoData;
+					this.hide(geodata);
+				}, this));
+			}
+		},
 
 		/**
 		 * Function: add
 		 */
 		add: function(geoData) {
-			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
-			this.ge.getFeatures().appendChild(kmlObject);
+			this.kmlObjectStore.getKmlObject(geoData, $.proxy(function(kmlObject) {
+				this.ge.getFeatures().appendChild(kmlObject);
+			}, this));
 		},
 
 		/**
@@ -57,8 +98,9 @@ if (!window.core.gearth)
 		 *   geoData - <GeoData>. The feature to display.
 		 */
 		show: function(geoData) {
-			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
-			this.ge.getFeatures().appendChild(kmlObject);
+			this.kmlObjectStore.getKmlObject(geoData, $.proxy(function(kmlObject) {
+				this.ge.getFeatures().appendChild(kmlObject);
+			}, this));
 		},
 
 		/**
@@ -70,9 +112,12 @@ if (!window.core.gearth)
 		 *   geoData - <GeoData>. The feature to be removed.
 		 */
 		hide: function(geoData) {
-			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
-			this.kmlObjectStore.removeKmlObject(geoData);
-			this.ge.getFeatures().removeChild(kmlObject);
+			// TODO: fix this so getKmlObject() doesn't create a KmlObject if 
+			// one doesn't already exist - maybe add a getOrCreateKmlObject() ?
+			this.kmlObjectStore.getKmlObject(geoData, $.proxy(function(kmlObject) {
+				this.kmlObjectStore.removeKmlObject(geoData);
+				this.ge.getFeatures().removeChild(kmlObject);
+			}, this));
 		},
 
 		/**
@@ -86,6 +131,7 @@ if (!window.core.gearth)
 		 *         information balloon.
 		 */
 		info: function(geoData) {
+			// TODO: re-implement this to call getKmlObject() with a callback
 			this.ge.setBalloon(null);
 			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
 			if (kmlObject) {
@@ -107,6 +153,7 @@ if (!window.core.gearth)
 		 *   geoData - <GeoData>. The feature to pan to.
 		 */
 		flyTo: function(geoData) {
+			// TODO: re-implement this to call getKmlObject() with a callback
 			var kmlObject = this.kmlObjectStore.getKmlObject(geoData);
 			if (kmlObject) {
 				if ("getAbstractView" in kmlObject 

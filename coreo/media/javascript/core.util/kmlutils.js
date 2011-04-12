@@ -19,8 +19,12 @@ if (!window.core.util)
 
 (function($, ns) {
 	var XmlUtils = core.util.XmlUtils;
+	if (!XmlUtils)
+		throw "Dependency not found: core.util.XmlUtils";
 	var CallbackUtils = core.util.CallbackUtils;
-
+	if (!CallbackUtils)
+		throw "Dependency not found: core.util.CallbackUtils";
+	
 	var KmlUtils = {
 		/**
 		 * Constant: KML_NS
@@ -124,7 +128,7 @@ if (!window.core.util)
 				}
 			}
 			return undefined;
-		}
+		}		
 	};
 	ns.KmlUtils = KmlUtils;
 })(jQuery, window.core.util);

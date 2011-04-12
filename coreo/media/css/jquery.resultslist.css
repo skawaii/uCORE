@@ -1,0 +1,68 @@
+.ui-resultslist {}
+
+.ui-resultslist .ui-widget-header {
+	padding-left: 0.2em;
+}
+
+.ui-resultslist .ui-widget-header > a {
+	float: right;
+	margin-right: 0.2em;
+}
+
+.ui-resultslist .ui-widget-content {
+	overflow-x: auto;
+	overflow-y: auto;
+	padding-left: 0.3em;
+	padding-right: 0.3em;
+}
+
+.ui-resultslist .ui-widget-content > p {
+	font-size: 0.8em;
+}
+
+.ui-resultslist .ui-widget-content > div {
+	margin-bottom: 1em;
+	padding-left: 0.1em;
+	padding-right: 0.1em;
+}
+
+.ui-resultslist .ui-widget-content > div:hover {
+	cursor: pointer;
+}
+
+.ui-resultslist .ui-widget-content > div > h4 {
+	margin-top: 0.1em;
+	margin-bottom: 0.1em;
+	
+}
+
+.ui-resultslist .ui-widget-content > div > p {
+	margin-top: 0.1em;
+	margin-bottom: 0.1em;
+	font-size: 0.9em;
+}
+
+.ui-resultslist .ui-resultslist-result .ui-resultslist-result-title {
+}
+
+.ui-resultslist .ui-resultslist-result .ui-resultslist-result-desc {
+}
+
+.ui-resultslist .ui-resultslist-result .ui-resultslist-result-footer {
+	font-weight: normal;
+	font-style: italic;
+	font-size: 0.9em;
+	color: #555;
+}
+
+.ui-resultslist .ui-resultslist-loading {
+	display: inline-block;
+	margin-left: 8px;
+	background-image:url("../javascript/jstree/themes/apple/throbber.gif") !important;
+	background-repeat:no-repeat !important;
+	background-position: 0 0 !important;
+	height: 16px !important;
+	width: 16px !important;
+	vertical-align: middle;
+	margin-top: -4px;
+}

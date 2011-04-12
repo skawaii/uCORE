@@ -52,21 +52,17 @@
 	<script type="text/javascript" src="../core.services/userchoiceresultfilter.js"></script>
 	
 	<script type="text/javascript" src="../core.ui/geodatatree.js"></script>
+	
+	<script type="text/javascript" src="../core.services/kmljsonproxyservice.js"></script>
 
     <script type="text/javascript"><!--
     	google.load("earth", "1");
     	//google.load("maps", "2");
 
        	$(document).ready(function() {
-       		test("foo", function() {
-       			var kml = new google.maps.GeoXml("http://localhost:8080/site_media/AAAAAAAAAAAAAAAAAAAAAAAAA?foo=x&j=a");
-       			kml.getKml(function(kml) {
-       				start();
-       			});
-       			stop();
-       		});
-       		
        		// dynamically load unit tests - google API's need to be loaded first
+       		$.getScript("core.services/kmljsonproxyservice.js");
+       		
        		$.getScript("core.events/viewchangedevent.js");
        		$.getScript("core.ui/geodatatree.js");
        		

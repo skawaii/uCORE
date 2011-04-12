@@ -1,0 +1,27 @@
+.kmlaccordion-searchform input {
+ 	vertical-align: middle;
+	font-size: 1.1em !important;
+	height: 1.9em !important;
+	width: 100%;
+}
+
+.kmlaccordion-searchform button {
+	width: 2.3em;
+	height: 2.3em;
+ 	vertical-align: middle;
+}
+
+input.ui-emptytext-empty {
+	font-weight: bold;
+	color: #ccc;
+ 	letter-spacing: 1.1;
+ 	height: 2em;
+ 	vertical-align: middle;
+ 	width: 250px;
+}
+
+input.ui-emptytext-filled {
+	height: 2em;
+	vertical-align: middle;
+	width: 250px;
+}
