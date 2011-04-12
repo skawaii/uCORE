@@ -116,8 +116,42 @@ if (!window.core.gearth)
 		 * Function: update
 		 */
 		update: function(geodata) {
-			this.remove(geodata);
-			this.add(geodata);
+			// TODO: update KmlContainer.getElementById()
+			var kmlObject = this.kmlObjectStore.getKmlObject(geodata);
+			if (kmlObject) {
+				var invisibleIds = [];
+				var visibleIds = [];
+				var rootVisible = kmlObject.getVisibility ? kmlObject.getVisibility() : false;
+				this.gex.dom.walk({
+					rootObject: kmlObject,
+					visitCallback: function(ctx) {
+						if (this.getVisibility) {
+							if (this.getVisibility()) {
+								visibleIds.push(this.getId());
+							}
+							else {
+								invisibleIds.push(this.getId());
+							}
+						}
+					}
+				});
+				this.remove(geodata);
+				this.add(geodata);
+				kmlObject = this.kmlObjectStore.getKmlObject(geodata);
+				var self = this;
+				this.gex.dom.walk({
+					rootObject: kmlObject,
+					visitCallback: function(ctx) {
+						if (invisibleIds.length == 0 
+								|| $.inArray(this.getId(), visibleIds) >= 0) {
+							self._showKmlObject(this, true);							
+						}
+						else {
+							console.log("INVISIBLE: " + this.getId());
+						}
+					}
+				});
+			}
 		},
 		
 		/**
@@ -137,34 +171,39 @@ if (!window.core.gearth)
 		remove: function(geodata) {
 			var kmlObject = this.kmlObjectStore.getKmlObject.call(this.kmlObjectStore, geodata);
 			if (kmlObject) {
-				this.ge.getFeatures().removeChild(kmlObject);
+				var parent = kmlObject.getParentNode();
+				if (parent) {
+					parent.getFeatures().removeChild(kmlObject);
+					console.log("Removed from parent");
+				}
+				// this.ge.getFeatures().removeChild(kmlObject);
+				kmlObject.release();
+				this.kmlObjectStore.removeKmlObject(geodata);
+			}
+		},
+		
+		_showKmlObject: function(kmlObject, showAncestors) {
+			if (kmlObject) {
+				kmlObject.setVisibility(true);
+				if (showAncestors) {
+					var parent = kmlObject.getParentNode();
+					while (parent && parent.setVisibility) {
+						parent.setVisibility(true);
+						parent = parent.getParentNode();
+					}
+				}
+				this.gex.dom.walk({
+					rootObject: kmlObject,
+					visitCallback: function(ctx) {
+						this.setVisibility(true);
+					}
+				});
 			}
 		},
 		
 		_show: function(geoData, showAncestors) {
-			console.log(geoData + " " + showAncestors);
 			this.kmlObjectStore.getOrCreateKmlObject(geoData, $.proxy(function(kmlObject) {
-				if (kmlObject) {
-					kmlObject.setVisibility(true);
-					if (showAncestors) {
-						var parent = kmlObject.getParentNode();
-						while (parent && parent.setVisibility) {
-							parent.setVisibility(true);
-							parent = parent.getParentNode();
-						}
-					}
-					this.gex.dom.walk({
-						rootObject: kmlObject,
-						visitCallback: function(ctx) {
-							this.setVisibility(true);
-						}
-					});
-					/*
-					geoData.iterateChildren($.proxy(function(childGeoData) {
-						this._show(childGeoData, false);
-					}, this));
-					*/
-				}
+				this._showKmlObject(kmlObject, true);
 			}, this));
 		},
 		
