@@ -42,7 +42,10 @@
 	<script type="text/javascript" src="../core.geo/kmlnodegeodata.js"></script>
 		
 	<script type="text/javascript" src="../core.gearth/kmlobjectstore.js"></script>
+	<script type="text/javascript" src="../core.gmaps/kmlobjectstore.js"></script>
+
 	<script type="text/javascript" src="../core.gearth/gecontroller.js"></script>
+	<script type="text/javascript" src="../core.gmaps/gmapscontroller.js"></script>
 	
 	<script type="text/javascript" src="../core.services/searchservice.js"></script>
 	<script type="text/javascript" src="../core.services/searchstrategy.js"></script>
@@ -54,7 +57,7 @@
 
     <script type="text/javascript"><!--
     	google.load("earth", "1");
-    	google.load("maps", "2");
+    	//google.load("maps", "2");
 
        	$(document).ready(function() {
        		// dynamically load unit tests - google API's need to be loaded first
@@ -75,8 +78,8 @@
        		$.getScript("core.util/objectutils.js");
        		$.getScript("core.util/idsequence.js");
        		$.getScript("core.util/xmlutils.js");
-			$.getScript("core.util/kmlutils.js");
-			
+		$.getScript("core.util/kmlutils.js");
+
        		$.getScript("core.events/event.js");
        		$.getScript("core.events/eventchannel.js");
        		$.getScript("core.events/featureupdatedevent.js");
@@ -93,6 +96,8 @@
 
        		$.getScript("core.gearth/kmlobjectstore.js");
        		$.getScript("core.gearth/gecontroller.js");
+		$.getScript("core.gmaps/gmapscontroller.js");
+
        	});
     --></script>
   </head>

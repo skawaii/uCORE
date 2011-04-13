@@ -134,13 +134,16 @@ if (!window.core.util)
 		 *   String.
 		 */
 		getXmlString: function(xmlDom) {
+
 			if (!xmlDom)
 				return undefined;
 			var xml;
 			if ("xml" in xmlDom) {
 				xml = xmlDom.xml;
 			}
-			else if (typeof XMLSerializer == "function") {
+			// NOTE: This used to check for "function"
+			// but, I changed it to work in Safari. - JRH
+			else if (typeof XMLSerializer == "object") {
 				xml = (new XMLSerializer()).serializeToString(xmlDom);
 			}
 			else {

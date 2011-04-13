@@ -40,6 +40,15 @@
 			background: blue;
 			padding: 0;
 		}
+		#tabs-maps {
+			/*position: absolute;
+			top: 50;
+			left: 370px;*/
+			/*width: 630px;*/
+			height: 100%;
+			background: green;
+			padding: 0;
+		}
 		#maps-section {
 			position: absolute;
 			top: 34;
@@ -50,6 +59,11 @@
 			height: 100%;
 			margin: 0;
 			background: blue;
+		}
+		#maps-container{
+			height: 100%;
+			width: 100%;
+			background: orange;
 		}
 		#tabs{
 			padding:0;
@@ -66,8 +80,6 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.5.min.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
 	 <script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
-
-
 
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.lazyload.js"></script>
@@ -120,7 +132,6 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/kmlobjectstore.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/gecontroller.js"></script>
 
-
 	<script type="text/javascript">
 	google.load("maps", "2");
 		google.load("earth", "1");
@@ -160,7 +171,7 @@
                 	gmaps.checkResize();
                 }
             });
-		});
+	});
 	 
 	</script>
 </head>
@@ -174,7 +185,6 @@
 
 <div id="acoredion"></div>
 <div id="maps-section">
-
 	<div id="tabs">
 		<ul>
 			<li><a href="#tabs-earth">Earth</a></li>
@@ -182,11 +192,12 @@
 		</ul>
 
 		<div id="tabs-earth"></div>
-		<div id="tabs-maps"></div>
+		<div id="tabs-maps">
+			<div id="maps-container"></div>
+		</div>
 	</div>
 </div>
 <div id="results"></div>
-
 
 </body>
 </html>

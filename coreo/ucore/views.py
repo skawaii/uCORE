@@ -774,7 +774,6 @@ def kmlproxy(request):
         
         # parse KML into a DOM
         contentType = remoteResponse.getheader('content-type')
-        
         kmlDom = None
         if contentType.startswith('application/vnd.google-earth.kmz'):
           # handle KMZ file, unzip and extract contents of doc.kml
@@ -792,7 +791,8 @@ def kmlproxy(request):
         else:
           print 'ERROR: URL didn\'t return KML. Returned %s' % contentType
           return HttpResponseServerError('Link doesn\'t contain KML (content-type was %s)' % contentType)
-        
+
+        # Parse KML into a dictionary and then serialize the dictionary to JSON
         try:
           # print remoteUrl + kmlDom.toprettyxml('  ')
           kmlParser = KmlParser()
