@@ -49,6 +49,7 @@
 			background: green;
 			padding: 0;
 		}
+
 		#maps-section {
 			position: absolute;
 			top: 34;
@@ -79,8 +80,9 @@
 	<!-- Javascript -->
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.5.min.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
-	 <script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
-
+	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
+	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.bettercheckbox.js"></script>
@@ -132,6 +134,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/kmlobjectstore.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/gecontroller.js"></script>
 
+
 	<script type="text/javascript">
 	google.load("maps", "2");
 		google.load("earth", "1");
@@ -153,25 +156,29 @@
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
 
 			var geController = null;
-			$("#tabs-earth").gearth().bind("earthloaded", function(ge) {
+			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {
 				geController = new core.gearth.GeController(ge, eventChannel);
 			});
 			
 			// Create a new map
-            var gmaps = new google.maps.Map2(document.getElementById("tabs-maps"));
+            var gmaps = new google.maps.Map2(document.getElementById("maps-container"));
             gmaps.setCenter(new google.maps.LatLng(37.4419, -122.1419), 13);
 
             // Create the maps controller
-            var gmapsController = new core.gmaps.GmapsController(gmaps);
+	    // Uncomment this!
+	    // var gmapsController = new core.gmaps.GmapsController(gmaps, eventChannel);
             
-            // $("#tabs-maps").animate({ height: '250px' }, 500);
-            
-            $("#tabs-maps").bind("tabsshow", function(event, ui) {
+                      
+            $("#tabs").bind("tabsshow", function(event, ui) {
+		
                 if (ui.panel.id == "tabs-maps") {
                 	gmaps.checkResize();
+			//$("#maps-container").animate({ height: '250px' }, 500);
+
+
                 }
             });
-	});
+		});
 	 
 	</script>
 </head>
@@ -185,6 +192,7 @@
 
 <div id="acoredion"></div>
 <div id="maps-section">
+
 	<div id="tabs">
 		<ul>
 			<li><a href="#tabs-earth">Earth</a></li>
@@ -199,6 +207,6 @@
 </div>
 <div id="results"></div>
 
+
 </body>
 </html>
-

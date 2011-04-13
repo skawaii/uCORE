@@ -785,9 +785,17 @@ def kmlproxy(request):
             kmlTxt = zipFile.read('doc.kml')
           finally:
             kmzBuffer.close()
-          kmlDom = parseString(kmlTxt)
+          try:
+            kmlDom = parseString(kmlTxt)
+          except ExpatError, e:
+            print 'ERROR: failed to parse KML - %s' % e
+            return HttpResponseServerError('Link contains invalid KML')
         elif contentType.startswith('application/vnd.google-earth.kml+xml'):
-          kmlDom = parse(remoteResponse)
+          try:
+            kmlDom = parse(remoteResponse)
+          except ExpatError, e:
+            print 'ERROR: failed to parse KML - %s' % e
+            return HttpResponseServerError('Link contains invalid KML')
         else:
           print 'ERROR: URL didn\'t return KML. Returned %s' % contentType
           return HttpResponseServerError('Link doesn\'t contain KML (content-type was %s)' % contentType)

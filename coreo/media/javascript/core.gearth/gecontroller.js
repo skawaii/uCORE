@@ -59,7 +59,7 @@ if (!window.core.gearth)
 	 *   kmlJsonProxyService - <KmlJsonProxyService>.
 	 */
 	var GeController = function(ge, eventChannel, kmlJsonProxyService) {
-		if (!GEarthExtensions) {
+		if (!window.GEarthExtensions) {
 			throw "Dependency not found: GEarthExtensions";
 		}
 		this.ge = ge;
