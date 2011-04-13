@@ -90,13 +90,15 @@ if (!window.core.ui)
 		
 		networkLinkQueue: null,
 		
+		trees: [],
+		
 		_beginTree: function(id, name) {
 			var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
 				.attr({ "resultid": id, "resultname": name })
 				.prependTo($(this.treeContainer));
 			treeEl.append($("<span>").html("Loading " + name));
 		},
-		
+
 		_treeLoaded: function(id, geodata) {
 			geodata = findFirstNamedChild(geodata);
 			var treeEl = $(this.treeContainer).find("div.acoredion-tree-loading[resultid=\"" + id + "\"]");
@@ -119,6 +121,7 @@ if (!window.core.ui)
 				}, this);
 				this.eventChannel.publish(
 						new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
+				this.trees.push(tree);
 			}, this);
 			var name = geodata.getName();
 			if (!name) {
@@ -236,13 +239,22 @@ if (!window.core.ui)
 				fillSpace: true
 			});
 			
-			this.eventChannel.subscribe(GeoDataUpdateBeginEvent.type, $.proxy(function(geoDataUpdateBeginEvent) {
-				// TODO
-				console.log("Tree icon should be updated to spinning for " + geoDataUpdateBeginEvent.geoData.id);
+			this.eventChannel.subscribe(GeoDataUpdateBeginEvent.type, $.proxy(function(event) {
+				for (var i = 0; i < this.trees.length; i++) {
+					var tree = this.trees[i];
+					if (tree.containsGeoData(event.geoData.id)) {
+						tree.setLoading(event.geoData.id, true);
+					}
+				}
 			}, this));
-			this.eventChannel.subscribe(GeoDataUpdateEndEvent.type, $.proxy(function(geoDataUpdateEndEvent) {
-				// TODO
-				console.log("Tree node children need to be updated for " + geoDataUpdateEndEvent.geoData.id);
+			this.eventChannel.subscribe(GeoDataUpdateEndEvent.type, $.proxy(function(event) {
+				for (var i = 0; i < this.trees.length; i++) {
+					var tree = this.trees[i];
+					if (tree.containsGeoData(event.geoData.id)) {
+						tree.refresh(event.geoData.id);
+						tree.setLoading(event.geoData.id, false);
+					}
+				}
 			}, this));
 		}
 	};

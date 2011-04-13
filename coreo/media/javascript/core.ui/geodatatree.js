@@ -230,6 +230,25 @@ if (!window.core.ui)
 				},
 				plugins: ["ui", "themes", "lazyload", "bettercheckbox"]
 			});
+		},
+		
+		containsGeoData: function(geoDataId) {
+			var node = this.el.find("li[" + GeoDataTree.GEODATA_ATTR + "='" + geoDataId + "'");
+			return node.length > 0;
+		},
+		
+		setLoadingStatus: function(geoDataId, loading) {
+			console.log("Set loading = " + loading + " for geodata " + geoDataId);
+			var node = this.el.find("li[" + GeoDataTree.GEODATA_ATTR + "='" + geoDataId + "'");
+			var fn = loading ? "addClass" : "removeClass";
+			node[fn]("jstree-loading");
+		},
+
+		refresh: function(geoDataId) {
+			console.log("refresh " + geoDataId);
+			var newGeoData = GeoDataStore.getById(geoDataId);
+			var nodeToRefresh = this.el.find("li[" + GeoDataTree.GEODATA_ATTR + "='" + geoDataId + "'");
+			this.el.jstree("refresh", nodeToRefresh);
 		}
 
 	};

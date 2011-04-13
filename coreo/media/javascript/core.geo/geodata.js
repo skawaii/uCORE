@@ -250,8 +250,15 @@ if (!window.core.geo)
 		 * Function: getEnclosingKmlUrl
 		 * 
 		 * Gets the URL of the enclosing KML
+		 * 
+		 * Parameters:
+		 *   callback - Function. Invoked with the URL.
 		 */
-		getEnclosingKmlUrl: function() {}
+		getEnclosingKmlUrl: function(callback) {},
+		
+		toString: function() {
+			return "[GeoData ID=" + this.id + "]";
+		}
 	};
 	ns.GeoData = GeoData;
 
