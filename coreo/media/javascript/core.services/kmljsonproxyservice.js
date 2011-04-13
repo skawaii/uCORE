@@ -30,7 +30,7 @@ if (!window.core.services)
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					CallbackUtils.invokeOptionalCallback(callback, "error", 
-						"Couldn't retrieve KML: " + errorThrown);
+						"Couldn't retrieve KML. " + jqXHR.responseText);
 				}
 			});
 		}

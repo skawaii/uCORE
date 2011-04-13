@@ -55,6 +55,7 @@
 }
 
 .jstree-kml a ins.NetworkLink {
+	vertical-align: baseline;
 	background-image:url("kmlsprite.png");
 	background-repeat:no-repeat;
 	background-color:transparent;

@@ -114,6 +114,14 @@
 			$("#earth").gearth().bind("earthloaded", function(event, ge) {
 				geController = new core.gearth.GeController(ge, eventChannel, kmlJsonProxyService);
 			});
+			
+			/*
+			setTimeout(function() {
+				geodataRetriever.fetch("http://localhost:8080/site_media/kml/top_eleven.kml", function(geodata) {
+					eventChannel.publish(new core.events.GeoDataLoadedEvent("acoredion initializer", geodata));
+				});
+			}, 200);
+			*/
 		});
 	</script>
 </head>

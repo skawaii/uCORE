@@ -1,6 +1,10 @@
 .core-acoredion {
 }
 
+.core-acoredion .acoredion-search {
+	white-space: nowrap;
+}
+
 .core-acoredion .acoredion-search > * {
 	vertical-align: middle;
 }
