@@ -18,25 +18,62 @@
 			position: absolute;
 			top: 34;
 			left: 0;
-			width: 370px;
+			/*width: 370px;*/
+			width: 30%;
 			height: 100%;
 		}
 		#results {
 			position: absolute;
-			top: 0;
-			left: 370px;
+			top: 34;
+			/*left: 370px;*/
+			left: 30%;
 			width: 300px;
 			height: 100%; /* 100% - scrollbar height */
 			z-index: 1000;
 		}
-		#earth {
-			position: absolute;
+		#tabs-earth {
+			/*position: absolute;
 			top: 50;
-			left: 370px;
-			width: 630px;
+			left: 370px;*/
+			/*width: 630px;*/
 			height: 100%;
 			background: blue;
+			padding: 0;
 		}
+		#tabs-maps {
+			/*position: absolute;
+			top: 50;
+			left: 370px;*/
+			/*width: 630px;*/
+			height: 100%;
+			background: green;
+			padding: 0;
+		}
+
+		#maps-section {
+			position: absolute;
+			top: 34;
+			/*left: 370px;*/
+			/*width: 630px;*/
+			left: 30%;
+			width: 70%;
+			height: 100%;
+			margin: 0;
+			background: blue;
+		}
+		#maps-container{
+			height: 100%;
+			width: 100%;
+			background: orange;
+		}
+		#tabs{
+			padding:0;
+		}
+		.ui-tabs .ui-tabs-hide {
+		    position: absolute;
+		    left: -10000px;
+		}
+
 	</style>
 	
 
@@ -104,12 +141,7 @@
 		google.load("earth", "1");
 
 		$(document).ready(function() {
-			/*
-			var geoxml = new google.maps.GeoXml("http://localhost:8080/site_media/kml/top_eleven.kml");
-			google.maps.Event.addListener(geoxml, "load", function() {
-				console.log(core.util.ObjectUtils.describeFunctions(geoxml));
-			});
-			*/
+			$( "#tabs" ).tabs();			
 
 			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
@@ -123,73 +155,30 @@
 			var resultFilter = new core.ui.AcoredionResultFilter("#results");
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
-			
+
 			var geController = null;
-			$("#earth").gearth().bind("earthloaded", function(ge) {
+			$("#tabs-earth").gearth().bind("earthloaded", function(ge) {
 				geController = new core.gearth.GeController(ge, eventChannel);
 			});
+			
+			// Create a new map
+            var gmaps = new google.maps.Map2(document.getElementById("maps-container"));
+            gmaps.setCenter(new google.maps.LatLng(37.4419, -122.1419), 13);
 
-			/*
-			var kml = "<k:kml xmlns:k=\"" + core.util.KmlUtils.KML_NS[0] + "\">"
-				+ "<k:Document id=\"3\">"
-				+ "  <k:name>Test Document</k:name>"
-				+ "  <k:Folder>"
-				+ "    <k:name>All Feature Types</k:name>"
-				+ "    <k:Placemark></k:Placemark>"
-				+ "    <k:PhotoOverlay></k:PhotoOverlay>"
-				+ "    <k:GroundOverlay></k:GroundOverlay>"
-				+ "    <k:ScreenOverlay></k:ScreenOverlay>"
-				+ "    <k:Document></k:Document>"
-				+ "    <k:NetworkLink />"
-				+ "  </k:Folder>"
-				+ "  <k:Placemark />"
-				+ "</k:Document>"
-				+ "</k:kml>";
-			var geodata = core.geo.KmlNodeGeoData.fromKmlString(kml);
+            // Create the maps controller
+	    // Uncomment this!
+	    // var gmapsController = new core.gmaps.GmapsController(gmaps, eventChannel);
+            
+                      
+            $("#tabs").bind("tabsshow", function(event, ui) {
+		
+                if (ui.panel.id == "tabs-maps") {
+                	gmaps.checkResize();
+			//$("#maps-container").animate({ height: '250px' }, 500);
 
-			var searchService = new core.services.SearchService("/search-links", "/search-libraries");
-			var MAX_RESULTS = 3;
-			var resultFilter = {
-				cb: null,
-				resultCount: 0,
-				begin: $.proxy(function(callback) {
-					this.cb = callback;
-					this.resultCount = 0;
-				}, this),
-				result: $.proxy(function(data) {
-					this.resultCount++;
-					if (this.resultCount <= MAX_RESULTS) {
-						core.util.CallbackUtils.invokeOptionalCallback(this.cb, "result", data);
-					}
-					else {
-						console.log("Skipping - too many results");
-					}
-				}, this),
-				end: $.proxy(function() {}, this),
-				error: $.proxy(function(err) {
-					console.log("ERROR: " + err);
-				}, this)
-			};
-			var kmlRetriever = new core.services.GGeoXmlKmlRetriever();
-			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, kmlRetriever);
-			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy);
-			*/
-			
-			/*
-			$("#results").resultslist({
-				title: "Search Results"
-			});
-			$("#results").bind("clickresult", function(evt, resultId) {
-				console.log("Clicked result " + resultId);
-				$("#results").resultslist("removeResult", resultId);
-			});
-			for (var i = 0; i < 5; i++) {
-				$("#results").resultslist("addResult", i, "Result " + i, "This is yet another result. Actually, this is result number " + i + ".");
-			}
-			$("#results").resultslist("setMessage", "5 results found for \"test\"");
-			*/
-			
-			
+
+                }
+            });
 		});
 	 
 	</script>
@@ -201,10 +190,25 @@
     <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/library-demo/">Create Link Library</a> | <a href="../settings/">Settings</a> | <a href="/future-feature/">Help</a> | <a href="/logout/">Sign Out</a>
 	</div>
 </div>
-<div id="ge"></div>
+
 <div id="acoredion"></div>
+<div id="maps-section">
+
+	<div id="tabs">
+		<ul>
+			<li><a href="#tabs-earth">Earth</a></li>
+			<li><a href="#tabs-maps">Maps</a></li>
+		</ul>
+
+		<div id="tabs-earth"></div>
+		<div id="tabs-maps">
+			<div id="maps-container"></div>
+		</div>
+	</div>
+</div>
 <div id="results"></div>
-<div id="earth"></div>
+
+
 </body>
 </html>
 
