@@ -59,7 +59,7 @@ if (!window.core.gearth)
 	 *   kmlJsonProxyService - <KmlJsonProxyService>.
 	 */
 	var GeController = function(ge, eventChannel, kmlJsonProxyService) {
-		if (!GEarthExtensions) {
+		if (!window.GEarthExtensions) {
 			throw "Dependency not found: GEarthExtensions";
 		}
 		this.ge = ge;
@@ -117,8 +117,9 @@ if (!window.core.gearth)
 		 */
 		update: function(geodata) {
 			// TODO: update KmlContainer.getElementById()
-			var kmlObject = this.kmlObjectStore.getKmlObject(geodata);
-			if (kmlObject) {
+			var originalKmlObject = this.kmlObjectStore.getKmlObject(geodata);
+			if (originalKmlObject) {
+				/*
 				var invisibleIds = [];
 				var visibleIds = [];
 				var rootVisible = kmlObject.getVisibility ? kmlObject.getVisibility() : false;
@@ -151,6 +152,7 @@ if (!window.core.gearth)
 						}
 					}
 				});
+				*/
 			}
 		},
 		

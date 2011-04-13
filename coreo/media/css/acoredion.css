@@ -1,13 +1,18 @@
 .core-acoredion {
 }
 
+.core-acoredion .acoredion-search {
+	white-space: nowrap;
+	margin-bottom: 1em;
+}
+
 .core-acoredion .acoredion-search > * {
 	vertical-align: middle;
 }
 
 .core-acoredion .acoredion-search input[type="text"] {
 	height: 1.9em;
-	width: 250px;
+	width: 90%;
 }
 
 .core-acoredion .acoredion-search .ui-emptytext-empty {
@@ -23,7 +28,7 @@
 }
 
 .core-acoredion .acoredion-tree {
-	margin-top: 1em;
+	margin-top: 0.6em;
 }
 
 .core-acoredion .acoredion-tree-loading {

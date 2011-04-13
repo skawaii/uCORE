@@ -54,6 +54,14 @@
 	background-position:-105px 0;
 }
 
+.jstree-kml li {
+	margin-top: 0.2em;
+}
+
+.jstree-kml a ins {
+	vertical-align: baseline;
+}
+
 .jstree-kml a ins.NetworkLink {
 	background-image:url("kmlsprite.png");
 	background-repeat:no-repeat;

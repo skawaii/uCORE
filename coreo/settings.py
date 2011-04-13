@@ -105,6 +105,8 @@ INSTALLED_APPS = (
 
 SITE_ROOT = 'http://localhost:8080/'
 
+LOGIN_URL = '/login'
+
 import logging
 
 try:

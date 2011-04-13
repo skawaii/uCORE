@@ -18,6 +18,8 @@
 
 .ui-resultslist .ui-widget-content > p {
 	font-size: 0.8em;
+	margin-top: 1em;
+	margin-bottom: 1em;
 }
 
 .ui-resultslist .ui-widget-content > div {

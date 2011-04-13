@@ -80,10 +80,9 @@
 	<!-- Javascript -->
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.5.min.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
-	 <script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
-
-
-
+	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
+	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.bettercheckbox.js"></script>
@@ -157,7 +156,7 @@
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
 
 			var geController = null;
-			$("#tabs-earth").gearth().bind("earthloaded", function(ge) {
+			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {
 				geController = new core.gearth.GeController(ge, eventChannel);
 			});
 			
@@ -211,4 +210,3 @@
 
 </body>
 </html>
-

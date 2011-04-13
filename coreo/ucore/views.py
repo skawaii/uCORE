@@ -25,11 +25,13 @@ from django.http import HttpResponse, HttpResponseRedirect,\
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils import simplejson as json
+from django.views.decorators.http import require_http_methods
 
 from coreo.ucore.models import *
 from coreo.ucore import shapefile, utils
 from httplib import HTTPResponse, HTTPConnection
-
+from xml.parsers.expat import ExpatError
+from django.contrib.auth.decorators import login_required
 
 def add_library(request):
   """
@@ -773,55 +775,69 @@ def header_name(name):
     result = '-'.join(words) + ':'
     return result 
 
+@require_http_methods(["GET"])
+@login_required
 def kmlproxy(request):
-    if not request.user.is_authenticated():
-        return render_to_response('login.html', context_instance=RequestContext(request))
-    if (request.method != 'GET'):
-        return HttpResponseNotAllowed(['GET'])
     remoteUrl = request.META['QUERY_STRING']
     parsedRemoteUrl = urlparse(remoteUrl)
     if (parsedRemoteUrl.scheme != 'http' and parsedRemoteUrl.scheme != 'https'):
-        return HttpResponseBadRequest()
+        return HttpResponseBadRequest('Link contains invalid KML URL scheme - expected http or https')
     conn = None
     try:
         conn = HTTPConnection(parsedRemoteUrl.hostname, parsedRemoteUrl.port)
         headers = {}
         conn.request('GET', parsedRemoteUrl.path + '?' + parsedRemoteUrl.query, None, headers)
         remoteResponse = conn.getresponse()
-        # print remoteResponse.getheader('content-type')
         
-        # KMZ stuff should go here
-
-        if remoteResponse.getheader('content-type') == 'application/vnd.google-earth.kmz':
-          #  print 'Got a KMZ here.'
-          fileSample = cStringIO.StringIO(remoteResponse.read()) 
-          zfp = zipfile.ZipFile(fileSample, "r")
-          for name in zfp.namelist():
-            data = zfp.read(name)
-            kmlDom = parseString(data)
+        # parse KML into a DOM
+        contentType = remoteResponse.getheader('content-type')
+        kmlDom = None
+        if contentType.startswith('application/vnd.google-earth.kmz'):
+          # handle KMZ file, unzip and extract contents of doc.kml
+          kmlTxt = None
+          kmzBuffer = cStringIO.StringIO(remoteResponse.read())
+          try:
+            zipFile = zipfile.ZipFile(kmzBuffer, 'r')
+            # KMZ spec says zip will contain exactly one file, named doc.kml
+            kmlTxt = zipFile.read('doc.kml')
+          finally:
+            kmzBuffer.close()
+          try:
+            kmlDom = parseString(kmlTxt)
+          except ExpatError, e:
+            print 'ERROR: failed to parse KML - %s' % e
+            return HttpResponseServerError('Link contains invalid KML')
+        elif contentType.startswith('application/vnd.google-earth.kml+xml'):
+          try:
+            kmlDom = parse(remoteResponse)
+          except ExpatError, e:
+            print 'ERROR: failed to parse KML - %s' % e
+            return HttpResponseServerError('Link contains invalid KML')
         else:
-          # print remoteResponse.getheader('content-type')
-          kmlDom = parse(remoteResponse)
-        # print remoteUrl + kmlDom.toprettyxml('  ')
+          print 'ERROR: URL didn\'t return KML. Returned %s' % contentType
+          return HttpResponseServerError('Link doesn\'t contain KML (content-type was %s)' % contentType)
+
+        # Parse KML into a dictionary and then serialize the dictionary to JSON
         try:
-            kmlParser = KmlParser()
-            dict = None
-            try:
-                dict = kmlParser.kml_to_dict(node = kmlDom.documentElement, 
-                                             baseUrl = parsedRemoteUrl.geturl())
-            except ValueError, e:
-                print 'ERROR: failed to serialize KML document to dictionary - %s' % e
-                return HttpResponseNotFound()
-            jsonTxt = None
-            try:
-                jsonTxt = json.dumps(dict, indent = 2)
-            except ValueError, e:
-                print 'ERROR: Failed to serialize dictionary to JSON - %s' % e
-                return HttpResponseServerError()
-            response = HttpResponse(content = jsonTxt, 
-                                    status = remoteResponse.status,
-                                    content_type = 'application/json')
-            return response
+          # print remoteUrl + kmlDom.toprettyxml('  ')
+          kmlParser = KmlParser()
+          dict = None
+          try:
+              dict = kmlParser.kml_to_dict(node = kmlDom.documentElement, 
+                                           baseUrl = parsedRemoteUrl.geturl())
+          except ValueError, e:
+              print 'ERROR: failed to serialize KML document to dictionary - %s' % e
+              return HttpResponseNotFound('Couldn\'t parse KML from link')
+          jsonTxt = None
+          try:
+              jsonTxt = json.dumps(dict, indent = 2)
+          except ValueError, e:
+              print 'ERROR: Failed to serialize dictionary to JSON - %s' % e
+              return HttpResponseServerError('Couldn\'t serialize link\'s KML to JSON')
+          response = HttpResponse(content = jsonTxt, 
+                                  status = remoteResponse.status,
+                                  content_type = 'application/json')
+          return response
         finally:
             kmlDom.unlink()
     finally:

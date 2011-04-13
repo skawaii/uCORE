@@ -91,6 +91,18 @@ if (!window.core.ui)
 		networkLinkQueue: null,
 		
 		trees: [],
+
+		_geoDataLoadedEventListener: function(event) {
+			if (event.publisher !== Acoredion.EVENT_PUBLISHER_NAME) {
+				var id = event.geoData.id;
+				var name = "";
+				var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
+					.attr({ "resultid": id, "resultname": name })
+					.prependTo($(this.treeContainer));
+				treeEl.append($("<span>").html("Loading " + name));
+				this._treeLoaded(id, event.geoData);
+			}
+		},
 		
 		_beginTree: function(id, name) {
 			var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
@@ -256,6 +268,8 @@ if (!window.core.ui)
 					}
 				}
 			}, this));
+			this.eventChannel.subscribe(GeoDataLoadedEvent.type, 
+					$.proxy(this._geoDataLoadedEventListener, this));
 		}
 	};
 	ns.Acoredion = Acoredion;
