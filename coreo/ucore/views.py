@@ -95,7 +95,6 @@ def create_library(request):
 
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
-
     return HttpResponse('No user identified in request.')
 
   if request.method == 'POST':
@@ -127,9 +126,22 @@ def create_library(request):
   #   print e.message
   #   logging.error(e.message)
   else:
+    user = CoreUser.objects.get(username=request.user)
+
     return HttpResponse('only POST Supported.', status=405)
 
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
+
+
+# @require_http_methods(["GET"])
+# @login_required
+def return_libraries(request):
+  try:
+    user = CoreUser.objects.get(username=request.user)
+    results = user.libraries.all()
+  except CoreUser.DoesNotExist:
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
 
 def create_user(request):
@@ -653,10 +665,6 @@ def trophy_room(request):
        'earn_total' : earn_total,
        'earn_progress' : earn_progress,
        }, context_instance=RequestContext(request))
-
-
-def test_chart(request):
-   return render_to_response('chart.html', context_instance=RequestContext(request))
 
 
 def update_user(request):
