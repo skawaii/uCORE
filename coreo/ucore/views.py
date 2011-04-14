@@ -3,35 +3,32 @@
   for the Django project.  This file was created and maintained by:
   Jason Cooper, Jason Hotelling, Paul Coleman, and Paul Boone.
 """
-
 import csv, datetime, json, logging, os, re, time, urllib2, zipfile, pickle
 from cStringIO import StringIO
+from httplib import HTTPResponse, HTTPConnection
 from urlparse import urlparse
+import xml.dom.expatbuilder
 from xml.dom.minidom import parse, parseString
 from xml.parsers import expat
-from kmlparser import KmlParser
-import xml.dom.expatbuilder
-import cStringIO
+from xml.parsers.expat import ExpatError
+
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
+from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect,\
-    HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponseServerError,\
-    HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponseServerError, HttpResponseNotFound
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.utils import simplejson as json
 from django.views.decorators.http import require_http_methods
 
-from coreo.ucore.models import *
 from coreo.ucore import shapefile, utils
-from httplib import HTTPResponse, HTTPConnection
-from xml.parsers.expat import ExpatError
-from django.contrib.auth.decorators import login_required
+from coreo.ucore.kmlparser import KmlParser
+from coreo.ucore.models import *
+
 
 def add_library(request):
   """
@@ -775,6 +772,7 @@ def header_name(name):
     result = '-'.join(words) + ':'
     return result 
 
+
 @require_http_methods(["GET"])
 @login_required
 def kmlproxy(request):
@@ -795,7 +793,7 @@ def kmlproxy(request):
         if contentType.startswith('application/vnd.google-earth.kmz'):
           # handle KMZ file, unzip and extract contents of doc.kml
           kmlTxt = None
-          kmzBuffer = cStringIO.StringIO(remoteResponse.read())
+          kmzBuffer = StringIO(remoteResponse.read())
           try:
             zipFile = zipfile.ZipFile(kmzBuffer, 'r')
             # KMZ spec says zip will contain exactly one file, named doc.kml
