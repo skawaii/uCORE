@@ -133,8 +133,8 @@ def create_library(request):
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
 
-# @require_http_methods(["GET"])
-# @login_required
+@require_http_methods(["GET"])
+@login_required
 def return_libraries(request):
   try:
     user = CoreUser.objects.get(username=request.user)
@@ -400,11 +400,18 @@ def library_demo(request):
 
 def login(request):
   if request.method == 'GET':
-    return render_to_response('login.html', context_instance=RequestContext(request))
+    if 'next' in request.GET:
+      next = request.GET['next'].strip()
+    else:
+      next = ''
+    return render_to_response('login.html',{'next' : next }, context_instance=RequestContext(request))
   else:
     # authenticate the user viw username/password
     username = request.POST['username'].strip()
     password = request.POST['password'].strip()
+    next = '/ge/'
+    if 'next' in request.POST:
+      next = request.POST['next'].strip()
 
     # check if the user already exists
     if not CoreUser.objects.filter(username__exact=username).exists():
@@ -415,7 +422,8 @@ def login(request):
     # The user has been succesfully authenticated. Send them to the GE app.
     if user:
       auth.login(request, user)
-      return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+      # return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+      return HttpResponseRedirect(next)
 
     return render_to_response('login.html',
           {'error_message': 'Invalid Username/Password Combination'},
@@ -733,6 +741,8 @@ def update_password(request):
     user = CoreUser.objects.get(username=request.user)
     oldpassword = request.POST['old'].strip()
     newpassword = request.POST['password'].strip()
+    if (oldpassword == newpassword):
+      return render_to_response('password.html', { 'error_message': 'You made the new password no different from the old one. Please try again.'}, context_instance=RequestContext(request))
     if user.check_password(oldpassword):
       user.set_password(newpassword)
       user.save()
