@@ -631,7 +631,7 @@ class SettingsTest(TestCase):
     skin = Skin.objects.create(name='Default2', file_path='/default.css')
     
     response = self.client.post('/settings/', {'skin': 'Default2'})
-    self.assertRedirects(response, '/settings/')
+    self.assertRedirects(response, '/settings/?saved=True')
 
     settings = CoreUser.objects.get(username=self.user.username).settings
     self.assertFalse(settings.wants_emails)

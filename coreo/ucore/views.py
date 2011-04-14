@@ -454,14 +454,18 @@ def map_view(request):
   return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
 
 
+@login_required
 def modify_settings(request):
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
 
   user = get_object_or_404(CoreUser, username=request.user.username)
 
   if request.method == 'GET':
-    return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all()},
+    if 'saved' in request.GET:
+      saved_status = request.GET['saved'].strip()
+      return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all(), 'saved' : saved_status }, context_instance=RequestContext(request))
+
+    else:
+      return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all()},
         context_instance=RequestContext(request))
   elif request.method == 'POST':
     wants_emails = True if 'wants_emails' in request.POST else False
@@ -471,7 +475,7 @@ def modify_settings(request):
     user.settings.skin = skin
     user.settings.save()
 
-    return HttpResponseRedirect(reverse('coreo.ucore.views.modify_settings'))
+    return HttpResponseRedirect('/settings/?saved=True')
 
 
 def notifytest(request):
