@@ -28,5 +28,27 @@
         <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/map/">Back to Visualizer</a> | <a href="/library-demo/">Create Link Library</a> | <a href="/future-feature/">Help</a> | <a href="/logout/">Sign Out</a>
       </div>
     </div>
+    <br/>
+    <br/>
+    <div style="text-align:center">
+      <h2>{{ user.first_name }}'s Libraries</h2><br/><br/>
+      <form action='/delete-libraries/' method="post">
+      <table style="margin:auto; border-style: solid;border-width:2px; border-collapse: separate; border-color:black;text-align:center; margin:1;padding:2px;">
+        <tr style="border: 1px solid black"><th style="width:100px;">Action</th>
+          <th style="width:100px;">Library Name</th><th style="width:100px">Library Desc</th><th style="width:100px;">Library Tags</th><th style="width:100px">Links</th>
+      <tr/>
+        {% for i in library_list %}
+        <tr style="border: 1px solid black">
+          <td><input type="checkbox"/></td>
+          <td>  {{ i.name }} </td><td> {{ i.desc }} </td><td> {{ i.tags.all }} </td><td> {% for j in i.links.all %} {{ j }}, {% endfor %}</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="2"><input type="submit" value="Delete selected links"/></td><td></td><td></td>
+            <td colspan="2"><a href="/map/"><button style="width:80px">Back</button></a></td>
+          </tr>
+              </table>
+            </div>
+       </form>
 </body>
 </html>

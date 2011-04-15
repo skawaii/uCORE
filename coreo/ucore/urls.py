@@ -24,6 +24,7 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^userprofile/$', 'user_profile'), # for backwards compatibility
     (r'^login/$', 'login'),
     (r'^logout/$', 'logout'),
+    (r'^manage-libraries/$', 'manage_libraries'),
     (r'^search/$', 'search', {'models': ('Link', 'LinkLibrary')}),
     (r'^search/links/$', 'search', {'models': ('Link',)}),
     (r'^search/libraries/$', 'search', {'models': ('LinkLibrary',)}),

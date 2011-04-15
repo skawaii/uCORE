@@ -460,6 +460,7 @@ def manage_libraries(request):
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user)
     library_list = user.libraries.all()
+    print 'a total of %d libraries' % library_list.count()
     return render_to_response('manage-libraries.html', { 'library_list': library_list }, context_instance=RequestContext(request))
   else:
     return HttpResponse("Only GET supported so far.")
