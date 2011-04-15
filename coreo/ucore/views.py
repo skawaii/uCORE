@@ -455,6 +455,15 @@ def map_view(request):
 
   return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
 
+@login_required
+def manage_libraries(request):
+  if request.method == 'GET':
+    user = CoreUser.objects.get(username=request.user)
+    library_list = user.libraries.all()
+    return render_to_response('manage-libraries.html', { 'library_list': library_list }, context_instance=RequestContext(request))
+  else:
+    return HttpResponse("Only GET supported so far.")
+
 
 @login_required
 def modify_settings(request):
