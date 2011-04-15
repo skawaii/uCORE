@@ -450,7 +450,7 @@ def map_view(request):
 @login_required
 def modify_settings(request):
 
-   user = get_object_or_404(CoreUser, username=request.user.username)
+  user = get_object_or_404(CoreUser, username=request.user.username)
 
   if request.method == 'GET':
     if 'saved' in request.GET:
@@ -477,11 +477,11 @@ def notifytest(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   # user = CoreUser.objects.filter(username=request.user)
-   return render_to_response('notify.html', context_instance=RequestContext(request))
+  return render_to_response('notify.html', context_instance=RequestContext(request))
 
 
 def poll_notifications(request, notification_id):
-   """
+  """
   poll_notifications has two methods it supports: GET and DELETE.
   For DELETE you have to submit a ``notification_id``, which will then
   delete the notification from the DB.
@@ -752,7 +752,7 @@ def upload_csv(request):
   if request.method == 'POST':
     utils.insert_links_from_csv(request.FILES['file'])
 
-   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
+  return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
 
 @login_required
