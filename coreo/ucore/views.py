@@ -33,6 +33,8 @@ from httplib import HTTPResponse, HTTPConnection
 from xml.parsers.expat import ExpatError
 from django.contrib.auth.decorators import login_required
 
+
+@login_required
 def add_library(request):
   """
   Add ``LinkLibrary``s to the user's ``LinkLibrary`` collection (i.e. the ``CoreUser.libraries`` field).
@@ -41,9 +43,6 @@ def add_library(request):
   """
   if request.method != 'POST':
     return HttpResponse('Only POST is supported!')
-
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
 
   user = CoreUser.objects.get(username=request.user.username)
   library_ids = request.POST.getlist('library_id')
@@ -187,11 +186,9 @@ def create_user(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
 
 
+@login_required
 def ge_index(request):
   # This is a quick hack at getting our Google Earth app integrated with Django.
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
-
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
@@ -202,10 +199,9 @@ def ge_index(request):
   return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
 
+@login_required
 def gm_index(request):
   # This is a quick hack at getting our Google Maps app integrated with Django.
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
     user = CoreUser.objects.get(username=request.user.username)
@@ -381,6 +377,7 @@ def index(request):
   return render_to_response('index.html', context_instance=RequestContext(request))
 
 
+@login_required
 def library_demo(request):
   """
   This view exists to demonstrate the ability to select multiple
@@ -392,10 +389,7 @@ def library_demo(request):
     view will return the HTML page that goes with it : testgrid.html.
     Otherwise, it will take the request and redirect to the login page.
   """
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
-  else:
-    return render_to_response('testgrid.html', context_instance=RequestContext(request))
+  return render_to_response('testgrid.html', context_instance=RequestContext(request))
 
 
 def login(request):
@@ -440,9 +434,8 @@ def logout(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
+@login_required
 def map_view(request):
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
     user = CoreUser.objects.get(username=request.user.username)
@@ -457,7 +450,7 @@ def map_view(request):
 @login_required
 def modify_settings(request):
 
-  user = get_object_or_404(CoreUser, username=request.user.username)
+   user = get_object_or_404(CoreUser, username=request.user.username)
 
   if request.method == 'GET':
     if 'saved' in request.GET:
@@ -484,11 +477,11 @@ def notifytest(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
 
   # user = CoreUser.objects.filter(username=request.user)
-  return render_to_response('notify.html', context_instance=RequestContext(request))
+   return render_to_response('notify.html', context_instance=RequestContext(request))
 
 
 def poll_notifications(request, notification_id):
-  """
+   """
   poll_notifications has two methods it supports: GET and DELETE.
   For DELETE you have to submit a ``notification_id``, which will then
   delete the notification from the DB.
@@ -525,7 +518,7 @@ def poll_notifications(request, notification_id):
 
     return response
 
-
+@login_required
 def rate(request, ratee, ratee_id):
   """
   Rate either a ``Link`` or ``LinkLibrary``.
@@ -540,9 +533,6 @@ def rate(request, ratee, ratee_id):
     related ``Rating``, if one already exists. For POST requests, the JSON object is simply the new
     ``Rating`` instance resulting for updating the database.
   """
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
-
   user = get_object_or_404(CoreUser, username=request.user.username)
   link = get_object_or_404(Link, pk=ratee_id) if ratee == 'link' else None
   link_library = get_object_or_404(LinkLibrary, pk=ratee_id) if ratee == 'library' else None
@@ -636,10 +626,8 @@ def search_mongo(request):
 def success(request, message=''):
   return HttpResponse('you did it!')
 
-
+@login_required
 def trophy_room(request):
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
     user = CoreUser.objects.get(username=request.user.username)
@@ -679,12 +667,11 @@ def trophy_room(request):
        }, context_instance=RequestContext(request))
 
 
+@login_required
 def update_user(request):
   """ 
   Update the user's record in the DB.
   """
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user.username)
     try:
@@ -733,6 +720,7 @@ def update_user(request):
     #      context_instance=RequestContext(request))
 
 
+@login_required
 def update_password(request):
   if request.method == 'GET':
     try:
@@ -764,18 +752,16 @@ def upload_csv(request):
   if request.method == 'POST':
     utils.insert_links_from_csv(request.FILES['file'])
 
-  return render_to_response('upload_csv.html', context_instance=RequestContext(request))
+   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
 
+@login_required
 def user_profile(request):
   #XXX the django dev server can't use ssl, so fake getting the sid from the cert
   #XXX pull out the name as well. pass it to register() and keep things DRY
   #sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
   #sid = 'jlcoope'
   #if not sid: return render_to_response('install_certs.html')
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
-
   try:
     user = CoreUser.objects.get(username=request.user.username)
     saved_status = request.GET['saved'].strip()
