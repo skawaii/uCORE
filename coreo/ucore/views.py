@@ -33,8 +33,6 @@ from httplib import HTTPResponse, HTTPConnection
 from xml.parsers.expat import ExpatError
 from django.contrib.auth.decorators import login_required
 
-
-@login_required
 def add_library(request):
   """
   Add ``LinkLibrary``s to the user's ``LinkLibrary`` collection (i.e. the ``CoreUser.libraries`` field).
@@ -43,6 +41,9 @@ def add_library(request):
   """
   if request.method != 'POST':
     return HttpResponse('Only POST is supported!')
+
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
 
   user = CoreUser.objects.get(username=request.user.username)
   library_ids = request.POST.getlist('library_id')
@@ -186,22 +187,25 @@ def create_user(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
 
 
-@login_required
 def ge_index(request):
   # This is a quick hack at getting our Google Earth app integrated with Django.
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
   try:
     user = CoreUser.objects.get(username=request.user.username)
   except CoreUser.DoesNotExist:
     # as long as the login_user view forces them to register if they don't already
     # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
+  return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request)) 
+  # return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
-  return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
-
-@login_required
 def gm_index(request):
   # This is a quick hack at getting our Google Maps app integrated with Django.
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
     user = CoreUser.objects.get(username=request.user.username)
@@ -371,13 +375,12 @@ def get_tags(request):
 def index(request):
   # If the user is authenticated, send them to the application.
   if request.user.is_authenticated():
-    return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+    return HttpResponseRedirect(reverse('coreo.ucore.views.map_view'))
 
   # If the user is not authenticated, show them the main page.
   return render_to_response('index.html', context_instance=RequestContext(request))
 
 
-@login_required
 def library_demo(request):
   """
   This view exists to demonstrate the ability to select multiple
@@ -389,7 +392,10 @@ def library_demo(request):
     view will return the HTML page that goes with it : testgrid.html.
     Otherwise, it will take the request and redirect to the login page.
   """
-  return render_to_response('testgrid.html', context_instance=RequestContext(request))
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  else:
+    return render_to_response('testgrid.html', context_instance=RequestContext(request))
 
 
 def login(request):
@@ -403,9 +409,11 @@ def login(request):
     # authenticate the user viw username/password
     username = request.POST['username'].strip()
     password = request.POST['password'].strip()
-    next = '/ge/'
+    next = '/map/'
     if 'next' in request.POST:
       next = request.POST['next'].strip()
+      if next == '':
+        next = '/map/'
 
     # check if the user already exists
     if not CoreUser.objects.filter(username__exact=username).exists():
@@ -434,8 +442,9 @@ def logout(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.index'))
 
 
-@login_required
 def map_view(request):
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
     user = CoreUser.objects.get(username=request.user.username)
@@ -451,23 +460,19 @@ def map_view(request):
 def modify_settings(request):
 
   user = get_object_or_404(CoreUser, username=request.user.username)
-
   if request.method == 'GET':
     if 'saved' in request.GET:
       saved_status = request.GET['saved'].strip()
       return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all(), 'saved' : saved_status }, context_instance=RequestContext(request))
-
     else:
       return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all()},
         context_instance=RequestContext(request))
   elif request.method == 'POST':
     wants_emails = True if 'wants_emails' in request.POST else False
     skin = Skin.objects.get(name=request.POST['skin'].strip())
-
     user.settings.wants_emails = wants_emails
     user.settings.skin = skin
     user.settings.save()
-
     return HttpResponseRedirect('/settings/?saved=True')
 
 
@@ -518,7 +523,7 @@ def poll_notifications(request, notification_id):
 
     return response
 
-@login_required
+
 def rate(request, ratee, ratee_id):
   """
   Rate either a ``Link`` or ``LinkLibrary``.
@@ -533,6 +538,9 @@ def rate(request, ratee, ratee_id):
     related ``Rating``, if one already exists. For POST requests, the JSON object is simply the new
     ``Rating`` instance resulting for updating the database.
   """
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
   user = get_object_or_404(CoreUser, username=request.user.username)
   link = get_object_or_404(Link, pk=ratee_id) if ratee == 'link' else None
   link_library = get_object_or_404(LinkLibrary, pk=ratee_id) if ratee == 'library' else None
@@ -626,8 +634,10 @@ def search_mongo(request):
 def success(request, message=''):
   return HttpResponse('you did it!')
 
-@login_required
+
 def trophy_room(request):
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
 
   try:
     user = CoreUser.objects.get(username=request.user.username)
@@ -667,11 +677,12 @@ def trophy_room(request):
        }, context_instance=RequestContext(request))
 
 
-@login_required
 def update_user(request):
   """ 
   Update the user's record in the DB.
   """
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user.username)
     try:
@@ -720,7 +731,6 @@ def update_user(request):
     #      context_instance=RequestContext(request))
 
 
-@login_required
 def update_password(request):
   if request.method == 'GET':
     try:
@@ -755,13 +765,15 @@ def upload_csv(request):
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
 
-@login_required
 def user_profile(request):
   #XXX the django dev server can't use ssl, so fake getting the sid from the cert
   #XXX pull out the name as well. pass it to register() and keep things DRY
   #sid = os.getenv('SSL_CLIENT_S_DN_CN', '').split(' ')[-1]
   #sid = 'jlcoope'
   #if not sid: return render_to_response('install_certs.html')
+  if not request.user.is_authenticated():
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
   try:
     user = CoreUser.objects.get(username=request.user.username)
     saved_status = request.GET['saved'].strip()
