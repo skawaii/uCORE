@@ -826,3 +826,51 @@ def kmlproxy(request):
     finally:
         if (conn != None):
             conn.close()
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def kml2json(request):
+    if request.method == 'GET':
+      return render_to_response('kml2json.html', context_instance=RequestContext(request))
+    
+    # else request.method == 'POST', perform the conversion
+    kmlDom = None
+    asAttach = False
+    if request.FILES != None and 'file' in request.FILES:
+      print "Processing file"
+      asAttach = True
+      kmlFile = request.FILES['file']
+      try:
+        kmlDom = parse(kmlFile)
+      except ExpatError, e:
+        print 'ERROR: failed to parse KML - %s' % e
+        return HttpResponseBadRequest('Invalid KML. Could not parse XML - %s' % e)
+    else:
+      kmlTxt = request.raw_post_data
+      try:
+        kmlDom = parseString(kmlTxt)
+      except ExpatError, e:
+        print 'ERROR: failed to parse KML - %s' % e
+        return HttpResponseBadRequest('Invalid KML. Could not parse XML - %s' % e)
+    
+    # Parse KML into a dictionary and then serialize the dictionary to JSON
+    try:
+      kmlParser = KmlParser()
+      dict = None
+      try:
+          dict = kmlParser.kml_to_dict(node = kmlDom.documentElement, baseUrl = '/')
+      except ValueError, e:
+          print 'ERROR: failed to serialize KML document to dictionary - %s' % e
+          return HttpResponseBadRequest('Invalid KML. KML could not be converted to JSON - %s' % e)
+      jsonTxt = None
+      try:
+          jsonTxt = json.dumps(dict, indent = 2)
+      except ValueError, e:
+          print 'ERROR: Failed to serialize dictionary to JSON - %s' % e
+          return HttpResponseServerError('Couldn\'t serialize KML to JSON - %s' % e)
+      response = HttpResponse(content = jsonTxt, content_type = 'application/json')
+      if asAttach:
+        response['Content-Disposition'] = 'attachment; filename=json.txt'
+      return response
+    finally:
+        kmlDom.unlink()

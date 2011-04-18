@@ -42,5 +42,6 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^success/$', 'success'),
     (r'^map/$', 'map_view'),
     (r'^kmlproxy/$', 'kmlproxy'),
+    (r'^kml2json/$', 'kml2json'),
 )
 

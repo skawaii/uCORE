@@ -94,7 +94,7 @@ if (!window.core.ui)
 
 		_geoDataLoadedEventListener: function(event) {
 			if (event.publisher !== Acoredion.EVENT_PUBLISHER_NAME) {
-				var id = event.geoData.id;
+				var id = event.geoData.id + "";
 				var name = "";
 				var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
 					.attr({ "resultid": id, "resultname": name })
@@ -112,6 +112,7 @@ if (!window.core.ui)
 		},
 
 		_treeLoaded: function(id, geodata) {
+			console.log("_treeLoaded " + geodata);
 			geodata = findFirstNamedChild(geodata);
 			var treeEl = $(this.treeContainer).find("div.acoredion-tree-loading[resultid=\"" + id + "\"]");
 			var buildTree = $.proxy(function(name) {

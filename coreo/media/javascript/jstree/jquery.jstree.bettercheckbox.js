@@ -44,7 +44,7 @@
 					var thisChecked = t.is("li") && obj.hasClass("jstree-checked");
 					var parentChecked = t.parent().closest("li").hasClass("jstree-checked");
 					c = thisChecked || parentChecked ? "jstree-checked" : "jstree-unchecked";
-					t.find("li").andSelf().filter("li").not(":has(.jstree-checkbox)").find("a:first").before("<a class=\"jstree-checkbox\">&#160;</a>").parent().not(".jstree-checked, .jstree-unchecked").addClass(c);
+					t.find("li").andSelf().filter("li").not(":has(> a.jstree-checkbox)").find("a:first").before("<a class=\"jstree-checkbox\">&#160;</a>").parent().not(".jstree-checked, .jstree-unchecked").addClass(c);
 				});
 				if(obj.is("li")) { this._repair_state(obj); }
 				else { obj.find("> ul > li").each(function () { _this._repair_state(this); }); }

@@ -83,6 +83,7 @@
 	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
 	
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/iterate.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.bettercheckbox.js"></script>
@@ -159,11 +160,26 @@
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {
 				geController = new core.gearth.GeController(ge, eventChannel);
 			});
-			
+
 			// Create a new map
             var gmaps = new google.maps.Map2(document.getElementById("maps-container"));
             gmaps.setCenter(new google.maps.LatLng(37.4419, -122.1419), 13);
 
+            $.ajax({
+            	url: "{{ MEDIA_URL }}kml/top_eleven.js",
+            	type: "GET",
+            	dataType: "json",
+            	success: function(data, textStatus, jqXHR) {
+            		var kmlRoot = data;
+            		var firstChild = kmlRoot.children[0];
+            		var geodata = core.geo.KmlJsonGeoData.fromKmlJson(firstChild, kmlRoot);
+            		eventChannel.publish(new core.events.GeoDataLoadedEvent("map page", geodata));
+            	},
+            	error: function(jqXHR, textStatus, errorThrown) {
+            		alert("Couldn't load Top Eleven: " + errorThrown);
+            	}
+            });
+			
             // Create the maps controller
 	    // Uncomment this!
 	    // var gmapsController = new core.gmaps.GmapsController(gmaps, eventChannel);

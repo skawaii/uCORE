@@ -102,11 +102,13 @@ if (!window.core.geo)
 		 * Iterates over the child <GeoData> nodes of this <GeoData> node.
 		 * 
 		 * Parameters:
-		 *   callback - Function. Function invoked for each child <GeoData> 
+		 *   onChild(geodata) - Function. Function invoked for each child <GeoData> 
 		 *         node. A single parameter is passed to the function - a 
 		 *         <GeoData> instance that is the current child node.
+		 *   onComplete() - Function. Function invoked after all children 
+		 *         have been processed.
 		 */
-		iterateChildren: function(callback) {},
+		iterateChildren: function(onChild, onComplete) {},
 		
 		/**
 		 * Function: getChildById
