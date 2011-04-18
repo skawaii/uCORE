@@ -135,13 +135,24 @@ def create_library(request):
 
 @require_http_methods(["GET"])
 @login_required
-def return_libraries(request):
+def return_libraries2(request):
   try:
     user = CoreUser.objects.get(username=request.user)
     results = user.libraries.all()
   except CoreUser.DoesNotExist:
     return render_to_response('login.html', context_instance=RequestContext(request))
   return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
+
+
+@require_http_methods(["GET"])
+@login_required
+def return_libraries(request):
+  try:
+    user = CoreUser.objects.get(username=request.user)
+    results = user.libraries.all()
+  except CoreUser.DoesNotExist:
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  return HttpResponse(json.dumps(utils.django_to_dict(results)))
 
 
 def create_user(request):

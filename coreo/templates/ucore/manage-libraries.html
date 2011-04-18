@@ -6,20 +6,161 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
       
     <!-- CSS -->
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
 
     <!-- Javascript -->
-    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.min.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
-
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/geo/geo-0.2.pack.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.js"></script>
 
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/firebugx.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-ui-1.8.5.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.jsonp-1.1.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.core.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.remotemodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.checkboxselectcolumn.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.autotooltips.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellrangedecorator.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellcopymanager.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.rowselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.editors.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.grid.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.dataview.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
+    <script type="text/javascript">
+
+      var totalTable = [];
+      var grid;   
+      $(document).ready(function()
+      {
+        document.getElementById('dialog').style.display='none';
+        } 
+       ); 
+
+      function displaylibraries()
+       {
+        document.getElementById('dialog').style.display='block';        
+        totalTable = [];
+        librarytable = [];
+        $.getJSON('/libraries/', 
+        function(libraryjson)
+        { 
+          if (!jQuery.isEmptyObject(libraryjson))
+          {
+            // alert('got a non-empty object.');
+            var columns = [];
+            $(function()
+            {
+              var checkboxSelector = new Slick.CheckboxSelectColumn({
+               cssClass: "slick-cell-checkboxsel"
+            });
+            columns.push(checkboxSelector.getColumnDefinition());
+            columns.push({ id: "name", name: "name", field: "name", width:300, editor: TextCellEditor });
+          columns.push({ id: "desc", name: "desc", field: "description", width:300, editor: TextCellEditor });
+          columns.push({ id: "links", name: "links", field: "links", width:300, editor: TextCellEditor });
+           for (var i=0; i < libraryjson.length; i++)
+           {
+               var d2 = (librarytable[i] = {}); 
+               d2["name"] = libraryjson[i].fields.name;
+               d2["description"] = libraryjson[i].fields.desc;
+               d2["pk"] = libraryjson[i].pk;
+               for (var k=0; k < libraryjson[i].fields.links.length; k++)
+               {
+                 if (d2["links"] !== null)
+                 {
+                   d2["links"] = d2["links"] + "," + libraryjson[i].fields.links[k].name;
+                 } else
+                 {
+                   d2["links"] = libraryjson[i].fields.links[k].name;
+                 }  
+               }
+          }
+          var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
+          librarygrid = new Slick.Grid("#myGrid", librarytable, columns, options);
+          librarygrid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
+          librarygrid.registerPlugin(checkboxSelector);
+              })   
+          } });
+        
+         var selectedRows = [];
+         $("#dialog").dialog({ width: 1000, close: function(event, ui)
+             { 
+               // alert('You tried to close me.'); 
+             }, buttons: { "Submit": function() {
+               if (librarygrid != null)
+               {
+                selectedRows = librarygrid.getSelectedRows();
+               }
+             
+               if (selectedRows.length == 0) 
+               {
+                 alert("Please check some links before continuing..");
+               }
+               else if (selectedRows.length > 0)
+               {
+                  var libparameter = null;
+                  for (var j = 0; j < selectedRows.length; j++)
+                  {
+                    var rowNum = selectedRows[j];
+                    if (libparameter != null)
+                    {
+                      libparameter = libparameter + "," + librarytable[rowNum]["pk"];
+                    }
+                    else
+                    {
+                      libparameter = librarytable[rowNum]["pk"];
+                    }
+                    // $.post("../add-library/", { library_id: libparameter});
+                    alert("You would have sent: " + libparameter);
+                  }
+               }  
+             } }});
+          //     else  
+          //     {
+          //     var row_parameter;
+          //     for (var j = 0; j < selectedRows.length; j++)
+           //    {
+           //      var rowNum = selectedRows[j];
+           //      if (j === 0)
+           //      {
+           //        row_parameter = totalTable[rowNum]["pk"];
+           //      }
+           //      else
+           //      {
+           //        row_parameter = row_parameter + "," + totalTable[rowNum]["pk"];
+           //      }
+           //    }
+           //    var libparameter;
+           //    for (var j = 0; j < libraryRows.length; j++)
+           //    {
+           //      var rowNum = libraryRows[j];
+           //      if (j === 0)
+           //      {
+           //        libparameter = librarytable[rowNum]["pk"];
+           //      }
+           //      else
+           //      {
+           //        libparameter = libparameter + "," + librarytable[rowNum]["pk"];
+           //      }
+           //    }
+               
+           //  }
+               
+       }
+
+</script>
+    <style type="text/css">
+      td {
+        border-bottom: 1px solid black;
+      }
+    </style>
   </head>
   <body>
     <div id='geheader'>
@@ -40,7 +181,7 @@
         {% for i in library_list %}
         <tr style="border: 1px solid black">
           <td><input type="checkbox"/></td>
-          <td>  {{ i.name }} </td><td> {{ i.desc }} </td><td> {{ i.tags.all }} </td><td> {% for j in i.links.all %} {{ j }}, {% endfor %}</td>
+          <td>  {{ i.name }} </td><td> {{ i.desc }} </td><td>{% for k in i.tags.all %} {{ k.name }}, {% endfor %}</td><td> {% for j in i.links.all %} {{ j }}, {% endfor %}</td>
           </tr>
           {% endfor %}
           <tr>
@@ -49,6 +190,16 @@
           </tr>
               </table>
             </div>
-       </form>
+          </form>
+          <br/>
+          <br/>
+          <div style="margin:auto;text-align:center;horizontal-align:center">
+            <button onclick="displaylibraries();">Javascript Version</button>
+          </div>
+        <div id='dialog' title="Libraries">
+           <h6>Link Libraries </h6>
+           <div id="myGrid" style="width:100%;height:200px;">
+           </div>
+       </div>
 </body>
 </html>
