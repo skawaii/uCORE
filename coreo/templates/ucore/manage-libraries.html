@@ -54,7 +54,6 @@
         { 
           if (!jQuery.isEmptyObject(libraryjson))
           {
-            // alert('got a non-empty object.');
             var columns = [];
             $(function()
             {
@@ -73,12 +72,13 @@
                d2["pk"] = libraryjson[i].pk;
                for (var k=0; k < libraryjson[i].fields.links.length; k++)
                {
-                 if (d2["links"] !== null)
+                 if (k == 0)
                  {
-                   d2["links"] = d2["links"] + "," + libraryjson[i].fields.links[k].name;
-                 } else
+                  d2["links"] = libraryjson[i].fields.links[k].fields.name;
+                 }
+                 else
                  {
-                   d2["links"] = libraryjson[i].fields.links[k].name;
+                   d2["links"] = d2["links"] + "," + libraryjson[i].fields.links[k].fields.name;
                  }  
                }
           }
@@ -92,11 +92,10 @@
          var selectedRows = [];
          $("#dialog").dialog({ width: 1000, close: function(event, ui)
              { 
-               // alert('You tried to close me.'); 
-             }, buttons: { "Submit": function() {
+             }, buttons: { "Delete Selected Libraries": function() {
                if (librarygrid != null)
                {
-                selectedRows = librarygrid.getSelectedRows();
+                 selectedRows = librarygrid.getSelectedRows();
                }
              
                if (selectedRows.length == 0) 
@@ -117,10 +116,11 @@
                     {
                       libparameter = librarytable[rowNum]["pk"];
                     }
-                    // $.post("../add-library/", { library_id: libparameter});
-                    alert("You would have sent: " + libparameter);
+                    $.post("../delete-libraries/", { 'ids' : libparameter});
                   }
                }  
+             }, "Add Library": function() {
+                  window.location = '../library-demo/';
              } }});
           //     else  
           //     {

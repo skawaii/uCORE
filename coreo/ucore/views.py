@@ -122,26 +122,14 @@ def create_library(request):
       library.links.add(link)
 
     library.save()
+    user.libraries.add(library)
   # except Exception, e:
   #   print e.message
   #   logging.error(e.message)
   else:
-    user = CoreUser.objects.get(username=request.user)
-
     return HttpResponse('only POST Supported.', status=405)
 
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
-
-
-@require_http_methods(["GET"])
-@login_required
-def return_libraries2(request):
-  try:
-    user = CoreUser.objects.get(username=request.user)
-    results = user.libraries.all()
-  except CoreUser.DoesNotExist:
-    return render_to_response('login.html', context_instance=RequestContext(request))
-  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
 
 @require_http_methods(["GET"])
@@ -152,7 +140,27 @@ def return_libraries(request):
     results = user.libraries.all()
   except CoreUser.DoesNotExist:
     return render_to_response('login.html', context_instance=RequestContext(request))
-  return HttpResponse(json.dumps(utils.django_to_dict(results)))
+  # return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
+  return HttpResponse(serializers.serialize('json', results, indent=4, relations=('links',)))
+
+
+@require_http_methods(["POST"])
+@login_required
+def delete_libraries(request):
+  
+  library_ids = request.POST["ids"].strip()
+  libraryList = library_ids.split(',')
+  try:
+    user = CoreUser.objects.get(username=request.user)
+    for i in libraryList:
+      link2rid = LinkLibrary.objects.get(pk=i)
+      user.libraries.remove(link2rid)
+      user.save()
+  except CoreUser.DoesNotExist:
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  # maybe add a check to make sure that the logged in user is only
+  # deleting his/her libraries.
+  return HttpResponse("Purged of that LinkLibrary.")
 
 
 def create_user(request):
@@ -471,7 +479,6 @@ def manage_libraries(request):
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user)
     library_list = user.libraries.all()
-    print 'a total of %d libraries' % library_list.count()
     return render_to_response('manage-libraries.html', { 'library_list': library_list }, context_instance=RequestContext(request))
   else:
     return HttpResponse("Only GET supported so far.")
