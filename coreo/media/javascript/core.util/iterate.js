@@ -79,9 +79,6 @@ if (!window.core.util)
 					}
 					busy = false;
 				}
-				else {
-					console.log("busy - will process next time");
-				}
 			};
 			timer = setInterval(execute, interval);
 		}

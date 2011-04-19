@@ -18,7 +18,7 @@
 			};
 			
 			this.get_container()
-				.bind("open_node.jstree create_node.jstree clean_node.jstree", $.proxy(function (e, data) { 
+				.bind("open_node.jstree create_node.jstree clean_node.jstree", $.proxy(function (e, data) {
 						this._prepare_checkboxes(data.rslt.obj);
 					}, this))
 				.bind("loaded.jstree", $.proxy(function (e) {

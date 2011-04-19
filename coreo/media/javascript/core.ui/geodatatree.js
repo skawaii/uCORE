@@ -202,7 +202,6 @@ if (!window.core.ui)
 								+ " returned from GeoDataStore doesn't "
 								+ "contain function iterateChildren");
 						var iterate = $.proxy(function() {
-							console.log("iterate");
 							parentGeoData.iterateChildren(function(childGeoData) {
 								var name = childGeoData.getName();
 								if (!name) {
@@ -210,8 +209,10 @@ if (!window.core.ui)
 								}
 								var childNode = _this._createTreeNode(childGeoData, name);
 								dataFn.call(dataFn, childNode);
+							},
+							function() {
+								completeFn.call(completeFn);
 							});
-							completeFn.call(completeFn);
 						}, this);
 						if (parentGeoData.getKmlFeatureType() === KmlFeatureType.NETWORK_LINK) {
 							_this.networkLinkQueue.forceUpdate(parentGeoDataId, iterate);
@@ -238,14 +239,12 @@ if (!window.core.ui)
 		},
 		
 		setLoadingStatus: function(geoDataId, loading) {
-			console.log("Set loading = " + loading + " for geodata " + geoDataId);
 			var node = this.el.find("li[" + GeoDataTree.GEODATA_ATTR + "='" + geoDataId + "'");
 			var fn = loading ? "addClass" : "removeClass";
 			node[fn]("jstree-loading");
 		},
 
 		refresh: function(geoDataId) {
-			console.log("refresh " + geoDataId);
 			var newGeoData = GeoDataStore.getById(geoDataId);
 			var nodeToRefresh = this.el.find("li[" + GeoDataTree.GEODATA_ATTR + "='" + geoDataId + "'");
 			this.el.jstree("refresh", nodeToRefresh);

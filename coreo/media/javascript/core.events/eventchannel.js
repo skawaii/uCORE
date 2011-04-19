@@ -65,7 +65,6 @@ if (!window.core.events)
 				var timer;
 				var checkFinished = function() {
 					if (eventsWaiting === 0) {
-						console.log("all events processed");
 						window.clearInterval(timer);
 						queueWorkerBusy = false;
 						queueWorker();
