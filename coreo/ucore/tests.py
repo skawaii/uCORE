@@ -78,6 +78,16 @@ class LinkLibraryTest(TestCase):
     self.assertEquals(libraries[0].name, link_library1.name)
     self.assertEquals(libraries[1].name, link_library2.name)
 
+  def test_delete_single(self):
+    user = CoreUser.objects.get(username='testuser')
+    self.assertEquals(1, user.libraries.count())
+    for i in user.libraries.all():
+      print i.pk
+    response = self.client.post('/delete-libraries/', { 'ids': 1 })
+    self.assertEqual(response.status_code, 200)
+    user = CoreUser.objects.get(username='testuser')
+    self.assertEqual(0, user.libraries.count())
+
 
 class LoginTest(TestCase):
   def setUp(self):
@@ -110,7 +120,7 @@ class LogoutTest(TestCase):
 
 
 class TrophyTest(TestCase):
-  def  setUp(self):
+  def   setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
     self.user.set_password('2pass')
@@ -497,7 +507,7 @@ class FutureFeatureTest(TestCase):
     self.assertTemplateUsed(response, 'future.html', msg_prefix='')
     self.assertContains(response, 'We\'re sorry', count=1, status_code=200, msg_prefix='')
 
-    print 'Passed the futurefeature test.'
+    # print 'Passed the futurefeature test.'
 
 
 class NotificationTest(TestCase):

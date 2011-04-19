@@ -83,6 +83,9 @@ class Link(models.Model):
   tags = models.ManyToManyField(Tag, verbose_name='default tags')
   poc = models.ForeignKey(POC)
 
+  def natural_key(self):
+    return (self.pk, self.name)
+
   def __unicode__(self):
      return self.name
 
@@ -200,6 +203,9 @@ class LinkLibrary(models.Model):
 
   def __unicode__(self):
     return '%s %s' % (self.creator.username, self.name)
+
+  def natural_key(self):
+    return (self.pk, self.name, self.links)
 
   class Meta:
     verbose_name_plural = 'link libraries'

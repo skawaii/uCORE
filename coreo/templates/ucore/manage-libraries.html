@@ -74,11 +74,11 @@
                {
                  if (k == 0)
                  {
-                  d2["links"] = libraryjson[i].fields.links[k].fields.name;
+                  d2["links"] = libraryjson[i].fields.links[k][1];
                  }
                  else
                  {
-                   d2["links"] = d2["links"] + "," + libraryjson[i].fields.links[k].fields.name;
+                   d2["links"] = d2["links"] + "," + libraryjson[i].fields.links[k][1];
                  }  
                }
           }
@@ -120,7 +120,7 @@
                   }
                }  
              }, "Add Library": function() {
-                  window.location = '../library-demo/';
+                  window.location = '../map/';
              } }});
           //     else  
           //     {

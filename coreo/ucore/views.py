@@ -140,8 +140,8 @@ def return_libraries(request):
     results = user.libraries.all()
   except CoreUser.DoesNotExist:
     return render_to_response('login.html', context_instance=RequestContext(request))
-  # return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
-  return HttpResponse(serializers.serialize('json', results, indent=4, relations=('links',)))
+  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
+  # return HttpResponse(serializers.serialize('json', results, indent=4, relations=('links',)))
 
 
 @require_http_methods(["POST"])
