@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models.signals import post_save
-
+from django.forms import ModelForm
 from coreo.ucore.managers import TagManager
 
 class Skin(models.Model):
@@ -219,6 +219,13 @@ class SearchLog(models.Model):
 
   def __unicode__(self):
     return '%s %s' % (self.user.username, self.search_terms)
+
+
+class LibraryForm(ModelForm):
+  class Meta:
+    model = CoreUser
+    fields = ('libraries')
+
 
 
 ### Signal Registration ###

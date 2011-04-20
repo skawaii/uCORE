@@ -80,9 +80,13 @@ class LinkLibraryTest(TestCase):
 
   def test_delete_single(self):
     user = CoreUser.objects.get(username='testuser')
+    link_library1 = LinkLibrary.objects.create(name='library1', desc='just a test', creator=user)
+    library = LinkLibrary.objects.get(pk=1)
+    user.libraries.add(library)
+    user.save()
     self.assertEquals(1, user.libraries.count())
-    for i in user.libraries.all():
-      print i.pk
+    # for i in user.libraries.all():
+    #  print i.pk
     response = self.client.post('/delete-libraries/', { 'ids': 1 })
     self.assertEqual(response.status_code, 200)
     user = CoreUser.objects.get(username='testuser')

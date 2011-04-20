@@ -6,12 +6,14 @@
 
 import csv, datetime, json, logging, os, re, time, urllib2, zipfile, pickle
 from cStringIO import StringIO
+from django.forms.models import modelformset_factory
 from urlparse import urlparse
 from xml.dom.minidom import parse, parseString
 from xml.parsers import expat
 from kmlparser import KmlParser
 import xml.dom.expatbuilder
 import cStringIO
+from django.forms.models import modelformset_factory
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -26,12 +28,13 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils import simplejson as json
 from django.views.decorators.http import require_http_methods
-
 from coreo.ucore.models import *
 from coreo.ucore import shapefile, utils
 from httplib import HTTPResponse, HTTPConnection
 from xml.parsers.expat import ExpatError
 from django.contrib.auth.decorators import login_required
+from django.forms.formsets import formset_factory
+
 
 def add_library(request):
   """
@@ -479,9 +482,27 @@ def manage_libraries(request):
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user)
     library_list = user.libraries.all()
-    return render_to_response('manage-libraries.html', { 'library_list': library_list }, context_instance=RequestContext(request))
+    return render_to_response('manage-libraries2.html', { 'library_list': library_list }, context_instance=RequestContext(request))
   else:
     return HttpResponse("Only GET supported so far.")
+
+def manage_libraries2(request):
+  if request.method == 'GET':
+    user = CoreUser.objects.get(username=request.user)
+    if user:
+      print 'Got a user'
+    libform = LibraryForm(instance=user)
+    LibraryFormSet = formset_factory(LibraryForm)
+    print 'inside the get of manage_libraries'
+    return render_to_response('sample.html', { 'form', libform }, context_instance=RequestContext(request))    
+  else:
+    user = CoreUser.objects.get(username=request.user)
+    print 'inside the post of manage_libraries'
+    libform = LibraryForm(request.POST, instance=user)
+    libform.save()
+    return HttpResponseRedirect('/manage-libraries/?saved=True')
+
+
 
 
 @login_required
