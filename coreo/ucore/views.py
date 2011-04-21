@@ -30,6 +30,7 @@ from coreo.ucore.kmlparser import KmlParser
 from coreo.ucore.models import *
 
 
+@require_http_methods(['POST'])
 def add_library(request):
   """
   Add ``LinkLibrary``s to the user's ``LinkLibrary`` collection (i.e. the ``CoreUser.libraries`` field).
@@ -54,17 +55,11 @@ def add_library(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
 
 
+@require_http_methods(['GET'])
 def check_username(request):
-  if request.method == 'GET':
-    user = request.GET['username'].strip()
-    dbCheck = CoreUser.objects.filter(username=user)
+  username = request.GET['username'].strip()
 
-    if (dbCheck.count() > 0): boolReturn = True;
-    else: boolReturn = False;
-
-    return HttpResponse(json.dumps(boolReturn))
-  else:
-    return HttpResponse('index.html')
+  return HttpResponse(json.dumps(CoreUser.objects.filter(username=username).exists()))
 
 
 def create_library(request):
@@ -119,12 +114,7 @@ def create_library(request):
       library.links.add(link)
 
     library.save()
-  # except Exception, e:
-  #   print e.message
-  #   logging.error(e.message)
   else:
-    user = CoreUser.objects.get(username=request.user)
-
     return HttpResponse('only POST Supported.', status=405)
 
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))

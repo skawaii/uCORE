@@ -256,6 +256,7 @@ class ProfileUpdateTest(TestCase):
     self.assertEquals(user.phone_number, long('9998887777'))
     # print 'Passed the UpdateProfile test.'
 
+
 class SearchTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
