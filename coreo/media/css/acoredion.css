@@ -37,3 +37,16 @@
 	background-position: 0 0 !important;
 	padding-left: 20px;
 }
+
+.core-acoredion .acoredion-tree-actions {
+	display: block;
+	position: fixed;
+	z-index: 1000;
+}
+
+.core-acoredion .acoredion-tree-actions span {
+	display: block;
+	clear: none;
+	float: left;
+	margin: .2em;
+}

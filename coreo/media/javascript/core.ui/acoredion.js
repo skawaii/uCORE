@@ -83,6 +83,8 @@ if (!window.core.ui)
 		searchStrategy: null,
 
 		treeContainer: null,
+		
+		treeActionsEl: null,
 
 		searchInput: null,
 		
@@ -103,7 +105,7 @@ if (!window.core.ui)
 				this._treeLoaded(id, event.geoData);
 			}
 		},
-		
+
 		_beginTree: function(id, name) {
 			var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
 				.attr({ "resultid": id, "resultname": name })
@@ -112,7 +114,6 @@ if (!window.core.ui)
 		},
 
 		_treeLoaded: function(id, geodata) {
-			console.log("_treeLoaded " + geodata);
 			geodata = findFirstNamedChild(geodata);
 			var treeEl = $(this.treeContainer).find("div.acoredion-tree-loading[resultid=\"" + id + "\"]");
 			var buildTree = $.proxy(function(name) {
@@ -132,6 +133,31 @@ if (!window.core.ui)
 					this.eventChannel.publish(
 							new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
+				tree.onRemove = $.proxy(function(geodata) {
+					// TODO
+					console.log("removed " + geodata.id);
+					if (tree.isEmpty()) {
+						console.log("tree is now empty");
+					}
+				});
+				tree.onRename = $.proxy(function(geodata, newName) {
+					// TODO
+					console.log("renamed " + geodata.id + " to " + newName);
+				});
+				/*
+				tree.onHover = $.proxy(function(geodata, node) {
+					// TODO
+					var nodeOffset = node.offset();
+					this.treeActionsEl.css({
+						"top": nodeOffset.top,
+						"left": nodeOffset.left + node.width() - this.treeActionsEl.width()
+					});
+					this.treeActionsEl.show();
+				}, this);
+				tree.onDehover = $.proxy(function(geodata, node) {
+					this.treeActionsEl.hide();
+				}, this);
+				*/
 				this.eventChannel.publish(
 						new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				this.trees.push(tree);
@@ -247,6 +273,16 @@ if (!window.core.ui)
 			// create container for GeoData trees
 			this.treeContainer = $("<div>").addClass("acoredion-tree-container").appendTo(content);
 			
+			/*
+			this.treeActionsEl = $("<div>").addClass("acoredion-tree-actions")
+				.append($("<a>").attr("href", "#").addClass("ui-state-default").append($("<span>").addClass("ui-icon ui-icon-trash").html("&#160;")))
+				.append($("<span>").addClass("ui-icon ui-icon-pencil").html("&#160;"))
+				.append($("<span>").addClass("ui-icon ui-icon-disk").html("&#160;"))
+				.append($("<span>").addClass("ui-icon ui-icon-tag").html("&#160;"))
+				.appendTo(content)
+				.hide();
+			*/
+			
 			
 			$(this.el).accordion({
 				fillSpace: true
@@ -256,7 +292,7 @@ if (!window.core.ui)
 				for (var i = 0; i < this.trees.length; i++) {
 					var tree = this.trees[i];
 					if (tree.containsGeoData(event.geoData.id)) {
-						tree.setLoading(event.geoData.id, true);
+						tree.setLoadingStatus(event.geoData.id, true);
 					}
 				}
 			}, this));
@@ -265,7 +301,15 @@ if (!window.core.ui)
 					var tree = this.trees[i];
 					if (tree.containsGeoData(event.geoData.id)) {
 						tree.refresh(event.geoData.id);
-						tree.setLoading(event.geoData.id, false);
+						tree.setLoadingStatus(event.geoData.id, false);
+						if (event.errorThrown) {
+							tree.setErrorStatus(event.geoData.id, true, event.errorThrown);
+							// TODO
+							// console.log("Error updating network link: " + event.errorThrown);
+						}
+						else {
+							tree.setErrorStatus(event.geoData.id, false);
+						}
 					}
 				}
 			}, this));

@@ -112,6 +112,7 @@ if (!window.core.events)
 			 *	event - <Event>. The Core Event to send to all registered consumers.
 			 */
 			publish: function(event) {
+				console.log("published: " + event);
 				var eventType = event ? event.type : undefined;
 				if (eventType && consumers && consumers[eventType]) {
 					var subscribed = consumers[eventType].slice(0);

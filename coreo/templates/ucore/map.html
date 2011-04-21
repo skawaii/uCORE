@@ -9,7 +9,7 @@
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.resultslist.css" />
 
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/acoredion.css" />
-
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/geodatatree.css" />
 
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
 
@@ -75,18 +75,20 @@
 		}
 
 	</style>
-	
 
 	<!-- Javascript -->
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.5.min.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
 	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jquerytools/tooltip/tooltip.min.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/iterate.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.bettercheckbox.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.hoverbuttons.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.crr.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmlfeaturetype.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/uri.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/idsequence.js"></script>
@@ -137,7 +139,7 @@
 
 
 	<script type="text/javascript">
-	google.load("maps", "2");
+		google.load("maps", "2");
 		google.load("earth", "1");
 
 		$(document).ready(function() {
@@ -165,6 +167,7 @@
             var gmaps = new google.maps.Map2(document.getElementById("maps-container"));
             gmaps.setCenter(new google.maps.LatLng(37.4419, -122.1419), 13);
 
+            /*
             $.ajax({
             	url: "{{ MEDIA_URL }}kml/top_eleven.js",
             	type: "GET",
@@ -173,12 +176,14 @@
             		var kmlRoot = data;
             		var firstChild = kmlRoot.children[0];
             		var geodata = core.geo.KmlJsonGeoData.fromKmlJson(firstChild, kmlRoot);
+            		geodata = core.geo.GeoDataStore.persist(geodata);
             		eventChannel.publish(new core.events.GeoDataLoadedEvent("map page", geodata));
             	},
             	error: function(jqXHR, textStatus, errorThrown) {
             		alert("Couldn't load Top Eleven: " + errorThrown);
             	}
             });
+            */
 			
             // Create the maps controller
 	    // Uncomment this!

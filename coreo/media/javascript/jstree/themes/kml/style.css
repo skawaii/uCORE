@@ -69,6 +69,13 @@
 	background-position: -504px 0;
 }
 
+.jstree-kml .jstree-error a ins.NetworkLink {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: -42px 0;
+}
+
 .jstree-kml a.jstree-loading ins {
 	background-image:url("ajax-loader16.gif") !important;
 	background-repeat:no-repeat !important;
