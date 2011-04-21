@@ -92,7 +92,6 @@ def create_library(request):
 
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
-
     return HttpResponse('No user identified in request.')
 
   if request.method == 'POST':
@@ -124,9 +123,22 @@ def create_library(request):
   #   print e.message
   #   logging.error(e.message)
   else:
+    user = CoreUser.objects.get(username=request.user)
+
     return HttpResponse('only POST Supported.', status=405)
 
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
+
+
+@require_http_methods(["GET"])
+@login_required
+def return_libraries(request):
+  try:
+    user = CoreUser.objects.get(username=request.user)
+    results = user.libraries.all()
+  except CoreUser.DoesNotExist:
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
 
 def create_user(request):
@@ -183,8 +195,8 @@ def ge_index(request):
     # as long as the login_user view forces them to register if they don't already
     # exist in the db, then we should never actually get here. Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
-
-  return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
+  return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request)) 
+  # return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
 
 def gm_index(request):
@@ -360,7 +372,7 @@ def get_tags(request):
 def index(request):
   # If the user is authenticated, send them to the application.
   if request.user.is_authenticated():
-    return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+    return HttpResponseRedirect(reverse('coreo.ucore.views.map_view'))
 
   # If the user is not authenticated, show them the main page.
   return render_to_response('index.html', context_instance=RequestContext(request))
@@ -385,11 +397,20 @@ def library_demo(request):
 
 def login(request):
   if request.method == 'GET':
-    return render_to_response('login.html', context_instance=RequestContext(request))
+    if 'next' in request.GET:
+      next = request.GET['next'].strip()
+    else:
+      next = ''
+    return render_to_response('login.html',{'next' : next }, context_instance=RequestContext(request))
   else:
     # authenticate the user viw username/password
     username = request.POST['username'].strip()
     password = request.POST['password'].strip()
+    next = '/map/'
+    if 'next' in request.POST:
+      next = request.POST['next'].strip()
+      if next == '':
+        next = '/map/'
 
     # check if the user already exists
     if not CoreUser.objects.filter(username__exact=username).exists():
@@ -400,7 +421,8 @@ def login(request):
     # The user has been succesfully authenticated. Send them to the GE app.
     if user:
       auth.login(request, user)
-      return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+      # return HttpResponseRedirect(reverse('coreo.ucore.views.ge_index'))
+      return HttpResponseRedirect(next)
 
     return render_to_response('login.html',
           {'error_message': 'Invalid Username/Password Combination'},
@@ -431,24 +453,24 @@ def map_view(request):
   return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
 
 
+@login_required
 def modify_settings(request):
-  if not request.user.is_authenticated():
-    return render_to_response('login.html', context_instance=RequestContext(request))
 
   user = get_object_or_404(CoreUser, username=request.user.username)
-
   if request.method == 'GET':
-    return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all()},
+    if 'saved' in request.GET:
+      saved_status = request.GET['saved'].strip()
+      return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all(), 'saved' : saved_status }, context_instance=RequestContext(request))
+    else:
+      return render_to_response('settings.html', {'settings': user.settings, 'skin_list': Skin.objects.all()},
         context_instance=RequestContext(request))
   elif request.method == 'POST':
     wants_emails = True if 'wants_emails' in request.POST else False
     skin = Skin.objects.get(name=request.POST['skin'].strip())
-
     user.settings.wants_emails = wants_emails
     user.settings.skin = skin
     user.settings.save()
-
-    return HttpResponseRedirect(reverse('coreo.ucore.views.modify_settings'))
+    return HttpResponseRedirect('/settings/?saved=True')
 
 
 def notifytest(request):
@@ -652,10 +674,6 @@ def trophy_room(request):
        }, context_instance=RequestContext(request))
 
 
-def test_chart(request):
-   return render_to_response('chart.html', context_instance=RequestContext(request))
-
-
 def update_user(request):
   """ 
   Update the user's record in the DB.
@@ -722,6 +740,8 @@ def update_password(request):
     user = CoreUser.objects.get(username=request.user)
     oldpassword = request.POST['old'].strip()
     newpassword = request.POST['password'].strip()
+    if (oldpassword == newpassword):
+      return render_to_response('password.html', { 'error_message': 'You made the new password no different from the old one. Please try again.'}, context_instance=RequestContext(request))
     if user.check_password(oldpassword):
       user.set_password(newpassword)
       user.save()
