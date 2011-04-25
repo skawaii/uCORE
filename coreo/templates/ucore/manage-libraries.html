@@ -35,6 +35,8 @@
     <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.dataview.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
     <script type="text/javascript">
+      
+      // jQuery.ajaxSettings.traditional = true;
 
       var totalTable = [];
       var grid;   
@@ -116,7 +118,8 @@
                     {
                       libparameter = librarytable[rowNum]["pk"];
                     }
-                    $.post("../delete-libraries/", { 'ids' : libparameter});
+                    $.post("../delete-libraries/", { library_id: libparameter.serialize()}, function() { window.location.reload(); });
+                    // window.location.reload();
                   }
                }  
              }, "Add Library": function() {

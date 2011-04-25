@@ -34,8 +34,10 @@ class LinkLibraryTest(TestCase):
     self.assertEquals(response.status_code, 200)
 
   def test_create(self):
-    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': '1,2', 'tags':'HotButton, WarmButton,'})
-    self.assertEquals(response.status_code, 200)
+    links = [1, 2]
+    tags = ['HotButton', 'WarmButton']
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': links, 'tags': tags })
+    self.assertEquals(response.status_code, 302)
     self.assertEquals(LinkLibrary.objects.count(), 1)
     user = CoreUser.objects.get(username='testuser')
     self.assertEquals(1, user.libraries.count())
@@ -87,7 +89,7 @@ class LinkLibraryTest(TestCase):
     self.assertEquals(1, user.libraries.count())
     # for i in user.libraries.all():
     #  print i.pk
-    response = self.client.post('/delete-libraries/', { 'ids': 1 })
+    response = self.client.post('/delete-libraries/', { 'library_id': 1 })
     self.assertEqual(response.status_code, 200)
     user = CoreUser.objects.get(username='testuser')
     self.assertEqual(0, user.libraries.count())

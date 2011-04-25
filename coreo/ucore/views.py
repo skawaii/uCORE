@@ -50,7 +50,7 @@ def add_library(request):
 
   user = CoreUser.objects.get(username=request.user.username)
   library_ids = request.POST.getlist('library_id')
-
+  # library_ids = request.POST['library_id'].strip(',')
   try:
     for library_id in library_ids:
       user.libraries.add(LinkLibrary.objects.get(pk=library_id))
@@ -58,6 +58,7 @@ def add_library(request):
     return HttpResponse(e.message)
 
   return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
+
 
 
 def check_username(request):
@@ -101,17 +102,17 @@ def create_library(request):
     return HttpResponse('No user identified in request.')
 
   if request.method == 'POST':
-    links = request.POST['links'].strip()
+    linkArray = request.POST.getlist('links')
     name = request.POST['name'].strip()
     desc = request.POST['desc'].strip()
-    tags = request.POST['tags'].strip()
+    tags = request.POST.getlist('tags')
 
-    if tags[-1] == ',':
-      length_of_tags = len(tags)
-      tags = tags[0:length_of_tags-1]
+    # if tags[-1] == ',':
+    #  length_of_tags = len(tags)
+    #  tags = tags[0:length_of_tags-1]
 
-    linkArray = links.split(',')
-    tags = tags.split(',')
+    # linkArray = links.split(',')
+    # tags = tags.split(',')
     library = LinkLibrary(name=name, desc=desc, creator=user)
     library.save()
 
@@ -126,18 +127,27 @@ def create_library(request):
 
     library.save()
     user.libraries.add(library)
+    return HttpResponseRedirect('/create-library/?saved=True')
+  #  return HttpResponse("Success")
   # except Exception, e:
   #   print e.message
   #   logging.error(e.message)
   else:
-    return HttpResponse('only POST Supported.', status=405)
+    allLinks = Link.objects.all()
+    allTags = Tag.objects.all()
+    saved_status = None
+    if 'saved' in request.GET:
+       saved_status = request.GET['saved'].strip()
+       return render_to_response('createlib.html', { 'allLinks' : allLinks, 'allTags': allTags, 'saved' : saved_status }, context_instance=RequestContext(request))
+    else:
+        return render_to_response('createlib.html', { 'allLinks' : allLinks, 'allTags': allTags }, context_instance=RequestContext(request))
 
-  return render_to_response('testgrid.html',  context_instance=RequestContext(request))
+ #  return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
 
 @require_http_methods(["GET"])
 @login_required
-def return_libraries(request):
+def get_libraries(request):
   try:
     user = CoreUser.objects.get(username=request.user)
     results = user.libraries.all()
@@ -151,8 +161,9 @@ def return_libraries(request):
 @login_required
 def delete_libraries(request):
   
-  library_ids = request.POST["ids"].strip()
-  libraryList = library_ids.split(',')
+  # library_ids = request.POST["ids"].strip()
+  # libraryList = library_ids.split(',')
+  libraryList = request.POST.getlist('library_id')
   try:
     user = CoreUser.objects.get(username=request.user)
     for i in libraryList:
@@ -482,7 +493,10 @@ def manage_libraries(request):
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user)
     library_list = user.libraries.all()
-    return render_to_response('manage-libraries2.html', { 'library_list': library_list }, context_instance=RequestContext(request))
+    available_list = LinkLibrary.objects.all()
+    for i in library_list:
+      available_list = available_list.exclude(name=i.name)
+    return render_to_response('manage-libraries2.html', { 'library_list': library_list, 'available_list': available_list }, context_instance=RequestContext(request))
   else:
     return HttpResponse("Only GET supported so far.")
 
