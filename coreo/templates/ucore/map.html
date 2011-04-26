@@ -8,6 +8,7 @@
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.resultslist.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.slidepanel.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/slidepanelresultfilter.css" />
 
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/acoredion.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/geodatatree.css" />
@@ -133,6 +134,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.resultslist.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.emptytext.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredionresultfilter.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/slidepanelresultfilter.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.gearth.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/kmlobjectcreator.js"></script>
@@ -157,28 +159,37 @@
 
 			$("#results").slidepanel();
 			$("#results").slidepanel("append", {
+				id: "firstpanel",
 				title: "First Panel", 
 				content: "<div style=\"background:yellow;width:100%;border:1px solid black;\"><p>Hello, world!</p></div>"
 			});
-			$("#results").slidepanel("showPanel", 0);
+			$("#results").slidepanel("append", {
+				id: "secondpanel",
+				title: "Second Panel", 
+				content: "<div style=\"background:yellow;width:100%;border:1px solid black;\"><p>Hello, world 2!</p></div>"
+			});
+			$("#results").slidepanel("showPanelByIndex", 0);
 			$("#results").hide();
 
 			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
 			//var resultFilter = new core.ui.AcoredionResultFilter("#results");
-			var resultFilter = null;
+			var resultFilter = new core.ui.SlidePanelResultFilter("#results", "search-results");
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
+			var createLibraryId = "create-library-panel";
 			var createLibraryCb = function() {
-				var deferred = new $.Deferred();
-				var title = "Create Link Library";
-				var idx = $("#results").slidepanel("getIndex", title);
+				var deferred, idx;
+				
+				deferred = new $.Deferred();
+				idx = $("#results").slidepanel("getIndex", createLibraryId);
 				if (idx == -1) {
 					idx = $("#results").slidepanel("append", {
-								title: "Create Link Library",
-								content: $("<div>")
-									.append($("<input>").attr("type", "text")) 
-						});
+							id: createLibraryId,
+							title: "Create Link Library",
+							content: $("<div>")
+								.append($("<input>").attr("type", "text")) 
+					});
 				}
-				$("#results").slidepanel("showPanel", idx);
+				$("#results").slidepanel("showPanelByIndex", idx);
 				if (!$("#results").is(":visible")) {
 					$("#results").show("slide", {}, 200, null);
 				}
