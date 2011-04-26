@@ -106,7 +106,7 @@ def create_library(request):
     name = request.POST['name'].strip()
     desc = request.POST['desc'].strip()
     tags = request.POST.getlist('tags')
-
+    print tags
     # if tags[-1] == ',':
     #  length_of_tags = len(tags)
     #  tags = tags[0:length_of_tags-1]
@@ -117,8 +117,8 @@ def create_library(request):
     library.save()
 
     for t in tags:
-      t = t.strip()
       retrievedtag = Tag.objects.get_or_create(name=t)
+      print 'just added %s' % retrievedtag[0].name
       library.tags.add(retrievedtag[0])
 
     for link_object in linkArray:
