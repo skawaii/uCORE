@@ -122,15 +122,8 @@ def create_library(request):
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
 
-@require_http_methods(["GET"])
-@login_required
-def return_libraries(request):
-  try:
-    user = CoreUser.objects.get(username=request.user)
-    results = user.libraries.all()
-  except CoreUser.DoesNotExist:
-    return render_to_response('login.html', context_instance=RequestContext(request))
-  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
+def future_feature(request):
+  return render_to_response('future.html', context_instance=RequestContext(request))
 
 
 def create_user(request):
@@ -293,7 +286,6 @@ def get_kmz(request):
 @login_required
 def get_library(request, username, lib_name):
   # XXX and try/except in case the lib_name doesn't exist
-  # ZZZ Not putting the try in unless the author approves.
   # try :
   library = LinkLibrary.objects.get(user__username=username, name=lib_name)
   # except library.DoesNotExist:
@@ -312,8 +304,15 @@ def get_library(request, username, lib_name):
   return HttpResponse(uri)
 
 
-def future_feature(request):
-  return render_to_response('future.html', context_instance=RequestContext(request))
+@require_http_methods(["GET"])
+@login_required
+def get_libraries(request):
+  try:
+    user = CoreUser.objects.get(username=request.user)
+    results = user.libraries.all()
+  except CoreUser.DoesNotExist:
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
 
 @login_required
