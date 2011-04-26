@@ -302,46 +302,45 @@ if (!window.core.ui)
 					getHoverButtons: function(node) {
 						var kmlType = node.attr(GeoDataTree.KML_TYPE_ATTR);
 						var buttons = [];
-						if (kmlType === KmlFeatureType.FOLDER 
-								|| kmlType === KmlFeatureType.DOCUMENT) {
-							buttons.push({ 
-					        	icon: "ui-icon-plusthick", 
-					        	tooltip: "Add folder", 
-					        	action: function() {
-					        		// TODO: Create geodata, then create tree node from it
-					        		var newNode = {
-					        			attr: {},
-					        			state: "closed",
-					        			data: [
-					        			       {
-					        			    	   title: $("<span>")
-							    						.append($("<ins>").addClass(KmlFeatureType.FOLDER).html("&#160;"))
-							    						.append($("<span>").text("New Folder")),
-							    					icon: KmlFeatureType.FOLDER
-					        			       }
-					        			]
-					        		};
-					        		newNode.attr[GeoDataTree.KML_TYPE_ATTR] = KmlFeatureType.FOLDER;
-					        		
-//					    			var title = $("<span>")
-//					    						.append($("<ins>").addClass(KmlFeatureType.FOLDER).html("&#160;"))
-//					    						.append($("<span>").text("New Folder"));
-//					    			if (this.appendHoverActions && typeof this.appendHoverActions === "function") {
-//					    				var hoverActions = $("<div>").addClass("geodatatree-hoveractions");
-//					    				this.appendHoverActions.call(this.appendHoverActions, hoverActions, geodata);
-//					    				title.append(hoverActions);
-//					    			}
-//					    			newNode.data
-//					    			newNode.title = title;
-//					    			newNode.attr = {};
-					    			// TODO
-					    			// treeNode.attr[GeoDataTree.GEODATA_ATTR] = geodata.id;
-					    			//newNode.attr[GeoDataTree.KML_TYPE_ATTR] = KmlFeatureType.FOLDER;
-					    			//newNode.state = "closed";
-					        		$(_this.el).jstree("create", node, "first", newNode); 
-					        	} 
-					        });
-						}
+//						if (kmlType === KmlFeatureType.FOLDER 
+//								|| kmlType === KmlFeatureType.DOCUMENT) {
+//							buttons.push({ 
+//					        	icon: "ui-icon-plusthick", 
+//					        	tooltip: "Add folder", 
+//					        	action: function() {
+//					        		// TODO: Create geodata, then create tree node from it
+//					        		var newNode = {
+//					        			attr: {},
+//					        			state: "closed",
+//					        			data: [
+//					        			       {
+//					        			    	   title: $("<span>")
+//							    						.append($("<ins>").addClass(KmlFeatureType.FOLDER).html("&#160;"))
+//							    						.append($("<span>").text("New Folder")),
+//							    					icon: KmlFeatureType.FOLDER
+//					        			       }
+//					        			]
+//					        		};
+//					        		newNode.attr[GeoDataTree.KML_TYPE_ATTR] = KmlFeatureType.FOLDER;
+////					    			var title = $("<span>")
+////					    						.append($("<ins>").addClass(KmlFeatureType.FOLDER).html("&#160;"))
+////					    						.append($("<span>").text("New Folder"));
+////					    			if (this.appendHoverActions && typeof this.appendHoverActions === "function") {
+////					    				var hoverActions = $("<div>").addClass("geodatatree-hoveractions");
+////					    				this.appendHoverActions.call(this.appendHoverActions, hoverActions, geodata);
+////					    				title.append(hoverActions);
+////					    			}
+////					    			newNode.data
+////					    			newNode.title = title;
+////					    			newNode.attr = {};
+//					    			// TODO
+//					    			// treeNode.attr[GeoDataTree.GEODATA_ATTR] = geodata.id;
+//					    			//newNode.attr[GeoDataTree.KML_TYPE_ATTR] = KmlFeatureType.FOLDER;
+//					    			//newNode.state = "closed";
+//					        		$(_this.el).jstree("create", node, "first", newNode); 
+//					        	} 
+//					        });
+//						}
 						buttons.push({ 
 				        	icon: "ui-icon-pencil", 
 				        	tooltip: "Rename", 

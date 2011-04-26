@@ -69,11 +69,12 @@ if (!window.core.ui)
 	 *   searchStrategy - <SearchStrategy>. Invoked by the search form.
 	 *   eventChannel - <EventChannel>.
 	 */
-	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue) {
+	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue, createLibraryCb) {
 		this.el = el;
 		this.searchStrategy = searchStrategy;
 		this.eventChannel = eventChannel;
 		this.networkLinkQueue = networkLinkQueue;
+		this.createLibraryCb = createLibraryCb;
 		this._init();
 	};
 	Acoredion.EVENT_PUBLISHER_NAME = "Acoredion";
@@ -91,6 +92,13 @@ if (!window.core.ui)
 		eventChannel: null,
 		
 		networkLinkQueue: null,
+		
+		/**
+		 * Property: createLibraryCb
+		 * 
+		 * Function. Returns a jQuery Deferred object.
+		 */
+		createLibraryCb: null,
 		
 		trees: [],
 
@@ -219,7 +227,7 @@ if (!window.core.ui)
 
 			// create KML Documents panel containing the search form and 
 			// a place for KML trees
-			var content = this._addPanel("KML Documents");
+			var content = this._addPanel("Places");
 			// create search form
 			var searchForm = $("<div>").addClass("acoredion-search").appendTo(content);
 			var _this = this;
@@ -273,16 +281,20 @@ if (!window.core.ui)
 			// create container for GeoData trees
 			this.treeContainer = $("<div>").addClass("acoredion-tree-container").appendTo(content);
 			
-			/*
-			this.treeActionsEl = $("<div>").addClass("acoredion-tree-actions")
-				.append($("<a>").attr("href", "#").addClass("ui-state-default").append($("<span>").addClass("ui-icon ui-icon-trash").html("&#160;")))
-				.append($("<span>").addClass("ui-icon ui-icon-pencil").html("&#160;"))
-				.append($("<span>").addClass("ui-icon ui-icon-disk").html("&#160;"))
-				.append($("<span>").addClass("ui-icon ui-icon-tag").html("&#160;"))
-				.appendTo(content)
-				.hide();
-			*/
+			var afterCreateLibrary = function(library) {
+				// TODO
+				alert("Library created");
+			};
 			
+			$("<div>")
+				.append($("<button>").text("Create Link Library").button({ icons: { primary: "ui-icon-plusthick" }}))
+					.click($.proxy(function() {
+						this.createLibraryCb.call(this.createLibraryCb)
+							.then(function(library) {
+								alert("Library created: " + library);
+							});
+					}, this))
+				.appendTo(content);
 			
 			$(this.el).accordion({
 				fillSpace: true

@@ -7,6 +7,7 @@
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.resultslist.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.slidepanel.css" />
 
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/acoredion.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/geodatatree.css" />
@@ -128,6 +129,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/searchstrategy.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkqueue.js"></script>
 	
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.slidepanel.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.resultslist.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.emptytext.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredionresultfilter.js"></script>
@@ -143,7 +145,7 @@
 		google.load("earth", "1");
 
 		$(document).ready(function() {
-			$( "#tabs" ).tabs();			
+			$( "#tabs" ).tabs();		
 
 			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
@@ -153,10 +155,36 @@
 			var networkLinkQueue = new core.geo.NetworkLinkQueue(geodataRetriever, 
 					eventChannel, currentBbox, currentAltitude);
 
+			$("#results").slidepanel();
+			$("#results").slidepanel("append", {
+				title: "First Panel", 
+				content: "<div style=\"background:yellow;width:100%;border:1px solid black;\"><p>Hello, world!</p></div>"
+			});
+			$("#results").slidepanel("showPanel", 0);
+			$("#results").hide();
+
 			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
-			var resultFilter = new core.ui.AcoredionResultFilter("#results");
+			//var resultFilter = new core.ui.AcoredionResultFilter("#results");
+			var resultFilter = null;
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
-			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
+			var createLibraryCb = function() {
+				var deferred = new $.Deferred();
+				var title = "Create Link Library";
+				var idx = $("#results").slidepanel("getIndex", title);
+				if (idx == -1) {
+					idx = $("#results").slidepanel("append", {
+								title: "Create Link Library",
+								content: $("<div>")
+									.append($("<input>").attr("type", "text")) 
+						});
+				}
+				$("#results").slidepanel("showPanel", idx);
+				if (!$("#results").is(":visible")) {
+					$("#results").show("slide", {}, 200, null);
+				}
+				return deferred.promise();
+			};
+			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, createLibraryCb);
 
 			var geController = null;
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {
@@ -213,7 +241,6 @@
 
 <div id="acoredion"></div>
 <div id="maps-section">
-
 	<div id="tabs">
 		<ul>
 			<li><a href="#tabs-earth">Earth</a></li>
