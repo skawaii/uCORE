@@ -31,6 +31,7 @@ from coreo.ucore.models import *
 
 
 @require_http_methods(['POST'])
+@login_required
 def add_library(request):
   """
   Add ``LinkLibrary``s to the user's ``LinkLibrary`` collection (i.e. the ``CoreUser.libraries`` field).
@@ -56,6 +57,7 @@ def add_library(request):
 
 
 @require_http_methods(['GET'])
+@login_required
 def check_username(request):
   username = request.GET['username'].strip()
 
@@ -174,6 +176,7 @@ def create_user(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.login'))
 
 
+@login_required
 def ge_index(request):
   # This is a quick hack at getting our Google Earth app integrated with Django.
   if not request.user.is_authenticated():
@@ -189,6 +192,7 @@ def ge_index(request):
   # return render_to_response('geindex.html', {'user': user}, context_instance=RequestContext(request))
 
 
+@login_required
 def gm_index(request):
   # This is a quick hack at getting our Google Maps app integrated with Django.
   if not request.user.is_authenticated():
@@ -204,6 +208,7 @@ def gm_index(request):
   return render_to_response('gmindex.html', {'user': user}, context_instance=RequestContext(request))
 
 
+@login_required
 def get_csv(request):
   """
   The purpose of this view is to return a csv file that represents the
@@ -240,6 +245,7 @@ def get_csv(request):
   return response
 
 
+@login_required
 def get_kmz(request):
   """ 
   Return a KMZ file that represents the data from a GE view in our webapp.
@@ -284,6 +290,7 @@ def get_kmz(request):
   return response
 
 
+@login_required
 def get_library(request, username, lib_name):
   # XXX and try/except in case the lib_name doesn't exist
   # ZZZ Not putting the try in unless the author approves.
@@ -309,6 +316,7 @@ def future_feature(request):
   return render_to_response('future.html', context_instance=RequestContext(request))
 
 
+@login_required
 def get_shapefile(request):
   w = shapefile.Writer(shapefile.POLYLINE)
   w.line(parts=[[[1,5],[5,5],[5,1],[3,1],[1,1]]])
@@ -331,6 +339,7 @@ def get_shapefile(request):
   return response
 
 
+@login_required
 def get_tags(request):
   """
   The purpose of this view is to respond to an AJAX call for all
@@ -368,6 +377,7 @@ def index(request):
   return render_to_response('index.html', context_instance=RequestContext(request))
 
 
+@login_required
 def library_demo(request):
   """
   This view exists to demonstrate the ability to select multiple
@@ -419,6 +429,7 @@ def login(request):
            context_instance=RequestContext(request))
 
 
+@login_required
 def logout(request):
   """
   Log the user out, terminating the session
@@ -445,7 +456,6 @@ def map_view(request):
 
 @login_required
 def modify_settings(request):
-
   user = get_object_or_404(CoreUser, username=request.user.username)
   if request.method == 'GET':
     if 'saved' in request.GET:
@@ -463,6 +473,7 @@ def modify_settings(request):
     return HttpResponseRedirect('/settings/?saved=True')
 
 
+@login_required
 def notifytest(request):
   if not request.user.is_authenticated():
     logging.warning('%s was not authenticated' % request.user)
@@ -472,6 +483,7 @@ def notifytest(request):
   return render_to_response('notify.html', context_instance=RequestContext(request))
 
 
+@login_required
 def poll_notifications(request, notification_id):
   """
   poll_notifications has two methods it supports: GET and DELETE.
@@ -511,6 +523,7 @@ def poll_notifications(request, notification_id):
     return response
 
 
+@login_required
 def rate(request, ratee, ratee_id):
   """
   Rate either a ``Link`` or ``LinkLibrary``.
@@ -585,6 +598,7 @@ def register(request, sid):
   return render_to_response('register.html', {'sid': sid}, context_instance=RequestContext(request))
 
 
+@login_required
 def search(request, models):
   """
   Search the databases for ``Links`` or ``LinkLibraries`` whose metadata matches the search terms. The
@@ -611,6 +625,7 @@ def search(request, models):
   return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
 
+@login_required
 def search_mongo(request):
   url = 'http://174.129.206.221/hello//?' + request.GET['q']
   result = urllib2.urlopen(url)
@@ -622,6 +637,7 @@ def success(request, message=''):
   return HttpResponse('you did it!')
 
 
+@login_required
 def trophy_room(request):
   if not request.user.is_authenticated():
     return render_to_response('login.html', context_instance=RequestContext(request))
@@ -664,6 +680,7 @@ def trophy_room(request):
        }, context_instance=RequestContext(request))
 
 
+@login_required
 def update_user(request):
   """ 
   Update the user's record in the DB.
@@ -718,6 +735,7 @@ def update_user(request):
     #      context_instance=RequestContext(request))
 
 
+@login_required
 def update_password(request):
   if request.method == 'GET':
     try:
@@ -752,6 +770,7 @@ def upload_csv(request):
   return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
 
+@login_required
 def user_profile(request):
   #XXX the django dev server can't use ssl, so fake getting the sid from the cert
   #XXX pull out the name as well. pass it to register() and keep things DRY
@@ -773,6 +792,7 @@ def user_profile(request):
     # if there is no save_status then don't send anything
     return render_to_response('userprofile.html', {'user': user}, context_instance=RequestContext(request))
   return render_to_response('userprofile.html', {'user': user, 'saved': saved_status}, context_instance=RequestContext(request))
+
 
 def header_name(name):
     """Convert header name like HTTP_XXXX_XXX to Xxxx-Xxx:"""
