@@ -193,7 +193,8 @@ def gm_index(request):
   return render_to_response('gmindex.html', {'user': user}, context_instance=RequestContext(request))
 
 
-@require_http_methods(['POST'])
+# XXX should only accept a POST once fully implemented
+@require_http_methods(['GET', 'POST'])
 @login_required
 def get_csv(request):
   """
@@ -231,7 +232,8 @@ def get_csv(request):
   return response
 
 
-@require_http_methods(['POST'])
+# XXX should only accept a POST once fully implemented
+@require_http_methods(['GET', 'POST'])
 @login_required
 def get_kmz(request):
   """ 
@@ -310,7 +312,8 @@ def get_libraries(request):
   return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
 
-@require_http_methods(['POST'])
+# XXX should only accept a POST once fully implemented
+@require_http_methods(['GET', 'POST'])
 @login_required
 def get_shapefile(request):
   w = shapefile.Writer(shapefile.POLYLINE)
@@ -729,7 +732,7 @@ def update_password(request):
 
       return HttpResponseRedirect('/update-password/?saved=True')
     else:
-      return render_to_response('password.html', {'error_message': 'Passwords do not match. Please try again.'},
+      return render_to_response('password.html', {'error_message': 'Invalid password. Please try again.'},
            context_instance=RequestContext(request))
        
 
