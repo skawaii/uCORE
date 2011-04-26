@@ -51,7 +51,6 @@ def add_library(request):
 
 
 @require_http_methods(['GET'])
-@login_required
 def check_username(request):
   username = request.GET['username'].strip()
 
