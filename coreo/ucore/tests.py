@@ -34,10 +34,10 @@ class LinkLibraryTest(TestCase):
     self.assertEquals(response.status_code, 200)
 
   def test_create(self):
-    links = [1, 2]
-    tags = ['HotButton', 'WarmButton']
+    links = "1, 2"
+    tags = "HotButton,WarmButton"
     response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': links, 'tags': tags })
-    self.assertEquals(response.status_code, 302)
+    self.assertEquals(response.status_code, 200)
     self.assertEquals(LinkLibrary.objects.count(), 1)
     user = CoreUser.objects.get(username='testuser')
     self.assertEquals(1, user.libraries.count())
