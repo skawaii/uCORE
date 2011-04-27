@@ -25,17 +25,5 @@
 }
 
 .ui-slidepanel > .ui-widget-content {
-	padding: 0.4em 0.2em;
-}
-
-.ui-slidepanel .ui-slidepanel-loading {
-	display: inline-block;
-	margin-left: 8px;
-	background-image:url("../javascript/jstree/themes/apple/throbber.gif") !important;
-	background-repeat:no-repeat !important;
-	background-position: 0 0 !important;
-	height: 16px !important;
-	width: 16px !important;
-	vertical-align: middle;
-	margin-top: -4px;
+	padding: 0.7em;
 }

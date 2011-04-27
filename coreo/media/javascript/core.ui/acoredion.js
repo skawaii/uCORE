@@ -280,17 +280,18 @@ if (!window.core.ui)
 			
 			// create container for GeoData trees
 			this.treeContainer = $("<div>").addClass("acoredion-tree-container").appendTo(content);
-			
+
 			var afterCreateLibrary = function(library) {
 				// TODO
 				alert("Library created");
 			};
-			
+
 			$("<div>")
 				.append($("<button>").text("Create Link Library").button({ icons: { primary: "ui-icon-plusthick" }}))
 					.click($.proxy(function() {
 						this.createLibraryCb.call(this.createLibraryCb)
 							.then(function(library) {
+								// TODO
 								alert("Library created: " + library);
 							});
 					}, this))

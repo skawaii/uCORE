@@ -234,18 +234,28 @@
 			return idx;
 		},
 
-		replace: function(index) {
-			
+		removeId: function(id) {
+			var currentIdx, idxToRemove, title, content;
+			currentIdx = this.getProjectedIndex();
+			idxToRemove = this.getIndex(id);
+			title = this.getTitleById(id);
+			title.remove();
+			content = this.getContentById(id);
+			content.remove();
+			if (currentIdx > -1 && idxToRemove === currentIdx
+					&& this.size() > 0) {
+				// move to the next panel
+				this.showPanelByIndex(currentIdx);
+			}
+			if (title.size() > 0 || content.size() > 0) {
+				$(this.element).trigger("removepanel");
+			}
 		},
 
-		remove: function(index) {
-			
+		size: function() {
+			return $(this.element).find("> .ui-widget-header > div.title-lens > div.title-reel > div").size();
 		},
 		
-		removeAll: function() {
-			
-		},
-
 		showPanelByIndex: function(index, onComplete) {
 			var titleReel, contentReel, totalFrames, newLeftVal, frames, 
 				animDuration = 400, animEasing = "easeOutExpo",
@@ -273,6 +283,7 @@
 			if (!$(this.element).is(":visible")) {
 				// no need to animate if the elements isn't shown
 				animDuration = 0;
+				console.log("not animating");
 			}
 			titleReel.animate({ "left": newLeftVal }, {
 				duration: animDuration,
@@ -304,7 +315,6 @@
 
 		close: function() {
 			$(this.element).trigger("close");
-			$(this.element).hide();
 		},
 		
 		destroy: function() {

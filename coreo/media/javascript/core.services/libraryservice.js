@@ -3,6 +3,26 @@
  * 
  * Creates CORE LinkLibrary objects.
  * 
+ * Usage:
+ *   (start code)
+ *   var libraryService = new core.services.LibraryService({
+ *       createLibraryEndpoint: "/create-library/"
+ *   });
+ *   
+ *   libraryService.createLibrary("new library", "just a test", [], ["foo", "bar"])
+ *         .then(function(newLibrary) {
+ *                   // library was created successfully
+ *                   // newLibrary is the new LinkLibrary
+ *               },
+ *               function(errorThrown) {
+ *                   // library creation failed
+ *                   alert("Error creating LinkLibrary: " + errorThrown);
+ *               });
+ *   (end code)
+ * 
+ * Namespace:
+ *   core.services
+ * 
  * Dependencies:
  *   - jQuery
  */
@@ -58,7 +78,7 @@ if (!window.core.services)
 						deferred.resolve(linkLibrary);
 					},
 					error: function(jqXHR, textStatus, errorThrown) {
-						deferred.reject(errorThrown);
+						deferred.reject(jqXHR.responseText);
 					}
 				});
 				return deferred.promise();

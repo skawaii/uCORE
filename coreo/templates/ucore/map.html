@@ -135,6 +135,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.emptytext.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/slidepanelresultfilter.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.gearth.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredionslidepanelhelper.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/kmlobjectcreator.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/kmlobjectstore.js"></script>
@@ -159,34 +160,25 @@
 			var networkLinkQueue = new core.geo.NetworkLinkQueue(geodataRetriever, 
 					eventChannel, currentBbox, currentAltitude);
 
-			$("#results").slidepanel();
-			$("#results").hide();
+			$("#results").slidepanel()
+				.bind("removepanel", function() {
+					var size;
+					size = $("#results").slidepanel("size");
+					if (size == 0)
+						$("#results").slidepanel("close");
+				})
+				.bind("close", function() {
+					$(this).hide("slide");
+				})
+				.hide();
 
 			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
 			var resultFilter = new core.ui.SlidePanelResultFilter("#results", "search-results");
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
 
-			var createLibraryId = "create-library-panel";
-			var createLibraryCb = function() {
-				var deferred, idx;
-				
-				deferred = new $.Deferred();
-				idx = $("#results").slidepanel("getIndex", createLibraryId);
-				if (idx == -1) {
-					idx = $("#results").slidepanel("append", {
-							id: createLibraryId,
-							title: "Create Link Library",
-							content: $("<div>")
-								.append($("<input>").attr("type", "text")) 
-					});
-				}
-				$("#results").slidepanel("showPanelByIndex", idx);
-				if (!$("#results").is(":visible")) {
-					$("#results").show("slide", {}, 200, null);
-				}
-				return deferred.promise();
-			};
-			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, createLibraryCb);
+			var spHelper = new core.ui.AcoredionSlidePanelHelper("#results");
+			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, 
+					spHelper.getCreateLibraryCallback(libraryService));
 
 			var geController = null;
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {
