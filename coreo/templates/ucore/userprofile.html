@@ -50,7 +50,7 @@
     <body>
         <div id="geheader">
             <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" /></a>
-            <div id="user-info"><a href="/ge/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="/future-feature/">Help</a> | <a href="/future-feature/">About</a> | <a href="/logout/">Sign Out</a></div>
+            <div id="user-info"><a href="/map/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="/future-feature/">Help</a> | <a href="/future-feature/">About</a> | <a href="/logout/">Sign Out</a></div>
         </div>
         <div class="main_div">
            <div class="center_div">
@@ -104,7 +104,7 @@
                 <a href="/ge/"><input type="button" value="Back"></a>
             </form>
             <br/>
-            <h3 style="padding-left:85px;">{% if success_message %}*** {{ success_message }} ***{% endif %}</h3>
+            <h3 style="padding-left:50px;color:black;">{% if saved %}    Your profile changes have been saved.    {% endif %}</h3>
         </div> <!-- end of center_div -->
       </div> <!-- end of main_div -->
     </body>

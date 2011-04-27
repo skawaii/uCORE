@@ -115,7 +115,7 @@ class CoreUser(auth.models.User):
   phone_number = models.PositiveSmallIntegerField()
   settings = models.OneToOneField(Settings, null=True, blank=True)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
-  libraries = models.ManyToManyField('LinkLibrary')
+  libraries = models.ManyToManyField('LinkLibrary', null=True, blank=True)
   # links = models.ManyToManyField(Link, through='LinkLibrary')
 
   def __unicode__(self):
