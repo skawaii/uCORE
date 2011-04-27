@@ -56,7 +56,8 @@ def check_username(request):
 
   return HttpResponse(json.dumps(CoreUser.objects.filter(username=username).exists()))
 
-
+@require_http_methods('POST')
+@login_required
 def create_library(request):
   """
   This view when called will create a link library. It won't work properly unless you are
@@ -82,36 +83,34 @@ def create_library(request):
 
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
-    return HttpResponse('No user identified in request.')
+    return HttpResponseBadRequest('No user identified in request.')
 
-  if request.method == 'POST':
-    links = request.POST['links'].strip()
-    name = request.POST['name'].strip()
-    desc = request.POST['desc'].strip()
-    tags = request.POST['tags'].strip()
-
-    if tags[-1] == ',':
-      length_of_tags = len(tags)
-      tags = tags[0:length_of_tags-1]
-
-    linkArray = links.split(',')
-    tags = tags.split(',')
-    library = LinkLibrary(name=name, desc=desc, creator=user)
-    library.save()
-
-    for t in tags:
-      t = t.strip()
-      retrievedtag = Tag.objects.get_or_create(name=t)
-      library.tags.add(retrievedtag[0])
-
-    for link_object in linkArray:
-      link = Link.objects.get(pk=int(link_object))
+  linkIds = request.POST.getlist('links')
+  name = request.POST['name']
+  if name: name = name.strip()
+  desc = request.POST['desc']
+  if desc: desc = desc.strip()
+  tagNames = request.POST.getlist('tags')
+  
+  library = LinkLibrary.objects.create(name=name, desc=desc, creator=user)
+  
+  for tagName in tagNames:
+    tagName = tagName.strip()
+    tag = Tag.objects.get_or_create(name=tagName)
+    library.tags.add(tag[0])
+  
+  for linkId in linkIds:
+    linkId = linkId.strip()
+    if linkId:
+      link = Link.objects.get(pk=int(linkId))
       library.links.add(link)
+  
+  library.save()
 
-    library.save()
-  else:
-    return HttpResponse('only POST Supported.', status=405)
-
+  accepts = [a.split(';')[0] for a in request.META['HTTP_ACCEPT'].split(',')]
+  if 'application/json' in accepts:
+    return HttpResponse(json.dumps(utils.django_to_dict(library)))
+  
   return render_to_response('testgrid.html',  context_instance=RequestContext(request))
 
 

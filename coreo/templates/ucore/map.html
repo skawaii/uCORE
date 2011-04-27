@@ -127,6 +127,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/kmljsonproxyservice.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/kmljsongeodataretriever.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/searchstrategy.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/libraryservice.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkqueue.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.slidepanel.js"></script>
@@ -147,6 +148,9 @@
 		$(document).ready(function() {
 			$( "#tabs" ).tabs();		
 
+			var libraryService = new core.services.LibraryService({
+				createLibraryEndpoint: "/create-library/"
+			});
 			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
 			var eventChannel = new core.events.EventChannel();
@@ -225,6 +229,17 @@
 
                 }
             });
+      
+            /*
+            libraryService.createLibrary("new library", "just a test", [], ["foo", "bar"])
+            	.then(function(newLibrary) {
+	            		console.log("SUCCESS!");
+	            		console.log(newLibrary);
+	            	},
+	            	function(errorThrown) {
+	            		alert("Error creating library: " + errorThrown);
+	            	});
+           	*/
 		});
 	 
 	</script>
