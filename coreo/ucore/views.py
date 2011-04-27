@@ -116,7 +116,6 @@ def create_library(request):
 
     for t in tags:
       retrievedtag = Tag.objects.get_or_create(name=t)
-      print 'just added %s' % retrievedtag[0].name
       library.tags.add(retrievedtag[0])
 
     for link_object in linkArray:
@@ -498,15 +497,11 @@ def manage_libraries(request):
 def manage_libraries2(request):
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user)
-    if user:
-      print 'Got a user'
     libform = LibraryForm(instance=user)
     LibraryFormSet = formset_factory(LibraryForm)
-    print 'inside the get of manage_libraries'
     return render_to_response('sample.html', { 'form', libform }, context_instance=RequestContext(request))    
   else:
     user = CoreUser.objects.get(username=request.user)
-    print 'inside the post of manage_libraries'
     libform = LibraryForm(request.POST, instance=user)
     libform.save()
     return HttpResponseRedirect('/manage-libraries/?saved=True')
