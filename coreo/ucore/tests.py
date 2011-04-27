@@ -208,7 +208,7 @@ class KmzTest(TestCase):
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
   def test_get_kmz(self):
-    response = self.client.get('/getkmz/')
+    response = self.client.get('/export-kmz/')
 
     with open('download.kmz', 'wb') as f:
       f.write(response.content)
@@ -231,7 +231,7 @@ class KmzTest(TestCase):
     #print 'Passed the get_kmz test.'
 
 
-class PasswordUpdateTest(TestCase):
+class PasswordTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
@@ -240,18 +240,24 @@ class PasswordUpdateTest(TestCase):
 
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
-  def test_password_update(self):
+  def test_view_password(self):
     response = self.client.get('/update-password/')
     self.assertEquals(response.status_code, 200)
-    response = self.client.post('/update-password/', { 'old' : '2pass', 'password' : 'newpass'})
-    self.assertEquals(response.status_code, 302)
+    
+  def test_update_password(self):
+    response = self.client.post('/update-password/', {'old' : '2pass', 'password' : 'newpass'})
+    self.assertRedirects(response, '/update-password/?saved=True')
     self.assertTrue(self.client.login(username='testuser', password='newpass'))
-    response = self.client.post('/update-password/', { 'old' : 'nothing', 'password' : 'anything'})
-    self.assertContains(response, 'Old Password Does Not Match', count=1, status_code=200)
-    # print 'Passed the password update test.'
 
+  def test_wrong_current_password(self):
+    response = self.client.post('/update-password/', {'old' : 'nothing', 'password' : 'anything'})
+    self.assertContains(response, 'Please try again.', count=1)
 
-class ProfileUpdateTest(TestCase):
+  def test_same_passwords(self):
+    response = self.client.post('/update-password/', {'old' : '2pass', 'password' : '2pass'})
+    self.assertContains(response, 'Please try again.', count=1)
+
+class ProfileTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
@@ -263,17 +269,22 @@ class ProfileUpdateTest(TestCase):
   def test_profile_update(self):
     response = self.client.get('/user-profile/')
     self.assertEquals(response.status_code, 200)
-    response = self.client.post('/update-user/', { 'sid' : 'anything', 'first_name' : 'Bill', 'last_name' : 'Somebody', 'phone_number': '9998887777', 'email': 'pcol@anywhere.com'})
+
+    response = self.client.post('/update-user/', { 'sid' : 'anything', 'first_name' : 'Bill', 'last_name' : 'Somebody',
+      'phone_number': '9998887777', 'email': 'pcol@anywhere.com'})
     self.assertEquals(response.status_code, 302)
     self.assertRedirects(response, '/user-profile/?saved=True', status_code=302, target_status_code=200)
+
     response = self.client.get('/user-profile/?saved=True')
     self.assertContains(response, 'Your profile changes have been saved', count=1, status_code=200)
+
     user = CoreUser.objects.get(sid='anything')
     self.assertEquals(user.first_name, 'Bill')
     self.assertEquals(user.last_name, 'Somebody')
     self.assertEquals(user.email, 'pcol@anywhere.com')
     self.assertEquals(user.phone_number, long('9998887777'))
     # print 'Passed the UpdateProfile test.'
+
 
 class SearchTest(TestCase):
   def setUp(self):
@@ -484,7 +495,7 @@ class ShapefileTest(TestCase):
     self.assertTrue(self.client.login(username='testuser', password='2pass'))
 
   def test_get_shapefile(self):
-    response = self.client.get('/getshp/')
+    response = self.client.get('/export-shp/')
 
     with open('sample.zip', 'wb') as f:
       f.write(response.content)
