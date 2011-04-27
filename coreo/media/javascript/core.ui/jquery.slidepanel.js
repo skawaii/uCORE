@@ -179,7 +179,7 @@
 		},
 
 		getTitleById: function(id) {
-			return $(this.element).find("> .ui-widget-header > div.title-lens > div.title-reel > div[slidepanel-id=\"" + id + "\"");
+			return $(this.element).find("> .ui-widget-header > div.title-lens > div.title-reel > div[slidepanel-id=\"" + id + "\"]");
 		},
 
 		/**

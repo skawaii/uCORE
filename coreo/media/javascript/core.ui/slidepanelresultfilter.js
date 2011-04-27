@@ -35,6 +35,8 @@ if (!window.core.ui)
 
 		_panelContent: null,
 
+		_titleContent: null,
+		
 		_init: function() {
 			$(this.element).bind("close", $.proxy(function(e) {
 				if (this.callback) {
@@ -53,7 +55,7 @@ if (!window.core.ui)
 		},
 
 		begin: function(callback) {
-			var jqEl, idx;
+			var jqEl, idx, titleContent;
 
 			this.callback = callback;
 			this.resultCount = 0;
@@ -62,12 +64,16 @@ if (!window.core.ui)
 			this._panelContent = $("<div>").addClass("ui-slidepanelresultfilter")
 				.append($("<p>").text("0 results found."))
 				.append($("<div>").addClass("search-results"));
+			this._titleContent = $("<div>").addClass("ui-slidepanelresultfilter")
+				.append($("<span>").text("Search Results"))
+				.append($("<span>").addClass("search-results-loading").html("&#160;"));
 			var self = this;
 			this._panelContent.delegate("div.search-results > div.result", "click", 
 				function() {
 					var resultId = $(this).attr("resultid");
 					var linkOrLibrary = $(this).data("linkOrLibrary");
-					$(this).remove();
+					//$(this).remove();
+					$(this).addClass("ui-state-active");
 					core.util.CallbackUtils.invokeCallback(self.callback, linkOrLibrary, "result");
 				});
 			this._panelContent.delegate("div.search-results > div.result", "mouseenter",
@@ -83,14 +89,13 @@ if (!window.core.ui)
 			if (idx == -1) {
 				idx = jqEl.slidepanel("append", {
 					"id": this.panelId,
-					"title": $("<div>").addClass("ui-slidepanelresultfilter")
-							.append($("<span>").text("Search Results"))
-							.append($("<span>").addClass("search-results-loading").html("&#160;")),
+					"title": this._titleContent,
 					"content": this._panelContent
 				});
 			}
 			else {
 				jqEl.slidepanel("getContentById", this.panelId).empty().append(this._panelContent);
+				jqEl.slidepanel("getTitleById", this.panelId).empty().append(this._titleContent);
 			}
 
 			jqEl.slidepanel("showPanelByIndex", idx, function() {
