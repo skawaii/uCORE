@@ -88,7 +88,15 @@
            }
 
          }
-         $.post("../create-library/", { links: selected.toString(), name: name, desc: desc, tags: selectedTags.toString() });
+         $.post("../create-library/", { links: selected.toString(), name: name, desc: desc, tags: selectedTags.toString() }, function(data) {
+             if (data == 'Success')
+             {
+               document.getElementById('result').innerHTML = "Your library was saved.";
+               }
+               else
+               {
+                 alert('result was : ' + data);
+               } });
       }
 
      </script> 
@@ -123,7 +131,7 @@
         <tr><td>Create A New Tag Here: </td><td><input id="newTag" name="newTag" style="width:80px"/></td>
       </tr>
       <tr><td>&nbsp;</td>
-        <td><h3 style="color:black;">{% if saved %} Your Link Library has been saved. {% endif %}</h3></td>
+        <td><h3 style="color:black;"><div id="result"></div></h3></td>
       </tr>
      </table>
      <!-- <input type="submit" value="Submit" onclick="create_library(); return false;"/> -->

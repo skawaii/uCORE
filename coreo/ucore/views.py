@@ -125,11 +125,8 @@ def create_library(request):
 
     library.save()
     user.libraries.add(library)
-    return HttpResponseRedirect('/create-library/?saved=True')
-  #  return HttpResponse("Success")
-  # except Exception, e:
-  #   print e.message
-  #   logging.error(e.message)
+    # return HttpResponseRedirect('/create-library/?saved=True')
+    return HttpResponse("Success")
   else:
     allLinks = Link.objects.all()
     allTags = Tag.objects.all()
