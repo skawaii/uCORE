@@ -102,17 +102,15 @@ def create_library(request):
     return HttpResponse('No user identified in request.')
 
   if request.method == 'POST':
-    linkArray = request.POST.getlist('links')
+    links = request.POST['links'].strip()
     name = request.POST['name'].strip()
     desc = request.POST['desc'].strip()
-    tags = request.POST.getlist('tags')
-    print tags
+    tags = request.POST['tags'].strip()
     # if tags[-1] == ',':
     #  length_of_tags = len(tags)
     #  tags = tags[0:length_of_tags-1]
-
-    # linkArray = links.split(',')
-    # tags = tags.split(',')
+    linkArray = links.split(',')
+    tags = tags.split(',')
     library = LinkLibrary(name=name, desc=desc, creator=user)
     library.save()
 
