@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>uCORE</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      
+    <!-- CSS -->
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+
+    <!-- Javascript -->
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/geo/geo-0.2.pack.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
+
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/firebugx.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-ui-1.8.5.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.jsonp-1.1.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.core.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.remotemodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.checkboxselectcolumn.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.autotooltips.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellrangedecorator.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellcopymanager.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.rowselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.editors.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.grid.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.dataview.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
+    <script type="text/javascript">
+      
+      // jQuery.ajaxSettings.traditional = true;
+
+      var totalTable = [];
+      var grid;   
+      $(document).ready(function()
+      {
+        document.getElementById('dialog').style.display='none';
+        } 
+       ); 
+
+      function displaylibraries()
+       {
+        document.getElementById('dialog').style.display='block';        
+        totalTable = [];
+        librarytable = [];
+        $.getJSON('/libraries/', 
+        function(libraryjson)
+        { 
+          if (!jQuery.isEmptyObject(libraryjson))
+          {
+            var columns = [];
+            $(function()
+            {
+              var checkboxSelector = new Slick.CheckboxSelectColumn({
+               cssClass: "slick-cell-checkboxsel"
+            });
+            columns.push(checkboxSelector.getColumnDefinition());
+            columns.push({ id: "name", name: "name", field: "name", width:300, editor: TextCellEditor });
+          columns.push({ id: "desc", name: "desc", field: "description", width:300, editor: TextCellEditor });
+          columns.push({ id: "links", name: "links", field: "links", width:300, editor: TextCellEditor });
+           for (var i=0; i < libraryjson.length; i++)
+           {
+               var d2 = (librarytable[i] = {}); 
+               d2["name"] = libraryjson[i].fields.name;
+               d2["description"] = libraryjson[i].fields.desc;
+               d2["pk"] = libraryjson[i].pk;
+               for (var k=0; k < libraryjson[i].fields.links.length; k++)
+               {
+                 if (k == 0)
+                 {
+                  d2["links"] = libraryjson[i].fields.links[k][1];
+                 }
+                 else
+                 {
+                   d2["links"] = d2["links"] + "," + libraryjson[i].fields.links[k][1];
+                 }  
+               }
+          }
+          var options = { editable: true, enableCellNavigation: true, asyncEditorLoading: false, autoEdit: false };
+          librarygrid = new Slick.Grid("#myGrid", librarytable, columns, options);
+          librarygrid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow:false}));
+          librarygrid.registerPlugin(checkboxSelector);
+              })   
+          } });
+        
+         var selectedRows = [];
+         $("#dialog").dialog({ width: 1000, close: function(event, ui)
+             { 
+             }, buttons: { "Delete Selected Libraries": function() {
+               if (librarygrid != null)
+               {
+                 selectedRows = librarygrid.getSelectedRows();
+               }
+             
+               if (selectedRows.length == 0) 
+               {
+                 alert("Please check some links before continuing..");
+               }
+               else if (selectedRows.length > 0)
+               {
+                  var libparameter = null;
+                  for (var j = 0; j < selectedRows.length; j++)
+                  {
+                    var rowNum = selectedRows[j];
+                    if (libparameter != null)
+                    {
+                      libparameter = libparameter + "," + librarytable[rowNum]["pk"];
+                    }
+                    else
+                    {
+                      libparameter = librarytable[rowNum]["pk"];
+                    }
+                    $.post("../delete-libraries/", { library_id: libparameter.serialize()}, function() { window.location.reload(); });
+                    // window.location.reload();
+                  }
+               }  
+             }, "Add Library": function() {
+                  window.location = '../map/';
+             } }});
+          //     else  
+          //     {
+          //     var row_parameter;
+          //     for (var j = 0; j < selectedRows.length; j++)
+           //    {
+           //      var rowNum = selectedRows[j];
+           //      if (j === 0)
+           //      {
+           //        row_parameter = totalTable[rowNum]["pk"];
+           //      }
+           //      else
+           //      {
+           //        row_parameter = row_parameter + "," + totalTable[rowNum]["pk"];
+           //      }
+           //    }
+           //    var libparameter;
+           //    for (var j = 0; j < libraryRows.length; j++)
+           //    {
+           //      var rowNum = libraryRows[j];
+           //      if (j === 0)
+           //      {
+           //        libparameter = librarytable[rowNum]["pk"];
+           //      }
+           //      else
+           //      {
+           //        libparameter = libparameter + "," + librarytable[rowNum]["pk"];
+           //      }
+           //    }
+               
+           //  }
+               
+       }
+
+</script>
+    <style type="text/css">
+      td {
+        border-bottom: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='geheader'>
+      <img id="core-logo"  height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
+      <div id="user-info">
+        <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/map/">Back to Visualizer</a> | <a href="/manage-libraries/">Manage Your Libraries</a> | <a href="/future-feature/">Help</a> | <a href="/logout/">Sign Out</a>
+      </div>
+    </div>
+    <br/>
+    <br/>
+    <div style="text-align:center">
+      <h2>{{ user.first_name }}'s Libraries</h2><br/><br/>
+      <form action='/delete-libraries/' method="post">
+      <table style="margin:auto; border-style: solid;border-width:2px; border-collapse: separate; border-color:black;text-align:center; margin:1;padding:2px;">
+        <tr style="border: 1px solid black"><th style="width:100px;">Action</th>
+          <th style="width:100px;">Library Name</th><th style="width:100px">Library Desc</th><th style="width:100px;">Library Tags</th><th style="width:100px">Links</th>
+      <tr/>
+        {% for i in library_list %}
+        <tr style="border: 1px solid black">
+          <td><input type="checkbox"/></td>
+          <td>  {{ i.name }} </td><td> {{ i.desc }} </td><td>{% for k in i.tags.all %} {{ k.name }}, {% endfor %}</td><td> {% for j in i.links.all %} {{ j }}, {% endfor %}</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="2"><input type="submit" value="Delete selected links"/></td><td></td><td></td>
+            <td colspan="2"><a href="/map/"><button style="width:80px">Back</button></a></td>
+          </tr>
+              </table>
+            </div>
+          </form>
+          <br/>
+          <br/>
+          <div style="margin:auto;text-align:center;horizontal-align:center">
+            <button onclick="displaylibraries();">Javascript Version</button>
+          </div>
+        <div id='dialog' title="Libraries">
+           <h6>Link Libraries </h6>
+           <div id="myGrid" style="width:100%;height:200px;">
+           </div>
+       </div>
+</body>
+</html>
