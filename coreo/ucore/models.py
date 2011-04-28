@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models.signals import post_save
-
+from django.forms import ModelForm
 from coreo.ucore.managers import TagManager
 
 class Skin(models.Model):
@@ -82,6 +82,9 @@ class Link(models.Model):
   url = models.URLField(unique=True) # do we want verify_exists=True?
   tags = models.ManyToManyField(Tag, verbose_name='default tags')
   poc = models.ForeignKey(POC)
+
+  def natural_key(self):
+    return (self.pk, self.name)
 
   def __unicode__(self):
      return self.name
@@ -201,6 +204,9 @@ class LinkLibrary(models.Model):
   def __unicode__(self):
     return '%s %s' % (self.creator.username, self.name)
 
+  def natural_key(self):
+    return (self.pk, self.name, self.links)
+
   class Meta:
     verbose_name_plural = 'link libraries'
 
@@ -213,6 +219,13 @@ class SearchLog(models.Model):
 
   def __unicode__(self):
     return '%s %s' % (self.user.username, self.search_terms)
+
+
+class LibraryForm(ModelForm):
+  class Meta:
+    model = CoreUser
+    fields = ('libraries')
+
 
 
 ### Signal Registration ###

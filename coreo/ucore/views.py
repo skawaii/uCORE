@@ -11,7 +11,6 @@ import xml.dom.expatbuilder
 from xml.dom.minidom import parse, parseString
 from xml.parsers import expat
 from xml.parsers.expat import ExpatError
-
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import auth
@@ -24,10 +23,10 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadReque
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.views.decorators.http import require_http_methods
-
 from coreo.ucore import shapefile, utils
 from coreo.ucore.kmlparser import KmlParser
 from coreo.ucore.models import *
+
 
 
 @require_http_methods(['POST'])
@@ -40,7 +39,7 @@ def add_library(request):
   """
   user = CoreUser.objects.get(username=request.user.username)
   library_ids = request.POST.getlist('library_id')
-
+  # library_ids = request.POST['library_id'].strip(',')
   try:
     for library_id in library_ids:
       user.libraries.add(LinkLibrary.objects.get(pk=library_id))
@@ -50,10 +49,10 @@ def add_library(request):
   return HttpResponseRedirect(reverse('coreo.ucore.views.success'))
 
 
+
 @require_http_methods(['GET'])
 def check_username(request):
   username = request.GET['username'].strip()
-
   return HttpResponse(json.dumps(CoreUser.objects.filter(username=username).exists()))
 
 @require_http_methods('POST')
@@ -83,40 +82,78 @@ def create_library(request):
 
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
-    return HttpResponseBadRequest('No user identified in request.')
+    return HttpResponse('No user identified in request.')
 
-  linkIds = request.POST.getlist('links')
-  name = request.POST['name']
-  if name: name = name.strip()
-  desc = request.POST['desc']
-  if desc: desc = desc.strip()
-  tagNames = request.POST.getlist('tags')
-  
-  library = LinkLibrary.objects.create(name=name, desc=desc, creator=user)
-  
-  for tagName in tagNames:
-    tagName = tagName.strip()
-    tag = Tag.objects.get_or_create(name=tagName)
-    library.tags.add(tag[0])
-  
-  for linkId in linkIds:
-    linkId = linkId.strip()
-    if linkId:
-      link = Link.objects.get(pk=int(linkId))
+  if request.method == 'POST':
+    links = request.POST['links'].strip()
+    name = request.POST['name'].strip()
+    desc = request.POST['desc'].strip()
+    tags = request.POST['tags'].strip()
+    # if tags[-1] == ',':
+    #  length_of_tags = len(tags)
+    #  tags = tags[0:length_of_tags-1]
+    linkArray = links.split(',')
+    tags = tags.split(',')
+    library = LinkLibrary(name=name, desc=desc, creator=user)
+    library.save()
+
+    for t in tags:
+      retrievedtag = Tag.objects.get_or_create(name=t)
+      library.tags.add(retrievedtag[0])
+
+    for link_object in linkArray:
+      link = Link.objects.get(pk=int(link_object))
       library.links.add(link)
   
-  library.save()
+    library.save()
 
-  accepts = [a.split(';')[0] for a in request.META['HTTP_ACCEPT'].split(',')]
-  if 'application/json' in accepts:
-    return HttpResponse(json.dumps(utils.django_to_dict(library)))
+    user.libraries.add(library)    
+
+    accepts = [a.split(';')[0] for a in request.META['HTTP_ACCEPT'].split(',')]
+    if 'application/json' in accepts:
+      return HttpResponse(json.dumps(utils.django_to_dict(library)))
+
+    return HttpResponse("Success")
+  else:
+    allLinks = Link.objects.all()
+    allTags = Tag.objects.all()
+    return render_to_response('createlib.html', { 'allLinks' : allLinks, 'allTags': allTags }, context_instance=RequestContext(request))
+
+@require_http_methods(["GET"])
+@login_required
+def get_libraries(request):
+  try:
+    user = CoreUser.objects.get(username=request.user)
+    results = user.libraries.all()
+  except CoreUser.DoesNotExist:
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
+  # return HttpResponse(serializers.serialize('json', results, indent=4, relations=('links',)))
+
+
+@require_http_methods(["POST"])
+@login_required
+def delete_libraries(request):
   
-  return render_to_response('testgrid.html',  context_instance=RequestContext(request))
-
+  # library_ids = request.POST["ids"].strip()
+  # libraryList = library_ids.split(',')
+  libraryList = request.POST.getlist('library_id')
+  try:
+    user = CoreUser.objects.get(username=request.user)
+    for i in libraryList:
+      link2rid = LinkLibrary.objects.get(pk=i)
+      user.libraries.remove(link2rid)
+      user.save()
+  except CoreUser.DoesNotExist:
+    return render_to_response('login.html', context_instance=RequestContext(request))
+  # maybe add a check to make sure that the logged in user is only
+  # deleting his/her libraries.
+  return HttpResponse("Purged of that LinkLibrary.")
 
 @require_http_methods(['GET'])
 def future_feature(request):
   return render_to_response('future.html', context_instance=RequestContext(request))
+
 
 
 @require_http_methods(['POST'])
@@ -441,6 +478,32 @@ def map_view(request):
 
   return render_to_response('map.html', {'user': user}, context_instance=RequestContext(request))
 
+@login_required
+def manage_libraries(request):
+  if request.method == 'GET':
+    user = CoreUser.objects.get(username=request.user)
+    library_list = user.libraries.all()
+    available_list = LinkLibrary.objects.all()
+    for i in library_list:
+      available_list = available_list.exclude(name=i.name)
+    return render_to_response('manage-libraries2.html', { 'library_list': library_list, 'available_list': available_list }, context_instance=RequestContext(request))
+  else:
+    return HttpResponse("Only GET supported so far.")
+
+def manage_libraries2(request):
+  if request.method == 'GET':
+    user = CoreUser.objects.get(username=request.user)
+    libform = LibraryForm(instance=user)
+    LibraryFormSet = formset_factory(LibraryForm)
+    return render_to_response('sample.html', { 'form', libform }, context_instance=RequestContext(request))    
+  else:
+    user = CoreUser.objects.get(username=request.user)
+    libform = LibraryForm(request.POST, instance=user)
+    libform.save()
+    return HttpResponseRedirect('/manage-libraries/?saved=True')
+
+
+
 
 @require_http_methods(['GET', 'POST'])
 @login_required
@@ -734,11 +797,13 @@ def update_password(request):
            context_instance=RequestContext(request))
        
 
-@require_http_methods(['POST'])
+@require_http_methods(['GET', 'POST'])
 def upload_csv(request):
-  utils.insert_links_from_csv(request.FILES['file'])
-
-  return render_to_response('upload_csv.html', context_instance=RequestContext(request))
+  if request.method == 'GET':
+    return render_to_response('upload_csv.html', context_instance=RequestContext(request))
+  else:
+    utils.insert_links_from_csv(request.FILES['file'])
+    return render_to_response('upload_csv.html', context_instance=RequestContext(request))
 
 @require_http_methods(['GET'])
 @login_required

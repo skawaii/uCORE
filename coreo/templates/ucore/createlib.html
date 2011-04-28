@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>uCORE</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      
+    <!-- CSS -->
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+
+    <!-- Javascript -->
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/geo/geo-0.2.pack.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
+
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/firebugx.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-ui-1.8.5.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.jsonp-1.1.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.core.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.remotemodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.checkboxselectcolumn.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.autotooltips.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellrangedecorator.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellcopymanager.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.rowselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.editors.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.grid.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.dataview.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
+    <style type="text/css">
+       tr {
+         text-align:left;
+         vertical-align:top;
+       }
+       td {
+         text-align: left;
+         vertical-align:top;
+         color: black;
+         padding-left: 5px;
+         padding-right: 5px;
+         padding-top: 5px;
+         padding-bottom: 10px;
+       }
+       select {
+         height: 300px;
+         width: 400px;
+       }
+
+       input {
+         width: 400px;
+       }
+
+     </style>   
+     <script type="text/javascript">
+
+      function create_library()
+      {
+        var box  = document.getElementById("links");
+        var name = document.getElementById("name").value;
+        var desc = document.getElementById("desc").value;
+        var tags = document.getElementById("tags");
+        var newTag = $("#newTag").val();
+        var selected = new Array();
+        var selectedTags = new Array();
+        if (newTag != '')
+        {
+          selectedTags.push(newTag);
+        }
+         for (var i = 0; i < box.options.length; i++)
+         {
+           if (box.options[i].selected)
+           {
+             selected.push(box.options[i].value);
+           }
+         }
+         for (var j=0; j < tags.options.length; j++)
+         {
+           if (tags.options[j].selected)
+           {
+             selectedTags.push(tags.options[j].value);
+           }
+
+         }
+         $.post("../create-library/", { links: selected.toString(), name: name, desc: desc, tags: selectedTags.toString() }, function(data) {
+             if (data == 'Success')
+             {
+               document.getElementById('result').innerHTML = "Your library was saved.";
+               }
+               else
+               {
+                 alert('result was : ' + data);
+               } });
+      }
+
+     </script> 
+  </head>
+  <body>
+    <div id='geheader'>
+      <img id="core-logo"  height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
+      <div id="user-info">
+        <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/map/">Back to Visualizer</a> | <a href="/future-feature/">Help</a> | <a href="/logout/">Sign Out</a>
+      </div>
+    </div>
+    <br/>
+    <br/>
+    <div style="text-align:center">
+      <h3>Create a Link Library</h3>
+      <table style="margin:auto">
+        <tr><td>Library Name: </td><td><input name="name" id="name"></input></td></tr>
+        <tr><td>Library Description: </td><td><input name="desc" id="desc"></input></td></tr>
+        <tr><td>&nbsp;</td><td>Hold down Command or Control when selecting more than one.</td></tr>
+        <tr><td>Links: </td><td><select multiple="multiple" id="links" name="links">
+              {% for i in allLinks %}
+              <option value="{{ i.pk }}">{{ i.name }} || {{ i.url }}</option>
+              {% endfor %}
+        </select></td>
+      </tr>
+      <tr>
+        <td>Library Tags:</td><td style="width:100px; height;100px"><select multiple="multiple" id="tags" name="tags" style="width:100px; height:100px">
+            {% for t in allTags %}
+            <option value="{{ t.name }}">{{ t.name }}</option>
+            {% endfor %}
+        </select></tr>
+        <tr><td>Create A New Tag Here: </td><td><input id="newTag" name="newTag" style="width:80px"/></td>
+      </tr>
+      <tr><td>&nbsp;</td>
+        <td><h3 style="color:black;"><div id="result"></div></h3></td>
+      </tr>
+     </table>
+     <!-- <input type="submit" value="Submit" onclick="create_library(); return false;"/> -->
+     <button onclick="create_library(); return false;">Submit</button><button onclick="window.location.href='../manage-libraries/'">Back to Manage Libraries</button>
+</div>
+  </body>
+</html>
