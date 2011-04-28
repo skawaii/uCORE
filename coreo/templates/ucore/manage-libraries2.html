@@ -1,0 +1,112 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head> 
+    <title>uCORE</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      
+    <!-- CSS -->
+   <link rel="stylesheet" href="{{ MEDIA_URL }}css/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+
+    <!-- Javascript -->
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/geo/geo-0.2.pack.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
+
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/firebugx.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-ui-1.8.5.custom.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.event.drag-2.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery.jsonp-1.1.0.min.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.core.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.remotemodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.checkboxselectcolumn.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.autotooltips.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellrangedecorator.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellcopymanager.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.cellselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/plugins/slick.rowselectionmodel.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.editors.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.grid.js"></script>
+    <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.dataview.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
+    <script type="text/javascript">
+      
+      jQuery.ajaxSettings.traditional = true;
+
+      function add_library()
+      {
+         var box  = document.getElementById('library_id');
+         var selected = new Array();
+         for (var i = 0; i < box.options.length; i++)
+         {
+           if (box.options[i].selected)
+           {
+             selected.push(box.options[i].value);
+           }
+         }
+         $.post("../add-library/", { library_id: selected }, function() { window.location.reload(); } );
+      }
+
+      function delete_libraries()
+      {
+        var box = document.getElementById('ids');
+        var selected = new Array();
+        for (var j = 0; j < box.options.length; j++)
+        {
+          if (box.options[j].selected)
+          {
+            selected.push(box.options[j].value);
+          }
+        }
+        $.post("../delete-libraries/", { library_id: selected },
+            function() { window.location.reload(); } );
+      }
+   </script>
+</head>
+  <body>
+    <div id='geheader'>
+      <img id="core-logo"  height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
+      <div id="user-info">
+        <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/map/">Back to Visualizer</a> | <a href="/manage-libraries/">Manage Your Libraries</a> | <a href="/future-feature/">Help</a> | <a href="/logout/">Sign Out</a>
+      </div>
+    </div>
+    <br/>
+    <br/>
+    <div style="text-align:center">
+      <h2>{{ user.first_name }}'s Libraries</h2><br/><br/>
+        <table style="margin:auto;"> 
+          <tr>
+            <th><label for="ids" style="vertical-align:top">User Libraries:</label></th><th>&nbsp;</th><th>
+              <label for="library_id" style="vertical-align:top">Available Libraries</label></th>
+          </tr>
+          <tr>
+            <td>
+         <select multiple="multiple" name="ids" id="ids">
+            {% for i in library_list %}
+            <option value="{{ i.pk }}">{{ i.name }}&nbsp;&nbsp;{{i.desc}}</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td><button onclick="add_library();return false;"> < </button><br/><button onclick="delete_libraries();return false;"> > </button></td>
+        <td>
+          <select multiple="multiple" name="library_id" id="library_id">
+          {% for j in available_list %}
+          <option value="{{ j.pk }}">{{ j.name }}&nbsp;&nbsp;{{j.desc}}</option>
+          {% endfor %}
+          </select>
+        </td>
+      </tr> 
+    </table>
+          Hold down command or control to select more than one.<br/>
+          <a href="../map/"><button>Create New Library (via Search)</button></a>
+          <br/>
+          <a href="../create-library/"><button>Create New Library (from scratch)</button></a>
+          <br/>
+     </div>
+</html>

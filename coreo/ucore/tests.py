@@ -34,9 +34,13 @@ class LinkLibraryTest(TestCase):
     self.assertEquals(response.status_code, 200)
 
   def test_create(self):
-    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': '1,2', 'tags':'HotButton, WarmButton,'})
+    links = "1, 2"
+    tags = "HotButton,WarmButton"
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': links, 'tags': tags })
     self.assertEquals(response.status_code, 200)
     self.assertEquals(LinkLibrary.objects.count(), 1)
+    user = CoreUser.objects.get(username='testuser')
+    self.assertEquals(1, user.libraries.count())
 
     library = LinkLibrary.objects.get(pk=1)
     self.assertEquals(library.links.count(), 2)
@@ -49,6 +53,7 @@ class LinkLibraryTest(TestCase):
     self.assertEquals(library.tags.count(), 2)
     self.assertEquals(library.tags.get(name='HotButton').name, 'HotButton')
     self.assertEquals(library.tags.get(name='WarmButton').name, 'WarmButton')
+    
     # print 'Passed the create link library test.'
 
   def test_add_single(self):
@@ -74,6 +79,20 @@ class LinkLibraryTest(TestCase):
     self.assertEquals(libraries.count(), 2)
     self.assertEquals(libraries[0].name, link_library1.name)
     self.assertEquals(libraries[1].name, link_library2.name)
+
+  def test_delete_single(self):
+    user = CoreUser.objects.get(username='testuser')
+    link_library1 = LinkLibrary.objects.create(name='library1', desc='just a test', creator=user)
+    library = LinkLibrary.objects.get(pk=1)
+    user.libraries.add(library)
+    user.save()
+    self.assertEquals(1, user.libraries.count())
+    # for i in user.libraries.all():
+    #  print i.pk
+    response = self.client.post('/delete-libraries/', { 'library_id': 1 })
+    self.assertEqual(response.status_code, 200)
+    user = CoreUser.objects.get(username='testuser')
+    self.assertEqual(0, user.libraries.count())
 
 
 class LoginTest(TestCase):
@@ -107,7 +126,7 @@ class LogoutTest(TestCase):
 
 
 class TrophyTest(TestCase):
-  def  setUp(self):
+  def   setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
     self.user.set_password('2pass')
@@ -497,6 +516,17 @@ class ShapefileTest(TestCase):
     #print 'Passed the get_shapefile test.'
  
 
+class FutureFeatureTest(TestCase):
+
+  def test_getpage(self):
+    response = self.client.get('/future-feature/')
+    self.assertEquals(response.status_code, 200)
+    self.assertTemplateUsed(response, 'future.html', msg_prefix='')
+    self.assertContains(response, 'We\'re sorry', count=1, status_code=200, msg_prefix='')
+
+    # print 'Passed the futurefeature test.'
+
+
 class NotificationTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
@@ -622,7 +652,7 @@ class RateTest(TestCase):
 
 
 class SettingsTest(TestCase):
-  def setUp(self):
+  def setUp(self): 
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
     self.user.set_password('2pass')
