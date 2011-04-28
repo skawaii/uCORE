@@ -98,6 +98,14 @@
                  alert('result was : ' + data);
                } });
       }
+ 
+      function addTag()
+      {
+       var newTag = document.getElementById('newTag').value;
+       var multipleTags = document.getElementById('tags');
+       multipleTags.options[multipleTags.length] = new Option(newTag, newTag);
+
+      }
 
      </script> 
   </head>
@@ -128,7 +136,7 @@
             <option value="{{ t.name }}">{{ t.name }}</option>
             {% endfor %}
         </select></tr>
-        <tr><td>Create A New Tag Here: </td><td><input id="newTag" name="newTag" style="width:80px"/></td>
+        <tr><td>Create A New Tag Here: </td><td><input id="newTag" name="newTag" style="width:80px"/><button onclick="addTag()">Add Tag</button></td>
       </tr>
       <tr><td>&nbsp;</td>
         <td><h3 style="color:black;"><div id="result"></div></h3></td>
