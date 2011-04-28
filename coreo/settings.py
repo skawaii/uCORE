@@ -67,10 +67,6 @@ TEMPLATE_LOADERS = (
 #   'django.template.loaders.eggs.Loader',
 )
 
-SERIALIZATION_MODULES = {
-    'json': 'wadofstuff.django.serializers.json'
-}
-
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
