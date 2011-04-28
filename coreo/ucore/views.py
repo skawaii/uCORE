@@ -55,7 +55,7 @@ def check_username(request):
   username = request.GET['username'].strip()
   return HttpResponse(json.dumps(CoreUser.objects.filter(username=username).exists()))
 
-
+@require_http_methods(['GET', 'POST'])
 def create_library(request):
   """
   This view when called will create a link library. It won't work properly unless you are
@@ -78,7 +78,8 @@ def create_library(request):
     existing webapp.
   """
   user = CoreUser.objects.get(username=request.user)
-
+  if request.is_ajax():
+    print 'AJAX detected....'
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
     return HttpResponse('No user identified in request.')
