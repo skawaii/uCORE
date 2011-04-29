@@ -52,7 +52,9 @@ if (!window.core.ui)
 	 * String. Name of the attribute on a tree node containing the GeoData ID.
 	 */
 	GeoDataTree.GEODATA_ATTR = "core-geodata-id";
+	GeoDataTree.KML_TYPE_ATTR = "core-kml-type";
 	GeoDataTree.prototype = {
+		
 		/**
 		 * Property: networkLinkQueue
 		 * 
@@ -91,7 +93,7 @@ if (!window.core.ui)
 		onUncheck: function(geodata) {},
 		
 		/**
-		 * Function: onSelect
+		 * Property: onSelect
 		 * 
 		 * Function. Invoked when a tree node is selected. Function is 
 		 * invoked with one parameter - the <GeoData> that was selected.
@@ -101,6 +103,34 @@ if (!window.core.ui)
 		 */
 		onSelect: function(geodata) {},
 
+		/**
+		 * Property: onHover
+		 * 
+		 * Function. Invoked when a node is hovered.
+		 */
+		onHover: function(geodata, node) {},
+		
+		/**
+		 * Property: onDehover
+		 * 
+		 * Function. Invoked after a user stops hovering on a node.
+		 */
+		onDehover: function(geodata, node) {},
+		
+		/**
+		 * Property: onRemove
+		 * 
+		 * Function. Invoked after a geodata is removed.
+		 */
+		onRemove: function(geodata) {},
+		
+		/**
+		 * Property: onRename
+		 * 
+		 * Function. Invoked after a geodata is renamed.
+		 */
+		onRename: function(geodata, newName) {},
+		
 		/**
 		 * Function: _createTreeNode
 		 * 
@@ -124,9 +154,19 @@ if (!window.core.ui)
 			if (!name) {
 				name = geodata.getKmlFeatureType();
 			}
-			treeNode.title = "<ins class=\"" + geodata.getKmlFeatureType() + "\">&#160;</ins>" + name;
+			
+			var title = $("<span>")
+						.append($("<ins>").addClass(geodata.getKmlFeatureType()).html("&#160;"))
+						.append($("<span>").html(name));
+			if (this.appendHoverActions && typeof this.appendHoverActions === "function") {
+				var hoverActions = $("<div>").addClass("geodatatree-hoveractions");
+				this.appendHoverActions.call(this.appendHoverActions, hoverActions, geodata);
+				title.append(hoverActions);
+			}
+			treeNode.title = title;
 			treeNode.attr = {};
 			treeNode.attr[GeoDataTree.GEODATA_ATTR] = geodata.id;
+			treeNode.attr[GeoDataTree.KML_TYPE_ATTR] = geodata.getKmlFeatureType();
 			if (geodata.hasChildren()) {
 				treeNode.state = "closed";
 			}
@@ -187,6 +227,35 @@ if (!window.core.ui)
 					_this.onSelect(geodata);
 				}
 			})
+			.bind("hover_node.jstree", function(e, data) {
+				var hovered = data.rslt.obj;
+				var geodata = getGeoDataFromTreeNode(hovered);
+				if (_this.onHover) {
+					_this.onHover(geodata, hovered);
+				}
+			})
+			.bind("dehover_node.jstree", function(e, data) {
+				var dehovered = data.rslt.obj;
+				var geodata = getGeoDataFromTreeNode(dehovered);
+				if (_this.onDehover) {
+					_this.onDehover(geodata, dehovered);
+				}
+			})
+			.bind("remove.jstree", function(e, data) {
+				var removed = data.rslt.obj;
+				var geodata = getGeoDataFromTreeNode(removed);
+				if (_this.onRemove) {
+					_this.onRemove(geodata);
+				}
+			})
+			.bind("rename.jstree", function(e, data) {
+				var node = data.rslt.obj;
+				var geodata = getGeoDataFromTreeNode(node);
+				var newName = data.rslt.new_name;
+				if (_this.onRename) {
+					_this.onRename(geodata, newName);
+				}
+			})
 			.jstree({
 				core: {
 					html_titles: true,
@@ -202,7 +271,6 @@ if (!window.core.ui)
 								+ " returned from GeoDataStore doesn't "
 								+ "contain function iterateChildren");
 						var iterate = $.proxy(function() {
-							console.log("iterate");
 							parentGeoData.iterateChildren(function(childGeoData) {
 								var name = childGeoData.getName();
 								if (!name) {
@@ -210,8 +278,10 @@ if (!window.core.ui)
 								}
 								var childNode = _this._createTreeNode(childGeoData, name);
 								dataFn.call(dataFn, childNode);
+							},
+							function() {
+								completeFn.call(completeFn);
 							});
-							completeFn.call(completeFn);
 						}, this);
 						if (parentGeoData.getKmlFeatureType() === KmlFeatureType.NETWORK_LINK) {
 							_this.networkLinkQueue.forceUpdate(parentGeoDataId, iterate);
@@ -228,26 +298,141 @@ if (!window.core.ui)
 					select_limit: 1,
 					selected_parent_close: false
 				},
-				plugins: ["ui", "themes", "lazyload", "bettercheckbox"]
+				hoverbuttons: {
+					getHoverButtons: function(node) {
+						var kmlType = node.attr(GeoDataTree.KML_TYPE_ATTR);
+						var buttons = [];
+//						if (kmlType === KmlFeatureType.FOLDER 
+//								|| kmlType === KmlFeatureType.DOCUMENT) {
+//							buttons.push({ 
+//					        	icon: "ui-icon-plusthick", 
+//					        	tooltip: "Add folder", 
+//					        	action: function() {
+//					        		// TODO: Create geodata, then create tree node from it
+//					        		var newNode = {
+//					        			attr: {},
+//					        			state: "closed",
+//					        			data: [
+//					        			       {
+//					        			    	   title: $("<span>")
+//							    						.append($("<ins>").addClass(KmlFeatureType.FOLDER).html("&#160;"))
+//							    						.append($("<span>").text("New Folder")),
+//							    					icon: KmlFeatureType.FOLDER
+//					        			       }
+//					        			]
+//					        		};
+//					        		newNode.attr[GeoDataTree.KML_TYPE_ATTR] = KmlFeatureType.FOLDER;
+////					    			var title = $("<span>")
+////					    						.append($("<ins>").addClass(KmlFeatureType.FOLDER).html("&#160;"))
+////					    						.append($("<span>").text("New Folder"));
+////					    			if (this.appendHoverActions && typeof this.appendHoverActions === "function") {
+////					    				var hoverActions = $("<div>").addClass("geodatatree-hoveractions");
+////					    				this.appendHoverActions.call(this.appendHoverActions, hoverActions, geodata);
+////					    				title.append(hoverActions);
+////					    			}
+////					    			newNode.data
+////					    			newNode.title = title;
+////					    			newNode.attr = {};
+//					    			// TODO
+//					    			// treeNode.attr[GeoDataTree.GEODATA_ATTR] = geodata.id;
+//					    			//newNode.attr[GeoDataTree.KML_TYPE_ATTR] = KmlFeatureType.FOLDER;
+//					    			//newNode.state = "closed";
+//					        		$(_this.el).jstree("create", node, "first", newNode); 
+//					        	} 
+//					        });
+//						}
+						buttons.push({ 
+				        	icon: "ui-icon-pencil", 
+				        	tooltip: "Rename", 
+				        	action: function(node) {
+				        		$(_this.el).jstree("rename", node);
+				        	} 
+				        });
+						buttons.push({ 
+				        	icon: "ui-icon-trash", 
+				        	tooltip: "Remove", 
+				        	action: function(node) {
+				        		$(_this.el).jstree("remove", node);
+				        	}
+				        });
+						return buttons;
+					}
+				},
+				dnd: {
+					drop_target: ".jstree li[" + GeoDataTree.KML_TYPE_ATTR + "='" + KmlFeatureType.FOLDER + "'],"
+								+ ".jstree li[" + GeoDataTree.KML_TYPE_ATTR + "='" + KmlFeatureType.DOCUMENT + "']",
+					drop_check: function(data) {
+						console.log("drop_check");
+						var dragged = data.o;
+						var dropTarget = data.r;
+						var geodata = getGeoDataFromTreeNode(dropTarget);
+						return (geodata.getKmlFeatureType() === KmlFeatureType.DOCUMENT
+								|| geodata.getKmlFeatureType() === KmlFeatureType.FOLDER);
+					},
+					drag_check: function(data) {
+						console.log("drag_check");
+						return {
+							before: false,
+							after: false,
+							inside: false
+						};
+					}
+				},
+				plugins: ["ui", "themes", "lazyload", "bettercheckbox", "hoverbuttons", "crr"]
 			});
 		},
 		
-		containsGeoData: function(geoDataId) {
-			var node = this.el.find("li[" + GeoDataTree.GEODATA_ATTR + "='" + geoDataId + "'");
-			return node.length > 0;
+		isEmpty: function() {
+			return $(this.el).find("li").size() == 0;
+		},
+
+		_findNodeByGeoDataId: function(geoDataId) {
+			return $(this.el).find("li[" + GeoDataTree.GEODATA_ATTR + "='" + geoDataId + "']");
 		},
 		
+		containsGeoData: function(geoDataId) {
+			var node = this._findNodeByGeoDataId(geoDataId);
+			return node.size() > 0;
+		},
+
 		setLoadingStatus: function(geoDataId, loading) {
-			console.log("Set loading = " + loading + " for geodata " + geoDataId);
-			var node = this.el.find("li[" + GeoDataTree.GEODATA_ATTR + "='" + geoDataId + "'");
+			var node = this._findNodeByGeoDataId(geoDataId);
 			var fn = loading ? "addClass" : "removeClass";
 			node[fn]("jstree-loading");
 		},
 
+		setErrorStatus: function(geoDataId, errorStatus, errorMsg) {
+			var node = this._findNodeByGeoDataId(geoDataId);
+			var fn = errorStatus ? "addClass" : "removeClass";
+			node[fn]("jstree-error");
+			if (errorStatus && errorMsg) {
+				/*
+				
+				node.after($("<div>").addClass("ui-state-error ui-corner-all").css({ "display": "none" })
+						.append(
+							$("<p>").append(
+								$("<span>").addClass("ui-icon ui-icon-alert")
+									.css({ "float": "left", "margin-right": ".3em"}))
+								.text(errorMsg)));
+				node.tooltip();
+				*/
+				this.setTooltip(geoDataId, errorMsg, "ui-state-error");
+			}
+		},
+
+		setTooltip: function(geoDataId, msg, tipClass) {
+			var node = this._findNodeByGeoDataId(geoDataId);
+			var nodeLink = node.find("> a[href='#']");
+			nodeLink.attr("title", msg);
+			nodeLink.tooltip({
+				position: "top right",
+				"tipClass": tipClass
+			});
+		},
+
 		refresh: function(geoDataId) {
-			console.log("refresh " + geoDataId);
 			var newGeoData = GeoDataStore.getById(geoDataId);
-			var nodeToRefresh = this.el.find("li[" + GeoDataTree.GEODATA_ATTR + "='" + geoDataId + "'");
+			var nodeToRefresh = this._findNodeByGeoDataId(geoDataId);
 			this.el.jstree("refresh", nodeToRefresh);
 		}
 

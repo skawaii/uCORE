@@ -55,7 +55,8 @@ def check_username(request):
   username = request.GET['username'].strip()
   return HttpResponse(json.dumps(CoreUser.objects.filter(username=username).exists()))
 
-
+@require_http_methods(['POST', 'GET'])
+@login_required
 def create_library(request):
   """
   This view when called will create a link library. It won't work properly unless you are
@@ -81,13 +82,21 @@ def create_library(request):
 
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
-    return HttpResponse('No user identified in request.')
+    return HttpResponseBadRequest('No user identified in request.')
 
   if request.method == 'POST':
-    links = request.POST['links'].strip()
+    links = ''
+    if 'links' in request.POST:
+      links = request.POST['links'].strip()
+    if 'name' not in request.POST:
+      return HttpResponseBadRequest('name is a required parameter')
     name = request.POST['name'].strip()
-    desc = request.POST['desc'].strip()
-    tags = request.POST['tags'].strip()
+    desc = ''
+    if 'desc' in request.POST:
+      desc = request.POST['desc'].strip()
+    tags = ''
+    if 'tags' in request.POST:
+      tags = request.POST['tags'].strip()
     # if tags[-1] == ',':
     #  length_of_tags = len(tags)
     #  tags = tags[0:length_of_tags-1]
@@ -97,21 +106,30 @@ def create_library(request):
     library.save()
 
     for t in tags:
-      retrievedtag = Tag.objects.get_or_create(name=t)
-      library.tags.add(retrievedtag[0])
+      t = t.strip()
+      if len(t) > 0:
+        retrievedtag = Tag.objects.get_or_create(name=t)
+        library.tags.add(retrievedtag[0])
 
     for link_object in linkArray:
-      link = Link.objects.get(pk=int(link_object))
-      library.links.add(link)
-
+      link_object = link_object.strip()
+      if link_object.isdigit():
+        link = Link.objects.get(pk=int(link_object))
+        library.links.add(link)
+  
     library.save()
-    user.libraries.add(library)    
-    return HttpResponse("Success")
+
+    user.libraries.add(library)
+
+    if utils.accepts_json(request):
+      jsonContent = json.dumps(utils.django_to_dict(library))
+      return HttpResponse(content=jsonContent, content_type=utils.JSON_CONTENT_TYPE)
+
+    return HttpResponse(str(library.pk))
   else:
     allLinks = Link.objects.all()
     allTags = Tag.objects.all()
     return render_to_response('createlib.html', { 'allLinks' : allLinks, 'allTags': allTags }, context_instance=RequestContext(request))
-
 
 @require_http_methods(["GET"])
 @login_required
@@ -909,3 +927,51 @@ def kmlproxy(request):
         kmlDom.unlink()
   finally:
       if conn: conn.close()
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def kml2json(request):
+    if request.method == 'GET':
+      return render_to_response('kml2json.html', context_instance=RequestContext(request))
+    
+    # else request.method == 'POST', perform the conversion
+    kmlDom = None
+    asAttach = False
+    if request.FILES != None and 'file' in request.FILES:
+      print "Processing file"
+      asAttach = True
+      kmlFile = request.FILES['file']
+      try:
+        kmlDom = parse(kmlFile)
+      except ExpatError, e:
+        print 'ERROR: failed to parse KML - %s' % e
+        return HttpResponseBadRequest('Invalid KML. Could not parse XML - %s' % e)
+    else:
+      kmlTxt = request.raw_post_data
+      try:
+        kmlDom = parseString(kmlTxt)
+      except ExpatError, e:
+        print 'ERROR: failed to parse KML - %s' % e
+        return HttpResponseBadRequest('Invalid KML. Could not parse XML - %s' % e)
+    
+    # Parse KML into a dictionary and then serialize the dictionary to JSON
+    try:
+      kmlParser = KmlParser()
+      dict = None
+      try:
+          dict = kmlParser.kml_to_dict(node = kmlDom.documentElement, baseUrl = '/')
+      except ValueError, e:
+          print 'ERROR: failed to serialize KML document to dictionary - %s' % e
+          return HttpResponseBadRequest('Invalid KML. KML could not be converted to JSON - %s' % e)
+      jsonTxt = None
+      try:
+          jsonTxt = json.dumps(dict, indent = 2)
+      except ValueError, e:
+          print 'ERROR: Failed to serialize dictionary to JSON - %s' % e
+          return HttpResponseServerError('Couldn\'t serialize KML to JSON - %s' % e)
+      response = HttpResponse(content = jsonTxt, content_type = 'application/json')
+      if asAttach:
+        response['Content-Disposition'] = 'attachment; filename=json.txt'
+      return response
+    finally:
+        kmlDom.unlink()
