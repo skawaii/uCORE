@@ -104,7 +104,7 @@ if (!window.core.ui)
 														form.children("div.ui-state-error").empty()
 															.append($("<span>", { "class": "ui-icon ui-icon-alert",
 																					"css": { "float": "left", "margin-right": "0.3em" }}))
-															.append($("<p>", { text: errorThrown }))
+															.append($("<p>", { html: errorThrown }))
 															.removeClass("ui-helper-hidden");
 														$(slidePanelEl).slidepanel("showPanelByIndex", idx);
 													}

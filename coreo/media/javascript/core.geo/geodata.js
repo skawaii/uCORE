@@ -52,7 +52,7 @@ if (!window.core.geo)
 		 *         
 		 */
 		findByKmlFeatureType: function(kmlFeatureType, callback) {},
-		
+
 		/**
 		 * Function: getKmlFeatureType
 		 * 
@@ -95,7 +95,7 @@ if (!window.core.geo)
 		 *  <GeoData>. Parent node.
 		 */
 		getParent: function() {},
-		
+
 		/**
 		 * Function: iterateChildren
 		 * 

@@ -53,6 +53,42 @@ class LinkLibraryTest(TestCase):
     self.assertEquals(library.tags.count(), 2)
     self.assertEquals(library.tags.get(name='HotButton').name, 'HotButton')
     self.assertEquals(library.tags.get(name='WarmButton').name, 'WarmButton')
+
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': '', 'tags': '' })
+    self.assertTrue(response.content.isdigit(), "response contains new library's primary key")
+    library = LinkLibrary.objects.get(pk=int(response.content))
+    self.assertTrue(library, "library was created")
+    self.assertEqual('test library', library.name, "library name was saved correctly")
+    self.assertEqual('test description', library.desc, "library desc was saved correctly")
+    self.assertEqual(0, library.tags.count(), "library tags field is empty")
+    self.assertEqual(0, library.links.count(), "library links field is empty")
+    
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': 'notanumber', 'tags': '' })
+    self.assertTrue(response.content.isdigit(), "response contains new library's primary key")
+    library = LinkLibrary.objects.get(pk=int(response.content))
+    self.assertTrue(library, "library was created")
+    self.assertEqual('test library', library.name, "library name was saved correctly")
+    self.assertEqual('test description', library.desc, "library desc was saved correctly")
+    self.assertEqual(0, library.tags.count(), "library tags field is empty")
+    self.assertEqual(0, library.links.count(), "library links field is empty")
+    
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': ''})
+    self.assertTrue(response.content.isdigit(), "response contains new library's primary key")
+    library = LinkLibrary.objects.get(pk=int(response.content))
+    self.assertTrue(library, "library was created")
+    self.assertEqual('test library', library.name, "library name was saved correctly")
+    self.assertEqual('test description', library.desc, "library desc was saved correctly")
+    self.assertEqual(0, library.tags.count(), "library tags field is empty")
+    self.assertEqual(0, library.links.count(), "library links field is empty")
+    
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'tags': '' })
+    self.assertTrue(response.content.isdigit(), "response contains new library's primary key")
+    library = LinkLibrary.objects.get(pk=int(response.content))
+    self.assertTrue(library, "library was created")
+    self.assertEqual('test library', library.name, "library name was saved correctly")
+    self.assertEqual('test description', library.desc, "library desc was saved correctly")
+    self.assertEqual(0, library.tags.count(), "library tags field is empty")
+    self.assertEqual(0, library.links.count(), "library links field is empty")
     
     # print 'Passed the create link library test.'
 

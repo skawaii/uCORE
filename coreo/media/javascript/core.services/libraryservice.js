@@ -63,16 +63,14 @@ if (!window.core.services)
 			createLibrary: function(name, description, links, tags) {
 				var deferred, data;
 				deferred = new $.Deferred();
-				data = {
-					"name": name,
-					"desc": description,
-					"tags": tags,
-					"links": links
-				};
 				$.ajax(cfg.createLibraryEndpoint, {
 					type: "POST",
-					"data": data,
-					traditional: true,
+					data: {
+						"name": name,
+						"desc": description,
+						"tags": tags ? tags.join(',') : "",
+						"links": links ? links.join(',') : ""
+					},
 					dataType: "json",
 					success: function(linkLibrary, textStatus, jqXHR) {
 						deferred.resolve(linkLibrary);
