@@ -89,23 +89,22 @@
 
          }
          $.post("../create-library/", { links: selected.toString(), name: name, desc: desc, tags: selectedTags.toString() }, function(data) {
-             if (data == 'Success')
-             {
                document.getElementById('result').innerHTML = "Your library was saved.";
-               }
-               else
-               {
-                 alert('result was : ' + data);
-               } });
+               
+         });
       }
  
       function addTag()
       {
        var newTag = document.getElementById('newTag').value;
        var multipleTags = document.getElementById('tags');
-       multipleTags.options[multipleTags.length] = new Option(newTag, newTag);
-       multipleTags.options[multipleTags.length].selected= true;
-
+       if (newTag != '')
+       {
+        //  multipleTags.options[multipleTags.length] = new Option(multipleTags.options[0].value, multipleTags.options[0].value);
+        //  multipleTags.options[0] = new Option(newTag, newTag);
+         $("#tags").prepend($("<option>", { selected: "true", name: newTag, text: newTag })); 
+       $('#newTag').val('');
+       }
       }
 
      </script> 
@@ -133,7 +132,6 @@
       </tr>
       <tr>
         <td>Library Tags:</td><td style="width:100px; height;100px"><select multiple="multiple" id="tags" name="tags" style="width:100px; height:100px">
-            <div id="newTagPlaceholder"></div>
             {% for t in allTags %}
             <option value="{{ t.name }}">{{ t.name }}</option>
             {% endfor %}
