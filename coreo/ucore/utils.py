@@ -5,6 +5,16 @@ from django.db.models import Q
 
 from coreo.ucore.models import *
 
+JSON_CONTENT_TYPE = 'application/json'
+
+def http_accepts(request, content_type):
+  accepts = []
+  if ('HTTP_ACCEPT' in request.META):
+    accepts = [a.split(';')[0] for a in request.META['HTTP_ACCEPT'].split(',')]
+  return content_type in accepts;
+
+def accepts_json(request):
+  return http_accepts(request, JSON_CONTENT_TYPE)
 
 def insert_links_from_csv(csv_file):
   link_file = csv.reader(csv_file)

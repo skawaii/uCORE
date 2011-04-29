@@ -6,11 +6,11 @@
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
-	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.resultslist.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.slidepanel.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/slidepanelresultfilter.css" />
 
-
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/acoredion.css" />
-
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/acoredion.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/geodatatree.css" />
 
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
 
@@ -73,17 +73,20 @@
 		}
 
 	</style>
-	
 
 	<!-- Javascript -->
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.5.min.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
 	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jquerytools/tooltip/tooltip.min.js"></script>
 	
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/iterate.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.bettercheckbox.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.hoverbuttons.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.crr.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmlfeaturetype.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/uri.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/idsequence.js"></script>
@@ -121,12 +124,15 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/kmljsonproxyservice.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/kmljsongeodataretriever.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/searchstrategy.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/libraryservice.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkqueue.js"></script>
 	
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.slidepanel.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.resultslist.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.emptytext.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredionresultfilter.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/slidepanelresultfilter.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.gearth.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredionslidepanelhelper.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/kmlobjectcreator.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/kmlobjectstore.js"></script>
@@ -134,12 +140,15 @@
 
 
 	<script type="text/javascript">
-	google.load("maps", "2");
+		google.load("maps", "2");
 		google.load("earth", "1");
 
 		$(document).ready(function() {
-			$( "#tabs" ).tabs();			
+			$( "#tabs" ).tabs();		
 
+			var libraryService = new core.services.LibraryService({
+				createLibraryEndpoint: "/create-library/"
+			});
 			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
 			var eventChannel = new core.events.EventChannel();
@@ -148,20 +157,53 @@
 			var networkLinkQueue = new core.geo.NetworkLinkQueue(geodataRetriever, 
 					eventChannel, currentBbox, currentAltitude);
 
+			$("#results").slidepanel()
+				.bind("removepanel", function() {
+					var size;
+					size = $("#results").slidepanel("size");
+					if (size == 0)
+						$("#results").slidepanel("close");
+				})
+				.bind("close", function() {
+					$(this).hide("slide");
+				})
+				.hide();
+
 			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
-			var resultFilter = new core.ui.AcoredionResultFilter("#results");
+			var resultFilter = new core.ui.SlidePanelResultFilter("#results", "search-results");
 			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
-			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
+
+			var spHelper = new core.ui.AcoredionSlidePanelHelper("#results");
+			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, 
+					spHelper.getCreateLibraryCallback(libraryService));
 
 			var geController = null;
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {
 				geController = new core.gearth.GeController(ge, eventChannel);
 			});
-			
+
 			// Create a new map
             var gmaps = new google.maps.Map2(document.getElementById("maps-container"));
             gmaps.setCenter(new google.maps.LatLng(37.4419, -122.1419), 13);
 
+            /*
+            $.ajax({
+            	url: "{{ MEDIA_URL }}kml/top_eleven.js",
+            	type: "GET",
+            	dataType: "json",
+            	success: function(data, textStatus, jqXHR) {
+            		var kmlRoot = data;
+            		var firstChild = kmlRoot.children[0];
+            		var geodata = core.geo.KmlJsonGeoData.fromKmlJson(firstChild, kmlRoot);
+            		geodata = core.geo.GeoDataStore.persist(geodata);
+            		eventChannel.publish(new core.events.GeoDataLoadedEvent("map page", geodata));
+            	},
+            	error: function(jqXHR, textStatus, errorThrown) {
+            		alert("Couldn't load Top Eleven: " + errorThrown);
+            	}
+            });
+            */
+			
             // Create the maps controller
 	    // Uncomment this!
 	    // var gmapsController = new core.gmaps.GmapsController(gmaps, eventChannel);
@@ -176,6 +218,17 @@
 
                 }
             });
+      
+            /*
+            libraryService.createLibrary("new library", "just a test", [], ["foo", "bar"])
+            	.then(function(newLibrary) {
+	            		console.log("SUCCESS!");
+	            		console.log(newLibrary);
+	            	},
+	            	function(errorThrown) {
+	            		alert("Error creating library: " + errorThrown);
+	            	});
+           	*/
 		});
 	 
 	</script>
@@ -190,7 +243,6 @@
 
 <div id="acoredion"></div>
 <div id="maps-section">
-
 	<div id="tabs">
 		<ul>
 			<li><a href="#tabs-earth">Earth</a></li>

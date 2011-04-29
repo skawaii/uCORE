@@ -20,6 +20,7 @@
  *  - core.events.ShowFeatureEvent
  *  - core.events.HideFeatureEvent
  *  - core.events.FeatureInfoEvent
+ *  - core.events.ViewChangedEvent
  *  - GEarthExtensions
  */
 
@@ -47,6 +48,9 @@ if (!window.core.gearth)
 	var GeoDataUpdateEndEvent = core.events.GeoDataUpdateEndEvent;
 	if (!GeoDataUpdateEndEvent)
 		throw "Dependency not found: core.events.GeoDataUpdateEndEvent";
+	var ViewChangedEvent = core.events.ViewChangedEvent;
+	if (!ViewChangedEvent)
+		throw "Dependency not found: core.events.ViewChangedEvent";
 
 	/**
 	 * Constructor: GeController
@@ -68,8 +72,9 @@ if (!window.core.gearth)
 		this.kmlObjectStore = new KmlObjectStore(this.ge, this.gex, kmlJsonProxyService);
 		this._init();
 	};
+	GeController.EVENT_PUBLISHER_NAME = "GeController";
 	GeController.prototype = {
-
+		
 		gex: null,
 	
 		/**
@@ -87,28 +92,54 @@ if (!window.core.gearth)
 		eventChannel: null,
 
 		_init: function() {
+			var viewChangeEndTimer, viewChangeEndHandler;
 			if (this.eventChannel) {
 				this.eventChannel.subscribe(GeoDataUpdateEndEvent.type, $.proxy(function(event) {
-					console.log(event);
 					this.update(event.geoData);
 				}, this));
 				this.eventChannel.subscribe(GeoDataLoadedEvent.type, $.proxy(function(event) {
-					console.log(event);
 					this.add(event.geoData);
 				}, this));
 				this.eventChannel.subscribe(ShowFeatureEvent.type, $.proxy(function(event) {
-					console.log(event);
 					this.show(event.geoData);
 				}, this));
 				this.eventChannel.subscribe(HideFeatureEvent.type, $.proxy(function(event) {
-					console.log(event);
 					this.hide(event.geoData);
 				}, this));
 				this.eventChannel.subscribe(FeatureInfoEvent.type, $.proxy(function(event) {
-					console.log(event);
 					this.flyTo(event.geoData);
 					this.info(event.geoData);
 				}, this));
+				
+				// events published by this controller
+				viewChangeEndHandler = function() {
+					var kmlLatLonBox, viewChangedEvent, 
+						bounds, altitude, sw, ne,
+						publish, myEventChannel = this.eventChannel;
+					
+					kmlLatLonBox = this.ge.getView().getViewportGlobeBounds();
+					sw = new google.maps.LatLng(kmlLatLonBox.getSouth(), kmlLatLonBox.getWest());
+					ne = new google.maps.LatLng(kmlLatLonBox.getNorth(), kmlLatLonBox.getEast());
+					bounds = new google.maps.LatLngBounds(sw, ne);
+					
+					altitude = this.ge.getView().copyAsLookAt(this.ge.ALTITUDE_ABSOLUTE).getAltitude();
+					
+					viewChangedEvent = new ViewChangedEvent(GeController.EVENT_PUBLISHER_NAME,
+							bounds, altitude); 
+					
+					publish = function() {
+						viewChangeEndTimer = undefined;
+						myEventChannel.publish(viewChangedEvent);
+					};
+					// wait before publishing the event. user might still 
+					// be changing the view.
+					if (viewChangeEndTimer) {
+						window.clearTimeout(viewChangeEndTimer);
+					}
+					viewChangeEndTimer = window.setTimeout(publish, 1000);
+				};
+				google.earth.addEventListener(this.ge.getView(), 
+						'viewchangeend', $.proxy(viewChangeEndHandler, this));
 			}
 		},
 

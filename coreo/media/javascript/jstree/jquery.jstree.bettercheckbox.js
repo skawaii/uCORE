@@ -18,7 +18,7 @@
 			};
 			
 			this.get_container()
-				.bind("open_node.jstree create_node.jstree clean_node.jstree", $.proxy(function (e, data) { 
+				.bind("open_node.jstree create_node.jstree clean_node.jstree", $.proxy(function (e, data) {
 						this._prepare_checkboxes(data.rslt.obj);
 					}, this))
 				.bind("loaded.jstree", $.proxy(function (e) {
@@ -38,16 +38,18 @@
 		_fn : {
 			_prepare_checkboxes : function (obj) {
 				obj = !obj || obj == -1 ? this.get_container() : this._get_node(obj);
-				var c, _this = this, t;
-				obj.each(function () {
-					t = $(this);
-					var thisChecked = t.is("li") && obj.hasClass("jstree-checked");
-					var parentChecked = t.parent().closest("li").hasClass("jstree-checked");
-					c = thisChecked || parentChecked ? "jstree-checked" : "jstree-unchecked";
-					t.find("li").andSelf().filter("li").not(":has(.jstree-checkbox)").find("a:first").before("<a class=\"jstree-checkbox\">&#160;</a>").parent().not(".jstree-checked, .jstree-unchecked").addClass(c);
-				});
-				if(obj.is("li")) { this._repair_state(obj); }
-				else { obj.find("> ul > li").each(function () { _this._repair_state(this); }); }
+				if (obj) {
+					var c, _this = this, t;
+					obj.each(function () {
+						t = $(this);
+						var thisChecked = t.is("li") && obj.hasClass("jstree-checked");
+						var parentChecked = t.parent().closest("li").hasClass("jstree-checked");
+						c = thisChecked || parentChecked ? "jstree-checked" : "jstree-unchecked";
+						t.find("li").andSelf().filter("li").not(":has(> a.jstree-checkbox)").find("a:first").before("<a class=\"jstree-checkbox\">&#160;</a>").parent().not(".jstree-checked, .jstree-unchecked").addClass(c);
+					});
+					if(obj.is("li")) { this._repair_state(obj); }
+					else { obj.find("> ul > li").each(function () { _this._repair_state(this); }); }
+				}
 			},
 			change_state : function (obj, state, suppressEvent) {
 				obj = this._get_node(obj);

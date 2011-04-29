@@ -69,11 +69,12 @@ if (!window.core.ui)
 	 *   searchStrategy - <SearchStrategy>. Invoked by the search form.
 	 *   eventChannel - <EventChannel>.
 	 */
-	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue) {
+	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue, createLibraryCb) {
 		this.el = el;
 		this.searchStrategy = searchStrategy;
 		this.eventChannel = eventChannel;
 		this.networkLinkQueue = networkLinkQueue;
+		this.createLibraryCb = createLibraryCb;
 		this._init();
 	};
 	Acoredion.EVENT_PUBLISHER_NAME = "Acoredion";
@@ -83,6 +84,8 @@ if (!window.core.ui)
 		searchStrategy: null,
 
 		treeContainer: null,
+		
+		treeActionsEl: null,
 
 		searchInput: null,
 		
@@ -90,11 +93,18 @@ if (!window.core.ui)
 		
 		networkLinkQueue: null,
 		
+		/**
+		 * Property: createLibraryCb
+		 * 
+		 * Function. Returns a jQuery Deferred object.
+		 */
+		createLibraryCb: null,
+		
 		trees: [],
 
 		_geoDataLoadedEventListener: function(event) {
 			if (event.publisher !== Acoredion.EVENT_PUBLISHER_NAME) {
-				var id = event.geoData.id;
+				var id = event.geoData.id + "";
 				var name = "";
 				var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
 					.attr({ "resultid": id, "resultname": name })
@@ -103,7 +113,7 @@ if (!window.core.ui)
 				this._treeLoaded(id, event.geoData);
 			}
 		},
-		
+
 		_beginTree: function(id, name) {
 			var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
 				.attr({ "resultid": id, "resultname": name })
@@ -131,6 +141,31 @@ if (!window.core.ui)
 					this.eventChannel.publish(
 							new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
+				tree.onRemove = $.proxy(function(geodata) {
+					// TODO
+					console.log("removed " + geodata.id);
+					if (tree.isEmpty()) {
+						console.log("tree is now empty");
+					}
+				});
+				tree.onRename = $.proxy(function(geodata, newName) {
+					// TODO
+					console.log("renamed " + geodata.id + " to " + newName);
+				});
+				/*
+				tree.onHover = $.proxy(function(geodata, node) {
+					// TODO
+					var nodeOffset = node.offset();
+					this.treeActionsEl.css({
+						"top": nodeOffset.top,
+						"left": nodeOffset.left + node.width() - this.treeActionsEl.width()
+					});
+					this.treeActionsEl.show();
+				}, this);
+				tree.onDehover = $.proxy(function(geodata, node) {
+					this.treeActionsEl.hide();
+				}, this);
+				*/
 				this.eventChannel.publish(
 						new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				this.trees.push(tree);
@@ -192,7 +227,7 @@ if (!window.core.ui)
 
 			// create KML Documents panel containing the search form and 
 			// a place for KML trees
-			var content = this._addPanel("KML Documents");
+			var content = this._addPanel("Places");
 			// create search form
 			var searchForm = $("<div>").addClass("acoredion-search").appendTo(content);
 			var _this = this;
@@ -245,7 +280,22 @@ if (!window.core.ui)
 			
 			// create container for GeoData trees
 			this.treeContainer = $("<div>").addClass("acoredion-tree-container").appendTo(content);
-			
+
+			var afterCreateLibrary = function(library) {
+				// TODO
+				alert("Library created");
+			};
+
+			$("<div>")
+				.append($("<button>").text("Create Link Library").button({ icons: { primary: "ui-icon-plusthick" }}))
+					.click($.proxy(function() {
+						this.createLibraryCb.call(this.createLibraryCb)
+							.then(function(library) {
+								// TODO
+								alert("Library created: " + library);
+							});
+					}, this))
+				.appendTo(content);
 			
 			$(this.el).accordion({
 				fillSpace: true
@@ -255,7 +305,7 @@ if (!window.core.ui)
 				for (var i = 0; i < this.trees.length; i++) {
 					var tree = this.trees[i];
 					if (tree.containsGeoData(event.geoData.id)) {
-						tree.setLoading(event.geoData.id, true);
+						tree.setLoadingStatus(event.geoData.id, true);
 					}
 				}
 			}, this));
@@ -264,7 +314,15 @@ if (!window.core.ui)
 					var tree = this.trees[i];
 					if (tree.containsGeoData(event.geoData.id)) {
 						tree.refresh(event.geoData.id);
-						tree.setLoading(event.geoData.id, false);
+						tree.setLoadingStatus(event.geoData.id, false);
+						if (event.errorThrown) {
+							tree.setErrorStatus(event.geoData.id, true, event.errorThrown);
+							// TODO
+							// console.log("Error updating network link: " + event.errorThrown);
+						}
+						else {
+							tree.setErrorStatus(event.geoData.id, false);
+						}
 					}
 				}
 			}, this));

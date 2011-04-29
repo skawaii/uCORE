@@ -104,8 +104,9 @@
 				}
 			},
 			_is_loaded: function(obj) {
-				return obj == -1 || !obj || obj.is(".jstree-open, .jstree-leaf") 
+				var loaded = obj == -1 || !obj || obj.is(".jstree-open, .jstree-leaf") 
 					|| obj.children("ul").children("li").size() > 0;
+				return loaded;
 			}
 		}
 	});
