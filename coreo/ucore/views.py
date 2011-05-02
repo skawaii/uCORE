@@ -983,3 +983,10 @@ def kml2json(request):
       return response
     finally:
         kmlDom.unlink()
+
+@require_http_methods('GET')
+@login_required
+def get_current_user(request):
+  currentUser = CoreUser.objects.select_related().get(username=request.user.username)
+  return HttpResponse(content_type=utils.JSON_CONTENT_TYPE, 
+                          content=utils.get_coreuser_json(currentUser))

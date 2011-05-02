@@ -254,10 +254,12 @@ if (!window.core.ui)
 				}
 			})
 			.bind("remove.jstree", function(e, data) {
-				var removed = data.rslt.obj;
-				var geodata = getGeoDataFromTreeNode(removed);
-				if (_this.onRemove) {
-					_this.onRemove(geodata);
+				var removed = data && data.rslt && data.rslt.obj ? data.rslt.obj : undefined;
+				if (removed) {
+					var geodata = getGeoDataFromTreeNode(removed);
+					if (_this.onRemove) {
+						_this.onRemove(geodata);
+					}
 				}
 			})
 			.bind("rename.jstree", function(e, data) {

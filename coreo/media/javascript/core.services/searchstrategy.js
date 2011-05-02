@@ -98,7 +98,7 @@ if (!window.core.services)
 		search: function(text, callback) {
 			if (text.match('^http')) {
 				CallbackUtils.invokeOptionalCallback(callback, "resultBegin", 
-						[text, text]);
+						[text, text, null]);
 				this.geoDataRetriever.fetch(text, {
 					success: function(geodata) {
 						CallbackUtils.invokeCallback(callback, geodata, "resultSuccess");
@@ -120,7 +120,7 @@ if (!window.core.services)
 						var i;
 						var id = linkOrLibrary.pk;
 						CallbackUtils.invokeOptionalCallback(callback, "resultBegin", 
-								[id, linkOrLibrary.fields.name]);
+								[id, linkOrLibrary.fields.name, linkOrLibrary.fields.creator]);
 						if (linkOrLibrary.model === "ucore.linklibrary") {
 							var linkLibraryGeoData = new LinkLibraryGeoData(null, 
 									linkOrLibrary, this.linkService, 

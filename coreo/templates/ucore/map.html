@@ -1,3 +1,4 @@
+{% load core_extras %}
 <html>
 <head>
 	<title>uCORE</title>
@@ -132,6 +133,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/searchstrategy.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/libraryservice.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/linkservice.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/userservice.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkqueue.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.slidepanel.js"></script>
@@ -153,6 +155,10 @@
 		$(document).ready(function() {
 			$( "#tabs" ).tabs();		
 
+			var userService = new core.services.UserService({
+				currentUserEndpoint: "/current-user/",
+				currentUser: {% user_json user %}
+			});
 			var libraryService = new core.services.LibraryService({
 				createLibraryEndpoint: "/create-library/"
 			});
@@ -186,7 +192,8 @@
 
 			var spHelper = new core.ui.AcoredionSlidePanelHelper("#results");
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, 
-					spHelper.getCreateLibraryCallback(libraryService, linkService, geodataRetriever));
+					spHelper.getCreateLibraryCallback(libraryService, linkService, geodataRetriever),
+					userService);
 
 			var geController = null;
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {
@@ -241,6 +248,24 @@
 	            	});
            	*/
            	
+           	// load user's libraries
+           	userService.getCurrentUser().then(
+           		function(currentUser) {
+           			var i, linkLibraryGeoData;
+           			for (i = 0; currentUser && currentUser.fields
+           					&& currentUser.fields.libraries 
+           					&& i < currentUser.fields.libraries.length; i++) {
+						linkLibraryGeoData = new core.geo.LinkLibraryGeoData(null, 
+								currentUser.fields.libraries[i], linkService, 
+								geodataRetriever);
+						acoredion.addGeoData(linkLibraryGeoData);
+           			}
+           		},
+           		function(error) {
+           			console.log("Couldn't load user's libraries. Error " 
+           					+ "retrieving current user: " + error);
+           		}
+           	);
 		});
 	 
 	</script>
