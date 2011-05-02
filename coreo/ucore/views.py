@@ -347,6 +347,14 @@ def get_library(request, username, lib_name):
 
   return HttpResponse(uri)
 
+@require_http_methods('GET')
+@login_required
+def get_link(request, linkId):
+  if linkId and linkId.isdigit():
+    link = Link.objects.get(pk=int(linkId))
+    if link:
+      return HttpResponse(json.dumps(utils.django_to_dict(link)))
+  return HttpResponseNotFound('Link %s doesn\'t exist' % linkId)
 
 @require_http_methods(['GET'])
 @login_required

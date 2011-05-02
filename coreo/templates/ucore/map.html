@@ -5,7 +5,11 @@
 
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+	<!--
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/themes/ui-darkness/jquery-ui-1.8.12.custom.css" />
+	-->
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+	
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.slidepanel.css" />
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/slidepanelresultfilter.css" />
 
@@ -99,6 +103,8 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/kmlutils.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodatastore.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodata.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/linkgeodata.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/linklibrarygeodata.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkgeodata.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmlnodegeodata.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmljsongeodata.js"></script>
@@ -125,6 +131,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/kmljsongeodataretriever.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/searchstrategy.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/libraryservice.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/linkservice.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkqueue.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.slidepanel.js"></script>
@@ -149,6 +156,9 @@
 			var libraryService = new core.services.LibraryService({
 				createLibraryEndpoint: "/create-library/"
 			});
+			var linkService = new core.services.LinkService({
+				getLinkEndpoint: "/links/"
+			});
 			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
 			var eventChannel = new core.events.EventChannel();
@@ -171,11 +181,12 @@
 
 			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
 			var resultFilter = new core.ui.SlidePanelResultFilter("#results", "search-results");
-			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
+			var searchStrategy = new core.services.SearchStrategy(
+					searchService, resultFilter, geodataRetriever, linkService);
 
 			var spHelper = new core.ui.AcoredionSlidePanelHelper("#results");
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, 
-					spHelper.getCreateLibraryCallback(libraryService));
+					spHelper.getCreateLibraryCallback(libraryService, linkService, geodataRetriever));
 
 			var geController = null;
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {
@@ -229,6 +240,7 @@
 	            		alert("Error creating library: " + errorThrown);
 	            	});
            	*/
+           	
 		});
 	 
 	</script>

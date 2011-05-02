@@ -11,6 +11,7 @@
  *   - core.events.HideFeatureEvent
  *   - core.events.FeatureInfoEvent
  *   - core.util.IdSequence
+ *   - core.geo.GeoDataStore 
  */
 if (!window.core)
 	window.core = {};
@@ -38,6 +39,7 @@ if (!window.core.ui)
 		throw "Dependency not found: core.events.GeoDataLoadedEvent";
 	var GeoDataUpdateBeginEvent = core.events.GeoDataUpdateBeginEvent;
 	var GeoDataUpdateEndEvent = core.events.GeoDataUpdateEndEvent;
+	var GeoDataStore = core.geo.GeoDataStore;
 	
 	var findFirstNamedChild = function(geodata) {
 		var name = geodata.getName();
@@ -102,15 +104,19 @@ if (!window.core.ui)
 		
 		trees: [],
 
+		addGeoData: function(geoData) {
+			var id = geoData.id + "";
+			var name = "";
+			var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
+				.attr({ "resultid": id, "resultname": name })
+				.prependTo($(this.treeContainer));
+			treeEl.append($("<span>").html("Loading " + name));
+			this._treeLoaded(id, geoData);			
+		},
+		
 		_geoDataLoadedEventListener: function(event) {
 			if (event.publisher !== Acoredion.EVENT_PUBLISHER_NAME) {
-				var id = event.geoData.id + "";
-				var name = "";
-				var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
-					.attr({ "resultid": id, "resultname": name })
-					.prependTo($(this.treeContainer));
-				treeEl.append($("<span>").html("Loading " + name));
-				this._treeLoaded(id, event.geoData);
+				this.addGeoData(event.geoData);
 			}
 		},
 
@@ -281,19 +287,16 @@ if (!window.core.ui)
 			// create container for GeoData trees
 			this.treeContainer = $("<div>").addClass("acoredion-tree-container").appendTo(content);
 
-			var afterCreateLibrary = function(library) {
-				// TODO
-				alert("Library created");
-			};
-
 			$("<div>")
 				.append($("<button>").text("Create Link Library").button({ icons: { primary: "ui-icon-plusthick" }}))
 					.click($.proxy(function() {
 						this.createLibraryCb.call(this.createLibraryCb)
-							.then(function(library) {
-								// TODO
-								alert("Library created: " + library);
-							});
+							.then($.proxy(function(linkLibraryGeoData) {
+								linkLibraryGeoData = GeoDataStore.persist(linkLibraryGeoData);
+								this.addGeoData(linkLibraryGeoData);
+								this.eventChannel.publish(
+										new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, linkLibraryGeoData));
+							}, this));
 					}, this))
 				.appendTo(content);
 			

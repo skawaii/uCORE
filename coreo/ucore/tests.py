@@ -29,6 +29,15 @@ class LinkLibraryTest(TestCase):
     self.link2 = Link.objects.create(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=self.poc)
     self.link2.tags.add(Tag.objects.get(name='HotButton'))
 
+  def test_get_link(self):
+    link = Link.objects.create(name='test_get_link',url='http://test_get_link',poc=self.poc)
+    response = self.client.get('/links/%s/' % link.pk)
+    self.assertEquals(response.content, '{"pk": %s, "model": "ucore.link", "fields": {"url": "http://test_get_link", "desc": "", "poc": %s, "name": "test_get_link", "tags": []}}' % (link.pk,self.poc.pk,))
+    response = self.client.get('/links/foo/')
+    self.assertEquals(response.status_code, 404)
+    response = self.client.get('/links//')
+    self.assertEquals(response.status_code, 404)
+    
   def test_library_demo(self):
     response = self.client.get('/library-demo/')
     self.assertEquals(response.status_code, 200)

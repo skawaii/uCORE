@@ -131,6 +131,14 @@ if (!window.core.ui)
 		 */
 		onRename: function(geodata, newName) {},
 		
+		isCoreLink: function(geodata) {
+			return geodata && typeof geodata.getCoreLink === "function";
+		},
+		
+		isCoreLinkLibrary: function(geodata) {
+			return geodata && typeof geodata.getLinkLibrary === "function";
+		},
+		
 		/**
 		 * Function: _createTreeNode
 		 * 
@@ -155,8 +163,12 @@ if (!window.core.ui)
 				name = geodata.getKmlFeatureType();
 			}
 			
+			var nodeType = this.isCoreLink(geodata) ? "core-link"
+					: this.isCoreLinkLibrary(geodata) ? "core-link-library"
+							: geodata.getKmlFeatureType();
+				
 			var title = $("<span>")
-						.append($("<ins>").addClass(geodata.getKmlFeatureType()).html("&#160;"))
+						.append($("<ins>").addClass(nodeType).html("&#160;"))
 						.append($("<span>").html(name));
 			if (this.appendHoverActions && typeof this.appendHoverActions === "function") {
 				var hoverActions = $("<div>").addClass("geodatatree-hoveractions");

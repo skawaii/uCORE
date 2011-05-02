@@ -83,7 +83,28 @@
 	height: 16px !important;
 	width: 16px !important;
 }
-  
+
+.jstree-kml a ins.core-link {
+	background-image:url("link.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: 0 0;
+}
+
+.jstree-kml a ins.core-link-library {
+	background-image:url("archive.gif");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: 0 0;
+}
+
+.jstree-kml li.jstree-open > a ins.Folder {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: -21px 0;
+}
+
 .jstree-kml a ins.Folder {
 	background-image:url("kmlsprite.png");
 	background-repeat:no-repeat;
