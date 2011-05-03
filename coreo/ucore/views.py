@@ -7,6 +7,7 @@ import csv, datetime, json, logging, os, re, time, urllib2, zipfile, pickle
 from cStringIO import StringIO
 from httplib import HTTPResponse, HTTPConnection
 from urlparse import urlparse
+from django.http import Http404
 import xml.dom.expatbuilder
 from xml.dom.minidom import parse, parseString
 from xml.parsers import expat
@@ -79,8 +80,6 @@ def create_library(request):
     existing webapp.
   """
   user = CoreUser.objects.get(username=request.user)
-  if request.is_ajax():
-    print 'AJAX detected....'
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
     return HttpResponseBadRequest('No user identified in request.')
@@ -146,9 +145,17 @@ def get_libraries(request):
 
 @require_http_methods(["GET", "POST"])
 def links(request):
-  if request.method == 'GET': 
+  if request.method == 'GET':
+    if 'url' in request.GET:
+      url = request.GET['url'].strip()
+      retrievedLink = Link.objects.filter(url=url)
+      if len(retrievedLink) > 0:
+        return HttpResponse(serializers.serialize('json', retrievedLink, indent=4, relations=('poc','tags',)))
+      else:
+        raise Http404 
     total_links = Link.objects.all()  
-    return HttpResponse(serializers.serialize('json', total_links, use_natural_keys=True))
+    return HttpResponse(serializers.serialize('json', total_links, indent=4, relations=('poc','tags',)))
+  # For the POST stuff the rest of the code is written.
   else:
     linkname = request.POST['name'].strip()
     linkdesc = request.POST['desc'].strip()
@@ -170,19 +177,18 @@ def links(request):
     poc[0].save()
     # The below code will update or create depending on if the 
     # link already exists (determined by url which must be unique).
-    link = Link.objects.get_or_create(url=url)
-    link[0].name = linkname
-    link[0].desc = linkdesc
+    link = Link.objects.create(url=url, name=linkname, desc=linkdesc, poc=poc[0])
+    link.save()
     # Iterate through the tags and create a tag if it isn't already
     # in the tag table.
     for t in tags:
       tag = Tag.objects.get_or_create(name=t)
-      link[0].tags.add(tag[0])
-    link[0].poc = poc[0]
+      link.tags.add(tag[0])
     # Finally save the link
-    link[0].save()
+    link.save()
     # Then return the primary key of the create link in the response
-    return HttpResponse(link[0].pk)
+    #  return HttpResponse(link[0].pk)
+    return HttpResponse(serializers.serialize('json', link, indent=4, relations=('poc','tags',)))
    
 
 

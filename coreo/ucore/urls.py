@@ -22,7 +22,6 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^user-profile/$', 'user_profile'), 
     (r'^userprofile/$', 'user_profile'), # for backwards compatibility
     (r'^login/$', 'login'),
-    (r'^get-links/$', 'links'),
     (r'^link/$', 'links'),
     (r'^logout/$', 'logout'),
     (r'^manage-libraries/$', 'manage_libraries'),
