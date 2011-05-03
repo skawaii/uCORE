@@ -162,6 +162,7 @@ def links(request):
     email = request.POST['email'].strip()
     # Create the POC with the info
     # provided if he/she is not there already.
+    # add first_name, and last_name to get_or_create
     poc = POC.objects.get_or_create(email=email)
     poc[0].first_name = firstname
     poc[0].last_name = lastname
