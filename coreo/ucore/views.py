@@ -191,6 +191,14 @@ def links(request):
     return HttpResponse(serializers.serialize('json', link, indent=4, relations=('poc','tags',)))
    
 
+@require_http_methods(["POST"])
+@login_required
+def delete_link(request):
+  link = request.POST['id'].strip()
+  link2delete = Link.objects.get(pk=link)
+  Link.objects.remove(link2delete)
+  return HttpResponse("Link removed")
+
 
 @require_http_methods(["POST"])
 @login_required
