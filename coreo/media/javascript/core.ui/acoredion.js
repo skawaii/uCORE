@@ -115,8 +115,14 @@ if (!window.core.ui)
 			if (geodata) {
 				if (typeof geodata.getLinkLibrary === "function") {
 					linkLibrary = geodata.getLinkLibrary();
-					if (linkLibrary) {
-						return linkLibrary.fields.creator.pk;
+					if (linkLibrary && linkLibrary.fields
+							&& !!linkLibrary.fields.creator) {
+						if (typeof linkLibrary.fields.creator === "object") {
+							return linkLibrary.fields.creator.pk;
+						}
+						else if (typeof linkLibrary.fields.creator === "number"){
+							return linkLibrary.fields.creator;
+						}
 					}
 				}
 				else if (typeof geodata.getCoreLink === "function") {
@@ -221,6 +227,12 @@ if (!window.core.ui)
 							new HideFeatureEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
 				tree.onSelect = $.proxy(function(geodata) {
+					var i;
+					for (i = 0; this.trees && i < this.trees.length; i++) {
+						if (this.trees[i] !== tree) {
+							this.trees[i].deselectAll();
+						}
+					}
 					this.eventChannel.publish(
 							new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);

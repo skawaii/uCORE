@@ -131,6 +131,10 @@ if (!window.core.ui)
 		 */
 		onRename: function(geodata, newName) {},
 		
+		deselectAll: function() {
+			$(this.el).jstree("deselect_all");
+		},
+
 		isCoreLink: function(geodata) {
 			return geodata && typeof geodata.getCoreLink === "function";
 		},
@@ -232,13 +236,23 @@ if (!window.core.ui)
 					}
 				}
 			})
-			.bind("select_node.jstree", function(e, data) {
+			.bind("select_node.jstree", $.proxy(function(e, data) {
+				$(this.el).find("li.ui-state-active")
+					.removeClass("ui-state-active");
 				var selected = data.rslt.obj;
+				selected.addClass("ui-state-active");
 				var geodata = getGeoDataFromTreeNode(selected);
 				if (_this.onSelect) {
 					_this.onSelect(geodata);
 				}
+			}, this))
+			.bind("deselect_node.jstree", function(e, data) {
+				var deselected = data.rslt.obj;
+				deselected.removeClass("ui-state-active");
 			})
+			.bind("deselect_all.jstree", $.proxy(function(e, data) {
+				$(this.el).find("li.ui-state-active").removeClass("ui-state-active");
+			}, this))
 			.bind("hover_node.jstree", function(e, data) {
 				var hovered = data.rslt.obj;
 				var geodata = getGeoDataFromTreeNode(hovered);
