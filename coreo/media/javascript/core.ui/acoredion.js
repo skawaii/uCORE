@@ -12,6 +12,7 @@
  *   - core.events.FeatureInfoEvent
  *   - core.util.IdSequence
  *   - core.geo.GeoDataStore 
+ *   - core.util.GeoDataVisitor
  */
 if (!window.core)
 	window.core = {};
@@ -40,6 +41,9 @@ if (!window.core.ui)
 	var GeoDataUpdateBeginEvent = core.events.GeoDataUpdateBeginEvent;
 	var GeoDataUpdateEndEvent = core.events.GeoDataUpdateEndEvent;
 	var GeoDataStore = core.geo.GeoDataStore;
+	var GeoDataVisitor = core.util.GeoDataVisitor;
+	if (!GeoDataVisitor)
+		throw "Dependency not found: core.util.GeoDataVisitor";
 	
 	var findFirstNamedChild = function(geodata) {
 		var name = geodata.getName();
@@ -72,12 +76,14 @@ if (!window.core.ui)
 	 *   eventChannel - <EventChannel>.
 	 */
 	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue, 
-			createLibraryCb, userService) {
+			createLibraryCb, deleteLibraryCb, deleteLinkCb, userService) {
 		this.el = el;
 		this.searchStrategy = searchStrategy;
 		this.eventChannel = eventChannel;
 		this.networkLinkQueue = networkLinkQueue;
 		this.createLibraryCb = createLibraryCb;
+		this.deleteLibraryCb = deleteLibraryCb;
+		this.deleteLinkCb = deleteLinkCb;
 		this.userService = userService;
 		this._init();
 	};
@@ -98,6 +104,10 @@ if (!window.core.ui)
 		networkLinkQueue: null,
 		
 		createLibraryCb: null,
+
+		deleteLibraryCb: null,
+		
+		deleteLinkCb: null,
 		
 		userService: null,
 		
@@ -237,8 +247,22 @@ if (!window.core.ui)
 							new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
 				tree.onRemove = $.proxy(function(geodata) {
-					// TODO
-					var treeEl;
+					var treeEl, _this;
+					_this = this;
+					new GeoDataVisitor({
+							link: function(linkGeoData) {
+								if (_this.deleteLinkCb) {
+									_this.deleteLinkCb.call(_this.deleteLinkCb, 
+											linkGeoData);
+								}
+							},
+							linkLibrary: function(linkLibraryGeoData) {
+								if (_this.deleteLibraryCb) {
+									_this.deleteLibraryCb.call(_this.deleteLibraryCb, 
+											linkLibraryGeoData);
+								}
+							}
+						}).visit(geodata);
 					if (tree.isEmpty()) {
 						treeEl = $(tree.el);
 						if (treeEl.siblings().size() === 0) {
@@ -246,25 +270,8 @@ if (!window.core.ui)
 						}
 						treeEl.remove();
 					}
-				});
-				tree.onRename = $.proxy(function(geodata, newName) {
-					// TODO
-					console.log("renamed " + geodata.id + " to " + newName);
-				});
-				/*
-				tree.onHover = $.proxy(function(geodata, node) {
-					// TODO
-					var nodeOffset = node.offset();
-					this.treeActionsEl.css({
-						"top": nodeOffset.top,
-						"left": nodeOffset.left + node.width() - this.treeActionsEl.width()
-					});
-					this.treeActionsEl.show();
+					// TODO: Publish GeoDataUnloadedEvent
 				}, this);
-				tree.onDehover = $.proxy(function(geodata, node) {
-					this.treeActionsEl.hide();
-				}, this);
-				*/
 				this.eventChannel.publish(
 						new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				this.trees.push(tree);
@@ -342,15 +349,15 @@ if (!window.core.ui)
 					resultBegin: function(id, name, creatorId) {
 						var myId = _this._resultIdSequence.nextId();
 						idMap["" + id] = myId;
-						_this._beginTree(myId, name, creatorId);
+						_this._beginTree.call(_this, myId, name, creatorId);
 					},
 					resultSuccess: function(id, geodata) {
 						var myId = idMap["" + id];
-						_this._treeLoaded(myId, geodata);
+						_this._treeLoaded.call(_this, myId, geodata);
 					},
 					resultError: function(id, errorThrown) {
 						var myId = idMap["" + id];
-						_this._treeLoadFailed(myId, errorThrown);
+						_this._treeLoadFailed.call(_this, myId, errorThrown);
 					},
 					complete: function() {
 						console.log("Finished processing results.");

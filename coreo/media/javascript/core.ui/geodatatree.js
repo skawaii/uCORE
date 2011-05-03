@@ -123,14 +123,14 @@ if (!window.core.ui)
 		 * Function. Invoked after a geodata is removed.
 		 */
 		onRemove: function(geodata) {},
-		
+
 		/**
-		 * Property: onRename
+		 * Property: onEdit
 		 * 
-		 * Function. Invoked after a geodata is renamed.
+		 * Function. Invoked when an edit button is clicked.
 		 */
-		onRename: function(geodata, newName) {},
-		
+		onEdit: function(geodata) {},
+
 		deselectAll: function() {
 			$(this.el).jstree("deselect_all");
 		},
@@ -371,9 +371,12 @@ if (!window.core.ui)
 //						}
 						buttons.push({ 
 				        	icon: "ui-icon-pencil", 
-				        	tooltip: "Rename", 
+				        	tooltip: "Edit", 
 				        	action: function(node) {
-				        		$(_this.el).jstree("rename", node);
+				        		if (_this.onEdit) {
+				        			var geodata = getGeoDataFromTreeNode(node);
+				        			_this.onEdit.call(_this.onEdit, geodata);
+				        		}
 				        	} 
 				        });
 						buttons.push({ 

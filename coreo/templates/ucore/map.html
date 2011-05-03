@@ -102,6 +102,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/namespacecontext.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/xmlutils.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/kmlutils.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/geodatavisitor.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodatastore.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodata.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/linkgeodata.js"></script>
@@ -193,7 +194,8 @@
 			var spHelper = new core.ui.AcoredionSlidePanelHelper("#results");
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, 
 					spHelper.getCreateLibraryCallback(libraryService, linkService, geodataRetriever),
-					userService);
+					spHelper.getDeleteLibraryCallback(libraryService),
+					spHelper.getDeleteLinkCallback(linkService), userService);
 
 			var geController = null;
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {

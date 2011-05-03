@@ -16,7 +16,7 @@ if (!window.core.ui)
 
 (function($, ns) {
 	var CreateLibraryCallback = function(slidePanelEl, libraryService, linkService, geoDataRetriever) {
-		var panelId, deferred, form;
+		var panelId, form;
 		panelId = "create-library";
 		
 		buildForm = function() {
@@ -117,7 +117,7 @@ if (!window.core.ui)
 		};
 		
 		return function() {
-			var idx;
+			var deferred, idx;
 			deferred = new $.Deferred();
 			idx = $(slidePanelEl).slidepanel("getIndex", panelId);
 			if (idx == -1) {
@@ -133,6 +133,26 @@ if (!window.core.ui)
 			if (!$(slidePanelEl).is(":visible")) {
 				$(slidePanelEl).show("slide", {}, 200, null);
 			}
+			return deferred.promise();
+		};
+	};
+
+	var DeleteLinkCallback = function(slidePanelEl, linkService) {
+		// TODO
+		return function(linkGeoData) {
+			var deferred;
+			deferred = $.Deferred();
+			console.log("Deleting link " + linkGeoData);
+			return deferred.promise();
+		};
+	};
+
+	var DeleteLibraryCallback = function(slidePanelEl, libraryService) {
+		// TODO
+		return function(linkLibraryGeoData) {
+			var deferred;
+			deferred = $.Deferred();
+			console.log("Deleting LinkLibrary " + linkLibraryGeoData);
 			return deferred.promise();
 		};
 	};
@@ -165,6 +185,40 @@ if (!window.core.ui)
 					geoDataRetriever) {
 				return new CreateLibraryCallback(slidePanelEl, 
 						libraryService, linkService, geoDataRetriever);
+			},
+
+			/**
+			 * Function: getDeleteLibraryCallback
+			 * 
+			 * Creates a function that handles LinkLibrary deletion. The 
+			 * returned function can be used as the deleteLibraryCb 
+			 * parameter of the <Acoredion> constructor.
+			 * 
+			 * Parameters:
+			 *   libraryService - <LibraryService>.
+			 *   
+			 * Returns:
+			 *   Function.
+			 */
+			getDeleteLibraryCallback: function(libraryService) {
+				return new DeleteLibraryCallback(slidePanelEl, libraryService);
+			},
+
+			/**
+			 * Function: getEditLinkCallback
+			 * 
+			 * Creates a function that handles Link deletion. The 
+			 * returned function can be used as the deleteLinkCb 
+			 * parameter of the <Acoredion> constructor.
+			 * 
+			 * Parameters:
+			 *   linkService - <LinkService>.
+			 *   
+			 * Returns:
+			 *   Function.
+			 */
+			getDeleteLinkCallback: function(linkService) {
+				return new DeleteLinkCallback(slidePanelEl, linkService);
 			}
 		};
 	};
