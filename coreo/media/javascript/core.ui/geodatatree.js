@@ -131,6 +131,18 @@ if (!window.core.ui)
 		 */
 		onRename: function(geodata, newName) {},
 		
+		deselectAll: function() {
+			$(this.el).jstree("deselect_all");
+		},
+
+		isCoreLink: function(geodata) {
+			return geodata && typeof geodata.getCoreLink === "function";
+		},
+		
+		isCoreLinkLibrary: function(geodata) {
+			return geodata && typeof geodata.getLinkLibrary === "function";
+		},
+		
 		/**
 		 * Function: _createTreeNode
 		 * 
@@ -155,8 +167,12 @@ if (!window.core.ui)
 				name = geodata.getKmlFeatureType();
 			}
 			
+			var nodeType = this.isCoreLink(geodata) ? "core-link"
+					: this.isCoreLinkLibrary(geodata) ? "core-link-library"
+							: geodata.getKmlFeatureType();
+				
 			var title = $("<span>")
-						.append($("<ins>").addClass(geodata.getKmlFeatureType()).html("&#160;"))
+						.append($("<ins>").addClass(nodeType).html("&#160;"))
 						.append($("<span>").html(name));
 			if (this.appendHoverActions && typeof this.appendHoverActions === "function") {
 				var hoverActions = $("<div>").addClass("geodatatree-hoveractions");
@@ -220,13 +236,23 @@ if (!window.core.ui)
 					}
 				}
 			})
-			.bind("select_node.jstree", function(e, data) {
+			.bind("select_node.jstree", $.proxy(function(e, data) {
+				$(this.el).find("li.ui-state-active")
+					.removeClass("ui-state-active");
 				var selected = data.rslt.obj;
+				selected.addClass("ui-state-active");
 				var geodata = getGeoDataFromTreeNode(selected);
 				if (_this.onSelect) {
 					_this.onSelect(geodata);
 				}
+			}, this))
+			.bind("deselect_node.jstree", function(e, data) {
+				var deselected = data.rslt.obj;
+				deselected.removeClass("ui-state-active");
 			})
+			.bind("deselect_all.jstree", $.proxy(function(e, data) {
+				$(this.el).find("li.ui-state-active").removeClass("ui-state-active");
+			}, this))
 			.bind("hover_node.jstree", function(e, data) {
 				var hovered = data.rslt.obj;
 				var geodata = getGeoDataFromTreeNode(hovered);
@@ -242,10 +268,12 @@ if (!window.core.ui)
 				}
 			})
 			.bind("remove.jstree", function(e, data) {
-				var removed = data.rslt.obj;
-				var geodata = getGeoDataFromTreeNode(removed);
-				if (_this.onRemove) {
-					_this.onRemove(geodata);
+				var removed = data && data.rslt && data.rslt.obj ? data.rslt.obj : undefined;
+				if (removed) {
+					var geodata = getGeoDataFromTreeNode(removed);
+					if (_this.onRemove) {
+						_this.onRemove(geodata);
+					}
 				}
 			})
 			.bind("rename.jstree", function(e, data) {

@@ -83,7 +83,28 @@
 	height: 16px !important;
 	width: 16px !important;
 }
-  
+
+.jstree-kml a ins.core-link {
+	background-image:url("link.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: 0 0;
+}
+
+.jstree-kml a ins.core-link-library {
+	background-image:url("archive.gif");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: 0 0;
+}
+
+.jstree-kml li.jstree-open > a ins.Folder {
+	background-image:url("kmlsprite.png");
+	background-repeat:no-repeat;
+	background-color:transparent;
+	background-position: -21px 0;
+}
+
 .jstree-kml a ins.Folder {
 	background-image:url("kmlsprite.png");
 	background-repeat:no-repeat;
@@ -148,7 +169,7 @@
 /* .jstree-kml .jstree-leaf > ins { background-position:-36px 0; } */
 
 .jstree-kml .jstree-hovered { background:#e7f4f9; border:1px solid #e7f4f9; padding:0 2px 0 1px; }
-.jstree-kml .jstree-clicked { background:navy; border:1px solid navy; padding:0 2px 0 1px; color:white; }
+/* .jstree-kml .jstree-clicked { background:navy; border:1px solid navy; padding:0 2px 0 1px; color:white; } */
 .jstree-kml a .jstree-icon { background-position:-56px -19px; }
 .jstree-kml .jstree-open > a .jstree-icon { background-position:-56px -36px; }
 .jstree-kml a.jstree-loading .jstree-icon { background:url("ajax-loader16.gif") center center no-repeat !important; }

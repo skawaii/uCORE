@@ -62,23 +62,11 @@ if (!window.core.geo)
 				id = GeoDataStore.generateId();
 				feature.id = id;
 			}
-			
-				if (!feature.owner) {
-					// this is a root-level feature
-					store[id] = feature;
-				}
-				else {
-					// persist this in the store directly if the owner isn't 
-					// in the store
-					var ownerId = feature.owner.id;
-					if (!(ownerId in store)) {
-						store[id] = feature;
-					}
-				}
-				if ("postSave" in feature 
-						&& typeof feature.postSave === "function") {
-					feature.postSave();
-				}
+			store[id] = feature;
+			if ("postSave" in feature 
+					&& typeof feature.postSave === "function") {
+				feature.postSave();
+			}
 			return feature;
 		},
 		
@@ -94,17 +82,7 @@ if (!window.core.geo)
 		 *   Boolean. True if an object exists with the provided ID.
 		 */
 		idExists: function(id) {
-			if (id) {
-				for (var existingId in store) {
-					if (existingId === id 
-						|| ("getFeatureById" in store[existingId]
-							&& typeof store[existingId] === "function"
-							&& store[existingId].getFeatureById(id))) {
-						return true;
-					}
-				};
-			}
-			return false;
+			return !!(id && id in store);
 		},
 		
 		/**
@@ -119,21 +97,7 @@ if (!window.core.geo)
 		 *   <GeoData>. The object, or null if it doesn't exist.
 		 */
 		getById: function(id) {
-			if (id) {
-				for (var existingId in store) {
-					if (existingId === id) {
-						return store[existingId];
-					}
-					if ("getFeatureById" in store[existingId]
-						&& (typeof store[existingId].getFeatureById === "function")) {
-						var feature = store[existingId].getFeatureById(id);
-						if (feature) {
-							return feature;
-						}
-					}
-				}
-			}
-			return null;
+			return id && id in store && store[id];
 		},
 		
 		/**
