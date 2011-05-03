@@ -79,8 +79,6 @@ def create_library(request):
     existing webapp.
   """
   user = CoreUser.objects.get(username=request.user)
-  if request.is_ajax():
-    print 'AJAX detected....'
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
     return HttpResponseBadRequest('No user identified in request.')
@@ -750,8 +748,7 @@ def update_user(request):
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user.username)
     saved_status = request.GET['saved'].strip() if 'saved' in request.GET else ''
-
-    return render_to_response('userprofile.html', {'user': user, 'saved' : saved_status}, context_instance=RequestContext(request))
+    return render_to_response('userprofile.html', {'user': user, 'saved': saved_status, 'settings': user.settings, 'skin_list': Skin.objects.all() }, context_instance=RequestContext(request))
   else:
     user = CoreUser.objects.filter(username=request.user.username)
     first_name = request.POST['first_name'].strip()
@@ -759,7 +756,9 @@ def update_user(request):
     email = request.POST['email'].strip()
     phone_number = request.POST['phone_number'].strip()
     sid = request.POST['sid'].strip()
-
+    wants_emails = True if 'wants_emails' in request.POST else False
+    skin = Skin.objects.get(name=request.POST['skin'].strip())
+    
     try:
       if (len(phone_number) != 10):
         prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
@@ -770,7 +769,7 @@ def update_user(request):
 
     if not (first_name and last_name and email and phone_number):
     # redisplay the registration page
-      return render_to_response('userprofile.html', {'user': user, 'saved': 'False'}, context_instance=RequestContext(request))
+      return render_to_response('userprofile.html', {'user': user, 'saved': 'False', 'settings': user.settings, 'skin_list': Skin.objects.all() }, context_instance=RequestContext(request))
 
     # update the user to the DB
     user = CoreUser.objects.get(sid=sid)
@@ -778,6 +777,9 @@ def update_user(request):
     user.last_name = last_name
     user.email = email
     user.phone_number = phone_number
+    user.settings.wants_emails = wants_emails
+    user.settings.skin = skin
+    user.settings.save()
     user.save()
 
     # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
@@ -835,7 +837,7 @@ def user_profile(request):
     # Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  return render_to_response('userprofile.html', {'user': user, 'saved': saved_status}, context_instance=RequestContext(request))
+  return render_to_response('userprofile.html', {'user': user, 'saved': saved_status, 'settings': user.settings, 'skin_list': Skin.objects.all()}, context_instance=RequestContext(request))
 
 
 # XXX where is this used.?
