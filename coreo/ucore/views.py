@@ -144,6 +144,47 @@ def get_libraries(request):
   # return HttpResponse(serializers.serialize('json', results, indent=4, relations=('links',)))
 
 
+@require_http_methods(["GET", "POST"])
+def links(request):
+  if request.method == 'GET': 
+    total_links = Link.objects.all()  
+    return HttpResponse(serializers.serialize('json', total_links, use_natural_keys=True))
+  else:
+    linkname = request.POST['name'].strip()
+    linkdesc = request.POST['desc'].strip()
+    url = request.POST['url'].strip()
+    # The below variable will be an array of all tags that came in
+    # as comma-delimited.
+    tags = request.POST['tags'].strip().split(',')
+    firstname = request.POST['firstname'].strip()
+    lastname = request.POST['lastname'].strip()
+    phone = request.POST['phone'].strip()
+    email = request.POST['email'].strip()
+    # Create the POC with the info
+    # provided if he/she is not there already.
+    poc = POC.objects.get_or_create(email=email)
+    poc[0].first_name = firstname
+    poc[0].last_name = lastname
+    poc[0].phone_number = phone
+    poc[0].save()
+    # The below code will update or create depending on if the 
+    # link already exists (determined by url which must be unique).
+    link = Link.objects.get_or_create(url=url)
+    link[0].name = linkname
+    link[0].desc = linkdesc
+    # Iterate through the tags and create a tag if it isn't already
+    # in the tag table.
+    for t in tags:
+      tag = Tag.objects.get_or_create(name=t)
+      link[0].tags.add(tag[0])
+    link[0].poc = poc[0]
+    # Finally save the link
+    link[0].save()
+    # Then return the primary key of the create link in the response
+    return HttpResponse(link[0].pk)
+   
+
+
 @require_http_methods(["POST"])
 @login_required
 def delete_libraries(request):
