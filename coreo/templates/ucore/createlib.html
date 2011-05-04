@@ -89,14 +89,22 @@
 
          }
          $.post("../create-library/", { links: selected.toString(), name: name, desc: desc, tags: selectedTags.toString() }, function(data) {
-             if (data == 'Success')
-             {
                document.getElementById('result').innerHTML = "Your library was saved.";
-               }
-               else
-               {
-                 alert('result was : ' + data);
-               } });
+               
+         });
+      }
+ 
+      function addTag()
+      {
+       var newTag = document.getElementById('newTag').value;
+       var multipleTags = document.getElementById('tags');
+       if (newTag != '')
+       {
+        //  multipleTags.options[multipleTags.length] = new Option(multipleTags.options[0].value, multipleTags.options[0].value);
+        //  multipleTags.options[0] = new Option(newTag, newTag);
+         $("#tags").prepend($("<option>", { selected: "true", name: newTag, text: newTag })); 
+       $('#newTag').val('');
+       }
       }
 
      </script> 
@@ -128,7 +136,7 @@
             <option value="{{ t.name }}">{{ t.name }}</option>
             {% endfor %}
         </select></tr>
-        <tr><td>Create A New Tag Here: </td><td><input id="newTag" name="newTag" style="width:80px"/></td>
+        <tr><td>Create A New Tag Here: </td><td><input id="newTag" name="newTag" style="width:80px"/><button onclick="addTag()">Add Tag</button></td>
       </tr>
       <tr><td>&nbsp;</td>
         <td><h3 style="color:black;"><div id="result"></div></h3></td>
