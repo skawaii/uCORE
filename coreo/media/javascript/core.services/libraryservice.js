@@ -40,10 +40,96 @@ if (!window.core.services)
 	 * 
 	 * Parameters:
 	 *   cfg - Object. Contains properties:
+	 *         - getByIdEndpoint: String. URL to retrieve a LinkLibrary by its ID.
 	 *         - createLibraryEndpoint: String. URL to create-library view.
+	 *         - deleteEndpoint: String. URL to delete libraries.
 	 */
 	var LibraryService = function(cfg) {
-		return {
+		var _this = {
+			/**
+			 * Function: removeLink
+			 * 
+			 * Removes a link from a library.
+			 * 
+			 * Parameters:
+			 *   libraryId - String. LinkLibrary ID from which link will be removed.
+			 *   linkId - String. Link ID to be removed from the LinkLibrary.
+			 * 
+			 * Returns:
+			 *   jQuery Deferred. Success callback is invoked with the new 
+			 *   LinkLibrary JSON. Failure callback is invoked with an error 
+			 *   string.
+			 */
+			removeLink: function(libraryId, linkId) {
+				var deferred = $.Deferred();
+				_this.getById(libraryId)
+					.then(function(linkLibrary) {
+							// TODO: Update library
+						},
+						function(error) {
+							deferred.reject("Couldn't retrieve LinkLibrary " 
+									+ libraryId + ": " + error);
+						});
+				return deferred.promise();
+			},
+
+			/**
+			 * Function: getById
+			 * 
+			 * Retrieves a LinkLibrary by its ID.
+			 * 
+			 * Parameters:
+			 *   id - String. ID of the LinkLibrary to retrieve.
+			 * 
+			 * Returns:
+			 *   jQuery Deferred. Success callback is invoked with LinkLibrary 
+			 *   object. Failure callback is invoked with an error string.
+			 */
+			getById: function(id) {
+				var deferred = $.Deferred(), endpoint;
+				endpoint = cfg.getByIdEndpoint;
+				$.ajax(cfg.getByIdEndpoint 
+						+ !cfg.getByIdEndpoint.endsWith('/') ? '/' : ''
+						+ id, {
+							type: "GET",
+							success: function(linkLibrary, textStatus, jqXHR) {
+								deferred.resolve(linkLibrary);
+							},
+							error: function(jqXHR, textStatus, error) {
+								deferred.reject(error);
+							}
+						});
+				return deferred.promise();
+			},
+
+			/**
+			 * Function: deleteLibrary
+			 * 
+			 * Deletes a LinkLibrary using its ID.
+			 * 
+			 * Parameters:
+			 *   id - String. ID of the LinkLibrary to delete.
+			 *   
+			 * Returns:
+			 *   jQuery Deferred. Success callback is invoked with no 
+			 *   parameters. Failure callback is invoked with an error 
+			 *   string.
+			 */
+			deleteLibrary: function(id) {
+				var deferred = $.Deferred();
+				$.ajax(cfg.deleteEndpoint, {
+					type: "POST",
+					data: { "library_id": id },
+					success: function(content, textStatus, jqXHR) {
+						deferred.resolve();
+					},
+					error: function(jqXHR, textStatus, error) {
+						deferred.reject(jqXHR.responseText);
+					}
+				});
+				return deferred.promise();
+			},
+			
 			/**
 			 * Function: createLibrary
 			 * 
@@ -83,6 +169,7 @@ if (!window.core.services)
 				return deferred.promise();
 			}
 		};
+		return _this;
 	};
 	ns.LibraryService = LibraryService;
 })(jQuery, window.core.services);

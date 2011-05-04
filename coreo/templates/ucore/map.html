@@ -161,10 +161,14 @@
 				currentUser: {% user_json user %}
 			});
 			var libraryService = new core.services.LibraryService({
-				createLibraryEndpoint: "/create-library/"
+				createLibraryEndpoint: "/create-library/",
+				deleteEndpoint: "/delete-libraries/"
 			});
 			var linkService = new core.services.LinkService({
-				getLinkEndpoint: "/links/"
+				getByIdEndpoint: "/links/",
+				getByUrlEndpoint: "/links",
+				createEndpoint: "/links",
+				deleteEndpoint: "/delete-link/"
 			});
 			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
@@ -194,8 +198,7 @@
 			var spHelper = new core.ui.AcoredionSlidePanelHelper("#results");
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, 
 					spHelper.getCreateLibraryCallback(libraryService, linkService, geodataRetriever),
-					spHelper.getDeleteLibraryCallback(libraryService),
-					spHelper.getDeleteLinkCallback(linkService), userService);
+					userService, linkService, libraryService);
 
 			var geController = null;
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {

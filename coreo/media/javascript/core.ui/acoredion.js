@@ -76,15 +76,15 @@ if (!window.core.ui)
 	 *   eventChannel - <EventChannel>.
 	 */
 	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue, 
-			createLibraryCb, deleteLibraryCb, deleteLinkCb, userService) {
+			createLibraryCb, userService, linkService, libraryService) {
 		this.el = el;
 		this.searchStrategy = searchStrategy;
 		this.eventChannel = eventChannel;
 		this.networkLinkQueue = networkLinkQueue;
 		this.createLibraryCb = createLibraryCb;
-		this.deleteLibraryCb = deleteLibraryCb;
-		this.deleteLinkCb = deleteLinkCb;
 		this.userService = userService;
+		this.linkService = linkService;
+		this.libraryService = libraryService;
 		this._init();
 	};
 	Acoredion.EVENT_PUBLISHER_NAME = "Acoredion";
@@ -105,11 +105,11 @@ if (!window.core.ui)
 		
 		createLibraryCb: null,
 
-		deleteLibraryCb: null,
-		
-		deleteLinkCb: null,
-		
 		userService: null,
+		
+		linkService: null,
+		
+		libraryService: null,
 		
 		/**
 		 * Property: createLibraryCb
@@ -249,18 +249,32 @@ if (!window.core.ui)
 				tree.onRemove = $.proxy(function(geodata) {
 					var treeEl, _this;
 					_this = this;
+					// TODO: Only do this if this geodata is owned by the current user
 					new GeoDataVisitor({
 							link: function(linkGeoData) {
-								if (_this.deleteLinkCb) {
-									_this.deleteLinkCb.call(_this.deleteLinkCb, 
-											linkGeoData);
-								}
+								//  remove link from the library
+								new GeoDataVisitor({
+									linkLibrary: function(linkLibraryGeoData) {
+										
+									}
+								}).visit(linkGeoData.getParent());
+								
+								_this.linkService.deleteLink(linkGeoData.getCoreLink().pk)
+									.then(function() {
+											console.log("Link deleted");
+										},
+										function(error) {
+											console.log("Error deleting link: " + error);
+										});
 							},
 							linkLibrary: function(linkLibraryGeoData) {
-								if (_this.deleteLibraryCb) {
-									_this.deleteLibraryCb.call(_this.deleteLibraryCb, 
-											linkLibraryGeoData);
-								}
+								_this.libraryService.deleteLibrary(linkLibraryGeoData.getLinkLibrary().pk)
+									.then(function() {
+											console.log("Library deleted");
+										},
+										function(error) {
+											console.log("Error deleting library: " + error);
+										});
 							}
 						}).visit(geodata);
 					if (tree.isEmpty()) {

@@ -148,7 +148,8 @@ def links(request):
   if request.method == 'GET':
     if 'url' in request.GET:
       url = request.GET['url'].strip()
-      retrievedLink = Link.objects.filter(url=url)
+      retrievedLink = Link.objects.filter(url__icontains=url)
+      print retrievedLink
       if len(retrievedLink) > 0:
         return HttpResponse(serializers.serialize('json', retrievedLink, indent=4, relations=('poc','tags',)))
       else:
@@ -382,7 +383,16 @@ def get_kmz(request):
 
   return response
 
-
+@require_http_methods('GET')
+@login_required
+def get_library_by_id(request, libraryId):
+  library = None
+  try:
+    library = LinkLibrary.objects.get(id=libraryId)
+  except LinkLibrary.DoesNotExist, LinkLibrary.MultipleObjectsReturned:
+    raise Http404
+  return HttpResponse(utils.get_linklibrary_json(library))
+  
 @require_http_methods(['GET'])
 @login_required
 def get_library(request, username, lib_name):

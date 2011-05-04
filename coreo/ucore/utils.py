@@ -27,7 +27,23 @@ def get_coreuser_json(coreuser):
                                extras=('username','first_name','last_name','email'),
                                relations={'settings':{'relations':('skin',)}, 
                                           'libraries':{'relations':('links','creator',)}})
-  # unwrap the user object from inside an array
+  return unwrap_json_array(json)
+  
+# Serializes a single LinkLibrary instance
+def get_linklibrary_json(library):
+  from django.core import serializers
+  if not library:
+    return 'null'
+  if isinstance(library, list):
+    library = library[0]
+  library = [library];
+  json = serializers.serialize('json', library,
+                               relations={'creator':None,
+                                          'tags':None, 
+                                          'links':{'relations':('poc','tags',)}})
+  return unwrap_json_array(json)
+
+def unwrap_json_array(json):
   json = json.strip()
   if json.startswith('['):
     json = json[1:-1]
