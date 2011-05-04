@@ -57,7 +57,8 @@ if (!window.core.services)
 		 * See Also:
 		 * <GeoDataRetriever.fetch>
 		 */
-		fetch: function(url, callback) {
+		fetch: function(url) {
+			var deferred = $.Deferred();
 			var localCb = {
 				success: function(kmlRoot) {
 					if (kmlRoot && "children" in kmlRoot) {
@@ -65,11 +66,10 @@ if (!window.core.services)
 							if (kmlRoot.children.length == 1) {
 								var firstChild = kmlRoot.children[0];
 								var geodata = KmlJsonGeoData.fromKmlJson(firstChild, kmlRoot);
-								CallbackUtils.invokeCallback(callback, geodata, "success");
+								deferred.resolve(geodata);
 							}
 							else {
-								CallbackUtils.invokeOptionalCallback(callback, 
-										"error", "Too many root-level KML "
+								deferred.reject("Too many root-level KML "
 										+ "features in KML retrieved from " 
 										+ url + ". Expected only one, found " 
 										+ kmlRoot.children.length + ".");
@@ -77,14 +77,15 @@ if (!window.core.services)
 						}
 					}
 					else {
-						CallbackUtils.invokeCallback(callback, null, "success");
+						deferred.resolve(null);
 					}
 				},
 				error: function(errorThrown) {
-					CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
+					deferred.reject(errorThrown);
 				}
 			};
 			this.kmlJsonProxyService.getKmlJson(url, localCb);
+			return deferred.promise();
 		}
 	});
 	ns.KmlJsonGeoDataRetriever = KmlJsonGeoDataRetriever;

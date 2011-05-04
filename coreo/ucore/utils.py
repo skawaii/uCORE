@@ -16,6 +16,23 @@ def http_accepts(request, content_type):
 def accepts_json(request):
   return http_accepts(request, JSON_CONTENT_TYPE)
 
+def get_coreuser_json(coreuser):
+  from django.core import serializers
+  if not coreuser:
+    return 'null'
+  if isinstance(coreuser, list):
+    coreuser = coreuser[0]
+  coreuser = [coreuser];
+  json = serializers.serialize('json', coreuser,
+                               extras=('username','first_name','last_name','email'),
+                               relations={'settings':{'relations':('skin',)}, 
+                                          'libraries':{'relations':('links','creator',)}})
+  # unwrap the user object from inside an array
+  json = json.strip()
+  if json.startswith('['):
+    json = json[1:-1]
+  return json
+  
 def insert_links_from_csv(csv_file):
   link_file = csv.reader(csv_file)
 

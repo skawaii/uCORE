@@ -15,7 +15,7 @@ if (!window.core.ui)
 	window.core.ui = {};
 
 (function($, ns) {
-	var CreateLibraryCallback = function(slidePanelEl, libraryService) {
+	var CreateLibraryCallback = function(slidePanelEl, libraryService, linkService, geoDataRetriever) {
 		var panelId, deferred, form;
 		panelId = "create-library";
 		
@@ -91,8 +91,11 @@ if (!window.core.ui)
 	
 										libraryService.createLibrary(name, description, [], tags)
 											.then(function(newLibrary) {
+													var linkLibraryGeoData;
 													$(slidePanelEl).slidepanel("removeId", panelId);
-													deferred.resolve(newLibrary);
+													linkLibraryGeoData = new core.geo.LinkLibraryGeoData(
+															null, newLibrary, linkService, geoDataRetriever);
+													deferred.resolve(linkLibraryGeoData);
 												},
 												function(errorThrown) {
 													var idx;
@@ -158,8 +161,10 @@ if (!window.core.ui)
 			 * Returns:
 			 *   Function.
 			 */
-			getCreateLibraryCallback: function(libraryService) {
-				return new CreateLibraryCallback(slidePanelEl, libraryService);
+			getCreateLibraryCallback: function(libraryService, linkService, 
+					geoDataRetriever) {
+				return new CreateLibraryCallback(slidePanelEl, 
+						libraryService, linkService, geoDataRetriever);
 			}
 		};
 	};

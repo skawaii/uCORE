@@ -193,8 +193,8 @@ if (!window.core.gearth)
 		add: function(geoData) {
 			console.log("add(" + geoData.id + ")");
 			this.kmlObjectStore.getOrCreateKmlObject(geoData, $.proxy(function(kmlObject) {
-				console.log("KmlObject created");
-				this.ge.getFeatures().appendChild(kmlObject);
+				if (kmlObject)
+					this.ge.getFeatures().appendChild(kmlObject);
 			}, this));
 		},
 

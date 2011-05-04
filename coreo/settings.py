@@ -108,6 +108,10 @@ SITE_ROOT = 'http://localhost:8080/'
 
 LOGIN_URL = '/login'
 
+SERIALIZATION_MODULES = {
+    'json': 'wadofstuff.django.serializers.json'
+}
+
 import logging
 
 try:

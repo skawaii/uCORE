@@ -115,7 +115,7 @@ class Settings(models.Model):
 
 class CoreUser(auth.models.User):
   sid = models.CharField(max_length=20, unique=True)
-  phone_number = models.PositiveSmallIntegerField()
+  phone_number = models.CharField(max_length=255)
   settings = models.OneToOneField(Settings, null=True, blank=True)
   trophies = models.ManyToManyField(Trophy, through='TrophyCase')
   libraries = models.ManyToManyField('LinkLibrary', null=True, blank=True)

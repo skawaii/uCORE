@@ -11,6 +11,7 @@
  *   - core.events.HideFeatureEvent
  *   - core.events.FeatureInfoEvent
  *   - core.util.IdSequence
+ *   - core.geo.GeoDataStore 
  */
 if (!window.core)
 	window.core = {};
@@ -38,6 +39,7 @@ if (!window.core.ui)
 		throw "Dependency not found: core.events.GeoDataLoadedEvent";
 	var GeoDataUpdateBeginEvent = core.events.GeoDataUpdateBeginEvent;
 	var GeoDataUpdateEndEvent = core.events.GeoDataUpdateEndEvent;
+	var GeoDataStore = core.geo.GeoDataStore;
 	
 	var findFirstNamedChild = function(geodata) {
 		var name = geodata.getName();
@@ -69,12 +71,14 @@ if (!window.core.ui)
 	 *   searchStrategy - <SearchStrategy>. Invoked by the search form.
 	 *   eventChannel - <EventChannel>.
 	 */
-	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue, createLibraryCb) {
+	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue, 
+			createLibraryCb, userService) {
 		this.el = el;
 		this.searchStrategy = searchStrategy;
 		this.eventChannel = eventChannel;
 		this.networkLinkQueue = networkLinkQueue;
 		this.createLibraryCb = createLibraryCb;
+		this.userService = userService;
 		this._init();
 	};
 	Acoredion.EVENT_PUBLISHER_NAME = "Acoredion";
@@ -93,6 +97,10 @@ if (!window.core.ui)
 		
 		networkLinkQueue: null,
 		
+		createLibraryCb: null,
+		
+		userService: null,
+		
 		/**
 		 * Property: createLibraryCb
 		 * 
@@ -102,28 +110,109 @@ if (!window.core.ui)
 		
 		trees: [],
 
-		_geoDataLoadedEventListener: function(event) {
-			if (event.publisher !== Acoredion.EVENT_PUBLISHER_NAME) {
-				var id = event.geoData.id + "";
-				var name = "";
+		_getGeoDataCreatorId: function(geodata) {
+			var parent, linkLibrary, link;
+			if (geodata) {
+				if (typeof geodata.getLinkLibrary === "function") {
+					linkLibrary = geodata.getLinkLibrary();
+					if (linkLibrary && linkLibrary.fields
+							&& !!linkLibrary.fields.creator) {
+						if (typeof linkLibrary.fields.creator === "object") {
+							return linkLibrary.fields.creator.pk;
+						}
+						else if (typeof linkLibrary.fields.creator === "number"){
+							return linkLibrary.fields.creator;
+						}
+					}
+				}
+				else if (typeof geodata.getCoreLink === "function") {
+					link = geodata.getCoreLink();
+					if (link) {
+						return link.fields.creator.pk;
+					}
+				}
+				else {
+					parent = geodata.getParent();
+					if (parent) {
+						return this._getGeoDataCreator(parent);
+					}
+				}
+			}
+			return null;
+		},
+
+		addGeoData: function(geoData) {
+			var id = geoData.id + "";
+			var name = geoData.getName();
+			var geoDataCreatorId = this._getGeoDataCreatorId(geoData);
+			var addTree = function(where) {
 				var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
 					.attr({ "resultid": id, "resultname": name })
-					.prependTo($(this.treeContainer));
+					.prependTo(where);
+				where.add(where.prev()).removeClass("ui-helper-hidden");
 				treeEl.append($("<span>").html("Loading " + name));
-				this._treeLoaded(id, event.geoData);
+				this._treeLoaded(id, geoData);			
+			};
+			if (geoDataCreatorId) {
+				this.userService.getCurrentUser().then(
+						$.proxy(function(currentUser) {
+							var treeContainer = this._getTempPlaces();
+							if (currentUser && !!currentUser.pk 
+									&& currentUser.pk === geoDataCreatorId) {
+								treeContainer = this._getMyPlaces();
+							}
+							addTree.call(this, treeContainer);
+						}, this),
+						function(error) {
+							console.log("Error retrieving current user: " + error);
+						}
+				);
+			}
+			else {
+				// add to temporary places
+				addTree.call(this, this._getTempPlaces());
+			}
+		},
+		
+		_geoDataLoadedEventListener: function(event) {
+			if (event.publisher !== Acoredion.EVENT_PUBLISHER_NAME) {
+				this.addGeoData(event.geoData);
 			}
 		},
 
-		_beginTree: function(id, name) {
-			var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
-				.attr({ "resultid": id, "resultname": name })
-				.prependTo($(this.treeContainer));
-			treeEl.append($("<span>").html("Loading " + name));
+		_getMyPlaces: function() {
+			return $(this.el).find("> .ui-widget-content > .acoredion-tree-container:eq(0)");
+		},
+		
+		_getTempPlaces: function() {
+			return $(this.el).find("> .ui-widget-content > .acoredion-tree-container:eq(1)");
+		},
+		
+		_beginTree: function(id, name, creatorId) {
+			this.userService.getCurrentUser().then(
+					$.proxy(function(currentUser) {
+						var treeContainer = this._getTempPlaces();
+						if (currentUser && !!currentUser.pk 
+								&& currentUser.pk === creatorId) {
+							treeContainer = this._getMyPlaces();
+						}
+						treeContainer.add(treeContainer.prev()).removeClass("ui-helper-hidden");
+						var treeEl = $("<div>").addClass("acoredion-tree acoredion-tree-loading ui-state-highlight")
+							.attr({ "resultid": id, "resultname": name })
+							.prependTo(treeContainer);
+						treeEl.append($("<span>").html("Loading " + name));						
+					}, this),
+					function(error) {
+						console.log("Error retrieving current user: " + error);
+					}
+			);
 		},
 
 		_treeLoaded: function(id, geodata) {
 			geodata = findFirstNamedChild(geodata);
-			var treeEl = $(this.treeContainer).find("div.acoredion-tree-loading[resultid=\"" + id + "\"]");
+			var treeEl = $(this.el).find("> .ui-widget-content > "
+					+ ".acoredion-tree-container "
+					+ "div.acoredion-tree-loading[resultid=\"" + id + "\"]");
 			var buildTree = $.proxy(function(name) {
 				treeEl.removeClass("acoredion-tree-loading ui-state-highlight");
 				treeEl.empty();
@@ -138,14 +227,24 @@ if (!window.core.ui)
 							new HideFeatureEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
 				tree.onSelect = $.proxy(function(geodata) {
+					var i;
+					for (i = 0; this.trees && i < this.trees.length; i++) {
+						if (this.trees[i] !== tree) {
+							this.trees[i].deselectAll();
+						}
+					}
 					this.eventChannel.publish(
 							new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
 				tree.onRemove = $.proxy(function(geodata) {
 					// TODO
-					console.log("removed " + geodata.id);
+					var treeEl;
 					if (tree.isEmpty()) {
-						console.log("tree is now empty");
+						treeEl = $(tree.el);
+						if (treeEl.siblings().size() === 0) {
+							treeEl.parent().add(treeEl.parent().prev()).addClass("ui-helper-hidden");
+						}
+						treeEl.remove();
 					}
 				});
 				tree.onRename = $.proxy(function(geodata, newName) {
@@ -187,7 +286,9 @@ if (!window.core.ui)
 		},
 		
 		_treeLoadFailed: function(id, error) {
-			var treeEl = $(this.treeContainer).find("div.acoredion-tree-loading[resultid=\"" + id + "\"]");
+			var treeEl = $(this.el).find("> .ui-widget-content > "
+					+ ".acoredion-tree-container "
+					+ "div.acoredion-tree-loading[resultid=\"" + id + "\"]");
 			treeEl.empty();
 			treeEl.removeClass("acoredion-tree-loading");
 			treeEl.removeClass("ui-state-highlight");
@@ -238,10 +339,10 @@ if (!window.core.ui)
 				var idMap = {};
 				_this.searchStrategy.search.call(_this.searchStrategy, 
 					searchText, {
-					resultBegin: function(id, name) {
+					resultBegin: function(id, name, creatorId) {
 						var myId = _this._resultIdSequence.nextId();
 						idMap["" + id] = myId;
-						_this._beginTree(myId, name);
+						_this._beginTree(myId, name, creatorId);
 					},
 					resultSuccess: function(id, geodata) {
 						var myId = idMap["" + id];
@@ -277,23 +378,23 @@ if (!window.core.ui)
 					},
 					text: false
 				}).click($.proxy(doSearch, this));
-			
-			// create container for GeoData trees
-			this.treeContainer = $("<div>").addClass("acoredion-tree-container").appendTo(content);
 
-			var afterCreateLibrary = function(library) {
-				// TODO
-				alert("Library created");
-			};
+			// create container for GeoData trees
+			content.append($("<h3>", { "class": "ui-helper-hidden", text: "My Places"}))
+				.append($("<div>", { "class": "ui-helper-hidden acoredion-tree-container" }))
+				.append($("<h3>", { "class": "ui-helper-hidden", text: "Temporary Places" }))
+				.append($("<div>", { "class": "ui-helper-hidden acoredion-tree-container" }));
 
 			$("<div>")
 				.append($("<button>").text("Create Link Library").button({ icons: { primary: "ui-icon-plusthick" }}))
 					.click($.proxy(function() {
 						this.createLibraryCb.call(this.createLibraryCb)
-							.then(function(library) {
-								// TODO
-								alert("Library created: " + library);
-							});
+							.then($.proxy(function(linkLibraryGeoData) {
+								linkLibraryGeoData = GeoDataStore.persist(linkLibraryGeoData);
+								this.addGeoData(linkLibraryGeoData);
+								this.eventChannel.publish(
+										new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, linkLibraryGeoData));
+							}, this));
 					}, this))
 				.appendTo(content);
 			

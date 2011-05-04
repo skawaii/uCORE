@@ -73,6 +73,7 @@ if (!window.core.services)
 					},
 					dataType: "json",
 					success: function(linkLibrary, textStatus, jqXHR) {
+						console.log(linkLibrary);
 						deferred.resolve(linkLibrary);
 					},
 					error: function(jqXHR, textStatus, errorThrown) {
