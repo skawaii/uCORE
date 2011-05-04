@@ -131,6 +131,62 @@ def create_library(request):
     allTags = Tag.objects.all()
     return render_to_response('createlib.html', { 'allLinks' : allLinks, 'allTags': allTags }, context_instance=RequestContext(request))
 
+
+
+@require_http_methods(['POST'])
+@login_required
+def update_library(request):
+  user = CoreUser.objects.get(username=request.user)
+  if 'id' not in request.POST:
+    raise HttpResponseBadRequest('id is a required parameter')
+  else:
+    id = request.POST['id'].strip()
+    library = LinkLibrary.objects.get(pk=id)
+    if not library:
+      raise Http404
+    links = ''
+    if 'links' in request.POST:
+      links = request.POST['links'].strip()
+      linkArray = links.split(',')
+      library.links.all().delete()
+      for link_object in linkArray:
+        link_object = link_object.strip()
+        if link_object.isdigit():
+          link = Link.objects.get(pk=int(link_object))
+          library.links.add(link)
+    if 'name' not in request.POST:
+      return HttpResponseBadRequest('name is a required parameter')
+    name = request.POST['name'].strip()
+    library.name = name
+    if 'desc' in request.POST:
+      desc = request.POST['desc'].strip()
+      library.desc = desc
+    tags = ''
+    if 'tags' in request.POST:
+      tags = request.POST['tags'].strip()
+      tags = tags.split(',')
+      library.tags.all().delete()
+      for t in tags:
+        t = t.strip()
+        if len(t) > 0:
+          retrievedtag = Tag.objects.get_or_create(name=t)
+          library.tags.add(retrievedtag[0])
+    # if tags[-1] == ',':
+    #  length_of_tags = len(tags)
+    #  tags = tags[0:length_of_tags-1]
+  
+    library.save()
+    
+    # The below line shouldn't be needed because the library should
+    # stay in the profile of the user even if it was updated.
+
+    #  user.libraries.add(library)
+    if utils.accepts_json(request):
+      jsonContent = json.dumps(utils.django_to_dict(library))
+      return HttpResponse(content=jsonContent, content_type=utils.JSON_CONTENT_TYPE)
+    return HttpResponse(str(library.pk))
+
+
 @require_http_methods(["GET"])
 @login_required
 def get_libraries(request):
