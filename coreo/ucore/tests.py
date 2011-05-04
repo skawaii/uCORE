@@ -327,7 +327,7 @@ class ProfileTest(TestCase):
     self.assertEquals(user.first_name, 'Bill')
     self.assertEquals(user.last_name, 'Somebody')
     self.assertEquals(user.email, 'pcol@anywhere.com')
-    self.assertEquals(user.phone_number, long('9998887777'))
+    self.assertEquals(user.phone_number, '9998887777')
     # print 'Passed the UpdateProfile test.'
 
 
