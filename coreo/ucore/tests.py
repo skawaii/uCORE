@@ -100,6 +100,32 @@ class LinkLibraryTest(TestCase):
     self.assertEqual(0, library.links.count(), "library links field is empty")
     
     # print 'Passed the create link library test.'
+  def test_update_library(self):
+
+    links = "1, 2"
+    tags = "HotButton,WarmButton"
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': links, 'tags': tags })
+    self.assertEquals(response.status_code, 200)
+    self.assertEquals(LinkLibrary.objects.count(), 1)
+    user = CoreUser.objects.get(username='testuser')
+    self.assertEquals(1, user.libraries.count())
+
+    # Now check the update ability....
+    links = "1, 3"
+    
+    self.link3 = Link.objects.create(name='CNN news', desc='news site', url='www.cnn.com', poc=self.poc)
+    self.link3.tags.add(Tag.objects.get(name='HotButton'))
+    response = self.client.post('/update-library/', { 'id': '1', 'name': 'modified name', 'desc': 'modified description', 'links': links, 'tags': tags })
+    self.assertEquals(response.status_code, 200)
+    self.assertEquals(LinkLibrary.objects.count(), 1)
+    library = LinkLibrary.objects.get(pk=1)
+    self.assertEquals('modified name',  library.name)
+    self.assertEquals('modified description', library.desc)
+    self.assertEquals(2,  library.links.count())
+    self.assertIsNotNone(library.links.get(pk=3))
+    #
+    #  self.assertContains(1, library.links.all())
+
 
   def test_add_single(self):
     creator = CoreUser.objects.create(sid='me', username='meme', first_name='me', last_name='me', email='me@me.com', phone_number='1234567890')
