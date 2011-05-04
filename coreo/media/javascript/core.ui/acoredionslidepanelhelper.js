@@ -16,7 +16,7 @@ if (!window.core.ui)
 
 (function($, ns) {
 	var CreateLibraryCallback = function(slidePanelEl, libraryService, linkService, geoDataRetriever) {
-		var panelId, form;
+		var panelId, form, deferred;
 		panelId = "create-library";
 		
 		buildForm = function() {
@@ -117,7 +117,7 @@ if (!window.core.ui)
 		};
 		
 		return function() {
-			var deferred, idx;
+			var idx;
 			deferred = new $.Deferred();
 			idx = $(slidePanelEl).slidepanel("getIndex", panelId);
 			if (idx == -1) {

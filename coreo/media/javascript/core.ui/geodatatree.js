@@ -37,13 +37,14 @@ if (!window.core.ui)
 	 *   geodata - <GeoData>. Required. Root tree node.
 	 *   el - HTML DOM Element. Element to contain the tree.
 	 */
-	var GeoDataTree = function(name, geodata, el, networkLinkQueue) {
+	var GeoDataTree = function(name, geodata, el, networkLinkQueue, showEditButton) {
 		Assert.notNull(geodata, "geodata cannot be null");
 		Assert.type(geodata, "object", "geodata must be of type core.geo.GeoData");
 		Assert.notNull(el, "el cannot be null");
 		this.el = el;
 		this.geodata = geodata;
 		this.networkLinkQueue = networkLinkQueue;
+		this.showEditButton = showEditButton;
 		this._init(name);
 	};
 	/**
@@ -369,16 +370,18 @@ if (!window.core.ui)
 //					        	} 
 //					        });
 //						}
-						buttons.push({ 
-				        	icon: "ui-icon-pencil", 
-				        	tooltip: "Edit", 
-				        	action: function(node) {
-				        		if (_this.onEdit) {
-				        			var geodata = getGeoDataFromTreeNode(node);
-				        			_this.onEdit.call(_this.onEdit, geodata);
-				        		}
-				        	} 
-				        });
+						if (_this.showEditButton) {
+							buttons.push({ 
+					        	icon: "ui-icon-pencil", 
+					        	tooltip: "Edit", 
+					        	action: function(node) {
+					        		if (_this.onEdit) {
+					        			var geodata = getGeoDataFromTreeNode(node);
+					        			_this.onEdit.call(_this.onEdit, geodata);
+					        		}
+					        	} 
+					        });
+						}
 						buttons.push({ 
 				        	icon: "ui-icon-trash", 
 				        	tooltip: "Remove", 

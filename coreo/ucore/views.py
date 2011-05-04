@@ -530,13 +530,14 @@ def get_tags(request):
     This view returns a list of all the public tags that match the
     parameter submitted.
   """
+  term = request.GET['term']
   if ',' in term:
     termList = term.split(',')
     length_of_list = len(termList)
     term = termList[length_of_list-1].strip()
     # print 'term is- %s -here' % term
 
-  results = Tag.objects.filter(name__contains=term, type='P')
+  results = Tag.objects.filter(name__icontains=term, type='P')
 
   return HttpResponse(serializers.serialize('json', results))
 

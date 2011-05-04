@@ -13,6 +13,7 @@
  *   - core.util.IdSequence
  *   - core.geo.GeoDataStore 
  *   - core.util.GeoDataVisitor
+ *   - core.events.GeoDataUnloadedEvent
  */
 if (!window.core)
 	window.core = {};
@@ -44,6 +45,9 @@ if (!window.core.ui)
 	var GeoDataVisitor = core.util.GeoDataVisitor;
 	if (!GeoDataVisitor)
 		throw "Dependency not found: core.util.GeoDataVisitor";
+	var GeoDataUnloadedEvent = core.events.GeoDataUnloadedEvent;
+	if (!GeoDataUnloadedEvent)
+		throw "Dependency not found: core.events.GeoDataUnloadedEvent";
 	
 	var findFirstNamedChild = function(geodata) {
 		var name = geodata.getName();
@@ -226,7 +230,11 @@ if (!window.core.ui)
 			var buildTree = $.proxy(function(name) {
 				treeEl.removeClass("acoredion-tree-loading ui-state-highlight");
 				treeEl.empty();
-				var tree = new GeoDataTree(name, geodata, treeEl, this.networkLinkQueue);
+				var treeContainerName = $.trim(treeEl.closest(".acoredion-tree-container")
+						.prev().text());
+				var isInMyPlaces = treeContainerName === "My Places";
+				var tree = new GeoDataTree(name, geodata, treeEl, this.networkLinkQueue, 
+						isInMyPlaces);
 				
 				tree.onCheck = $.proxy(function(geodata) {
 					this.eventChannel.publish(new ShowFeatureEvent(
@@ -255,17 +263,11 @@ if (!window.core.ui)
 								//  remove link from the library
 								new GeoDataVisitor({
 									linkLibrary: function(linkLibraryGeoData) {
-										
+										this.libraryService.removeLink(
+												linkLibraryGeoData.getLinkLibrary().pk,
+												linkGeoData.getCoreLink().pk);
 									}
 								}).visit(linkGeoData.getParent());
-								
-								_this.linkService.deleteLink(linkGeoData.getCoreLink().pk)
-									.then(function() {
-											console.log("Link deleted");
-										},
-										function(error) {
-											console.log("Error deleting link: " + error);
-										});
 							},
 							linkLibrary: function(linkLibraryGeoData) {
 								_this.libraryService.deleteLibrary(linkLibraryGeoData.getLinkLibrary().pk)
@@ -284,7 +286,10 @@ if (!window.core.ui)
 						}
 						treeEl.remove();
 					}
-					// TODO: Publish GeoDataUnloadedEvent
+					this.eventChannel.publish(new GeoDataUnloadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
+				}, this);
+				tree.onEdit = $.proxy(function(geodata) {
+					alert("Not implemented: onEdit(" + geodata + ")");
 				}, this);
 				this.eventChannel.publish(
 						new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
@@ -390,7 +395,41 @@ if (!window.core.ui)
 							event.preventDefault();
 							doSearch();
 						}
+						// handle tab key when autocomplete is active
+						if ( event.keyCode === $.ui.keyCode.TAB &&
+								$( event.target ).data( "autocomplete" ).menu.active ) {
+							event.preventDefault();
+						}
 					}, this));
+			// configure autocomplete for search text field
+			// TODO: add URL to Acoredion constructor
+			this.searchInput.autocomplete({
+				html: true,
+				source: function(request, response) {
+					$.ajax("/get-tags/", {
+						type: "GET",
+						data: request,
+						dataType: "json",
+						success: function(terms) {
+							var i, values = [];
+							for (i = 0; i < terms.length; i++) {
+								values.push({
+									value: terms[i].fields.name,
+									label: "<span class=\"term-type\">Tag:</span>"
+										+ "<span class=\"term-value\">" + terms[i].fields.name + "</span>"
+								});
+							}
+							response.call(response, values);
+						},
+						error: function(jqXHR) {
+							console.log(jqXHR.responseText);
+							response.call(response, []);
+						}
+					});
+				}
+			});
+
+	        
 			var searchButton = $("<button>").text("Search")
 				.appendTo(searchForm)
 				.button({
