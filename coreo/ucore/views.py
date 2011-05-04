@@ -148,7 +148,7 @@ def update_library(request):
     if 'links' in request.POST:
       links = request.POST['links'].strip()
       linkArray = links.split(',')
-      library.links.all().delete()
+      library.links.clear()
       for link_object in linkArray:
         link_object = link_object.strip()
         if link_object.isdigit():
