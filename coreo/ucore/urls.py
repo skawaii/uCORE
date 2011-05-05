@@ -52,5 +52,6 @@ urlpatterns = patterns('coreo.ucore.views',
     (r'^links/(?P<linkId>\w*)/', 'get_link'),
     (r'^current-user/$', 'get_current_user'),
     (r'^keywords/$', 'get_keywords'),
+    # (r'^testlink/$', 'test_link'),
 )
 
