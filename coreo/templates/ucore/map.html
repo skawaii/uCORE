@@ -82,6 +82,7 @@
 	<!-- Javascript -->
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.5.min.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery.ui.autocomplete.html.js"></script>
 	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jquerytools/tooltip/tooltip.min.js"></script>
@@ -102,6 +103,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/namespacecontext.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/xmlutils.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/kmlutils.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/geodatavisitor.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodatastore.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodata.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/linkgeodata.js"></script>
@@ -120,6 +122,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/viewchangedevent.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/featureinfoevent.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/eventchannel.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/geodataunloadedevent.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/geodatatree.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredion.js"></script>
@@ -160,10 +163,14 @@
 				currentUser: {% user_json user %}
 			});
 			var libraryService = new core.services.LibraryService({
-				createLibraryEndpoint: "/create-library/"
+				createLibraryEndpoint: "/create-library/",
+				deleteEndpoint: "/delete-libraries/"
 			});
 			var linkService = new core.services.LinkService({
-				getLinkEndpoint: "/links/"
+				getByIdEndpoint: "/links/",
+				getByUrlEndpoint: "/links",
+				createEndpoint: "/links",
+				deleteEndpoint: "/delete-link/"
 			});
 			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
@@ -185,7 +192,7 @@
 				})
 				.hide();
 
-			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
+			var searchService = new core.services.SearchService("/search/links", "/search/libraries", "/get-tags", "/keywords");
 			var resultFilter = new core.ui.SlidePanelResultFilter("#results", "search-results");
 			var searchStrategy = new core.services.SearchStrategy(
 					searchService, resultFilter, geodataRetriever, linkService);
@@ -193,7 +200,7 @@
 			var spHelper = new core.ui.AcoredionSlidePanelHelper("#results");
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, 
 					spHelper.getCreateLibraryCallback(libraryService, linkService, geodataRetriever),
-					userService);
+					userService, linkService, libraryService);
 
 			var geController = null;
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {

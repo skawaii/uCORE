@@ -12,6 +12,8 @@
  *   - core.events.FeatureInfoEvent
  *   - core.util.IdSequence
  *   - core.geo.GeoDataStore 
+ *   - core.util.GeoDataVisitor
+ *   - core.events.GeoDataUnloadedEvent
  */
 if (!window.core)
 	window.core = {};
@@ -40,6 +42,12 @@ if (!window.core.ui)
 	var GeoDataUpdateBeginEvent = core.events.GeoDataUpdateBeginEvent;
 	var GeoDataUpdateEndEvent = core.events.GeoDataUpdateEndEvent;
 	var GeoDataStore = core.geo.GeoDataStore;
+	var GeoDataVisitor = core.util.GeoDataVisitor;
+	if (!GeoDataVisitor)
+		throw "Dependency not found: core.util.GeoDataVisitor";
+	var GeoDataUnloadedEvent = core.events.GeoDataUnloadedEvent;
+	if (!GeoDataUnloadedEvent)
+		throw "Dependency not found: core.events.GeoDataUnloadedEvent";
 	
 	var findFirstNamedChild = function(geodata) {
 		var name = geodata.getName();
@@ -72,13 +80,15 @@ if (!window.core.ui)
 	 *   eventChannel - <EventChannel>.
 	 */
 	var Acoredion = function(el, searchStrategy, eventChannel, networkLinkQueue, 
-			createLibraryCb, userService) {
+			createLibraryCb, userService, linkService, libraryService) {
 		this.el = el;
 		this.searchStrategy = searchStrategy;
 		this.eventChannel = eventChannel;
 		this.networkLinkQueue = networkLinkQueue;
 		this.createLibraryCb = createLibraryCb;
 		this.userService = userService;
+		this.linkService = linkService;
+		this.libraryService = libraryService;
 		this._init();
 	};
 	Acoredion.EVENT_PUBLISHER_NAME = "Acoredion";
@@ -98,8 +108,12 @@ if (!window.core.ui)
 		networkLinkQueue: null,
 		
 		createLibraryCb: null,
-		
+
 		userService: null,
+		
+		linkService: null,
+		
+		libraryService: null,
 		
 		/**
 		 * Property: createLibraryCb
@@ -216,7 +230,11 @@ if (!window.core.ui)
 			var buildTree = $.proxy(function(name) {
 				treeEl.removeClass("acoredion-tree-loading ui-state-highlight");
 				treeEl.empty();
-				var tree = new GeoDataTree(name, geodata, treeEl, this.networkLinkQueue);
+				var treeContainerName = $.trim(treeEl.closest(".acoredion-tree-container")
+						.prev().text());
+				var isInMyPlaces = treeContainerName === "My Places";
+				var tree = new GeoDataTree(name, geodata, treeEl, this.networkLinkQueue, 
+						isInMyPlaces);
 				
 				tree.onCheck = $.proxy(function(geodata) {
 					this.eventChannel.publish(new ShowFeatureEvent(
@@ -237,8 +255,30 @@ if (!window.core.ui)
 							new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
 				tree.onRemove = $.proxy(function(geodata) {
-					// TODO
-					var treeEl;
+					var treeEl, _this;
+					_this = this;
+					// TODO: Only do this if this geodata is owned by the current user
+					new GeoDataVisitor({
+							link: function(linkGeoData) {
+								//  remove link from the library
+								new GeoDataVisitor({
+									linkLibrary: function(linkLibraryGeoData) {
+										this.libraryService.removeLink(
+												linkLibraryGeoData.getLinkLibrary().pk,
+												linkGeoData.getCoreLink().pk);
+									}
+								}).visit(linkGeoData.getParent());
+							},
+							linkLibrary: function(linkLibraryGeoData) {
+								_this.libraryService.deleteLibrary(linkLibraryGeoData.getLinkLibrary().pk)
+									.then(function() {
+											console.log("Library deleted");
+										},
+										function(error) {
+											console.log("Error deleting library: " + error);
+										});
+							}
+						}).visit(geodata);
 					if (tree.isEmpty()) {
 						treeEl = $(tree.el);
 						if (treeEl.siblings().size() === 0) {
@@ -246,25 +286,11 @@ if (!window.core.ui)
 						}
 						treeEl.remove();
 					}
-				});
-				tree.onRename = $.proxy(function(geodata, newName) {
-					// TODO
-					console.log("renamed " + geodata.id + " to " + newName);
-				});
-				/*
-				tree.onHover = $.proxy(function(geodata, node) {
-					// TODO
-					var nodeOffset = node.offset();
-					this.treeActionsEl.css({
-						"top": nodeOffset.top,
-						"left": nodeOffset.left + node.width() - this.treeActionsEl.width()
-					});
-					this.treeActionsEl.show();
+					this.eventChannel.publish(new GeoDataUnloadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
-				tree.onDehover = $.proxy(function(geodata, node) {
-					this.treeActionsEl.hide();
+				tree.onEdit = $.proxy(function(geodata) {
+					alert("Not implemented: onEdit(" + geodata + ")");
 				}, this);
-				*/
 				this.eventChannel.publish(
 						new GeoDataLoadedEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				this.trees.push(tree);
@@ -342,15 +368,15 @@ if (!window.core.ui)
 					resultBegin: function(id, name, creatorId) {
 						var myId = _this._resultIdSequence.nextId();
 						idMap["" + id] = myId;
-						_this._beginTree(myId, name, creatorId);
+						_this._beginTree.call(_this, myId, name, creatorId);
 					},
 					resultSuccess: function(id, geodata) {
 						var myId = idMap["" + id];
-						_this._treeLoaded(myId, geodata);
+						_this._treeLoaded.call(_this, myId, geodata);
 					},
 					resultError: function(id, errorThrown) {
 						var myId = idMap["" + id];
-						_this._treeLoadFailed(myId, errorThrown);
+						_this._treeLoadFailed.call(_this, myId, errorThrown);
 					},
 					complete: function() {
 						console.log("Finished processing results.");
@@ -369,7 +395,38 @@ if (!window.core.ui)
 							event.preventDefault();
 							doSearch();
 						}
+						// handle tab key when autocomplete is active
+						if ( event.keyCode === $.ui.keyCode.TAB &&
+								$( event.target ).data( "autocomplete" ).menu.active ) {
+							event.preventDefault();
+						}
 					}, this));
+			// configure autocomplete for search text field
+			// TODO: add URL to Acoredion constructor
+			this.searchInput.autocomplete({
+				html: true,
+				source: function(request, response) {
+					_this.searchStrategy.searchService.getKeywordsLike(request.term)
+						.then(function(keywords) {
+								var i, value, values = [];
+								for (i = 0; i < keywords.length; i++) {
+									value = {
+										"value": keywords[i].value,
+										label: "<span class=\"term-type\">" + keywords[i].type + "</span>"
+											+ "<span class=\"term-value\">" + keywords[i].value + "</span>"
+									};
+									values.push(value);
+								}
+								response.call(response, values);
+							},
+							function(error) {
+								console.log("Error gettings keywords from server: " + error);
+								response.call([]);
+							});
+				}
+			});
+
+	        
 			var searchButton = $("<button>").text("Search")
 				.appendTo(searchForm)
 				.button({

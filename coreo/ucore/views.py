@@ -204,7 +204,8 @@ def links(request):
   if request.method == 'GET':
     if 'url' in request.GET:
       url = request.GET['url'].strip()
-      retrievedLink = Link.objects.filter(url=url)
+      retrievedLink = Link.objects.filter(url__icontains=url)
+      print retrievedLink
       if len(retrievedLink) > 0:
         return HttpResponse(serializers.serialize('json', retrievedLink, indent=4, relations=('poc','tags',)))
       else:
@@ -437,7 +438,16 @@ def get_kmz(request):
 
   return response
 
-
+@require_http_methods('GET')
+@login_required
+def get_library_by_id(request, libraryId):
+  library = None
+  try:
+    library = LinkLibrary.objects.get(id=libraryId)
+  except LinkLibrary.DoesNotExist, LinkLibrary.MultipleObjectsReturned:
+    raise Http404
+  return HttpResponse(utils.get_linklibrary_json(library))
+  
 @require_http_methods(['GET'])
 @login_required
 def get_library(request, username, lib_name):
@@ -519,13 +529,14 @@ def get_tags(request):
     This view returns a list of all the public tags that match the
     parameter submitted.
   """
+  term = request.GET['term']
   if ',' in term:
     termList = term.split(',')
     length_of_list = len(termList)
     term = termList[length_of_list-1].strip()
     # print 'term is- %s -here' % term
 
-  results = Tag.objects.filter(name__contains=term, type='P')
+  results = Tag.objects.filter(name__icontains=term, type='P')
 
   return HttpResponse(serializers.serialize('json', results))
 
@@ -801,7 +812,15 @@ def search(request, models):
 
   return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
-
+@require_http_methods(['GET'])
+@login_required
+def get_keywords(request):
+  if not request.GET['q']:
+    return HttpResponse(serializers.serialize('json', ''))
+  term = request.GET['q']
+  results = utils.get_keywords(term)
+  return HttpResponse(json.dumps(results))
+  
 @require_http_methods(['GET'])
 @login_required
 def search_mongo(request):

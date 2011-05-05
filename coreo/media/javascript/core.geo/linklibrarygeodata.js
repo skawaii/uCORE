@@ -53,7 +53,7 @@ if (!window.core.geo)
 				linksRemaining = linkIds ? linkIds.length : 0;
 				lastCbReturn = true;
 				for (i = 0; lastCbReturn !== false && linkIds && i < linkIds.length; i++) {
-					linkService.getLinkById(linkIds[i]).then(
+					linkService.getById(linkIds[i]).then(
 							function(link) {
 								if (lastCbReturn === false)
 									return;
