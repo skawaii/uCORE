@@ -406,26 +406,23 @@ if (!window.core.ui)
 			this.searchInput.autocomplete({
 				html: true,
 				source: function(request, response) {
-					$.ajax("/get-tags/", {
-						type: "GET",
-						data: request,
-						dataType: "json",
-						success: function(terms) {
-							var i, values = [];
-							for (i = 0; i < terms.length; i++) {
-								values.push({
-									value: terms[i].fields.name,
-									label: "<span class=\"term-type\">Tag:</span>"
-										+ "<span class=\"term-value\">" + terms[i].fields.name + "</span>"
-								});
-							}
-							response.call(response, values);
-						},
-						error: function(jqXHR) {
-							console.log(jqXHR.responseText);
-							response.call(response, []);
-						}
-					});
+					_this.searchStrategy.searchService.getKeywordsLike(request.term)
+						.then(function(keywords) {
+								var i, value, values = [];
+								for (i = 0; i < keywords.length; i++) {
+									value = {
+										"value": keywords[i].value,
+										label: "<span class=\"term-type\">" + keywords[i].type + "</span>"
+											+ "<span class=\"term-value\">" + keywords[i].value + "</span>"
+									};
+									values.push(value);
+								}
+								response.call(response, values);
+							},
+							function(error) {
+								console.log("Error gettings keywords from server: " + error);
+								response.call([]);
+							});
 				}
 			});
 

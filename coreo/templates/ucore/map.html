@@ -192,7 +192,7 @@
 				})
 				.hide();
 
-			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
+			var searchService = new core.services.SearchService("/search/links", "/search/libraries", "/get-tags", "/keywords");
 			var resultFilter = new core.ui.SlidePanelResultFilter("#results", "search-results");
 			var searchStrategy = new core.services.SearchStrategy(
 					searchService, resultFilter, geodataRetriever, linkService);

@@ -813,7 +813,15 @@ def search(request, models):
 
   return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
 
-
+@require_http_methods(['GET'])
+@login_required
+def get_keywords(request):
+  if not request.GET['q']:
+    return HttpResponse(serializers.serialize('json', ''))
+  term = request.GET['q']
+  results = utils.get_keywords(term)
+  return HttpResponse(json.dumps(results))
+  
 @require_http_methods(['GET'])
 @login_required
 def search_mongo(request):

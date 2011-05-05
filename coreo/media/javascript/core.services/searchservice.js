@@ -29,10 +29,13 @@ if (!window.core.services)
 	 * Parameters:
 	 *   linksEndpoint: String. Required. Endpoint to CORE search-links service.
 	 *   libEndpoint: String. Required. Endpoint to CORE search-libraries service.
+	 *   getTagsEndpoint: String. Required. URL to CORE get-tags endpoint.
 	 */
-	var SearchService = function(linksEndpoint, libEndpoint) {
+	var SearchService = function(linksEndpoint, libEndpoint, getTagsEndpoint, keywordsEndpoint) {
 		this.linksEndpoint = linksEndpoint;
 		this.libEndpoint = libEndpoint;
+		this.getTagsEndpoint = getTagsEndpoint;
+		this.keywordsEndpoint = keywordsEndpoint;
 	};
 	SearchService.prototype = {
 		/**
@@ -49,6 +52,77 @@ if (!window.core.services)
 		 */
 		libEndpoint: null,
 
+		/**
+		 * Property: getTagsEndpoint
+		 * 
+		 * String. URL to CORE get-tags endpoint.
+		 */
+		getTagsEndpoint: null,
+		
+		/**
+		 * Property: keywordsEndpoint
+		 * 
+		 * String. URL to CORE keywords enpdoint.
+		 */
+		keywordsEndpoint: null,
+
+		/**
+		 * Function: getKeywordsLike
+		 * 
+		 * Queries keyword types and values.
+		 * 
+		 * Parameters:
+		 *   term - String.
+		 *   
+		 * Returns:
+		 *   jQuery Deferred. Success callback is invoked with an array of 
+		 *   objects. Each object contains two string properites: type and 
+		 *   value. Failure callback is invoked with an error string.
+		 */
+		getKeywordsLike: function(term) {
+			var deferred = $.Deferred();
+			$.ajax(this.keywordsEndpoint, {
+				type: "GET",
+				data: { q: term },
+				dataType: "json",
+				success: function(keywords) {
+					deferred.resolve(keywords);
+				},
+				error: function(jqXHR) {
+					deferred.reject(jqXHR.responseText);
+				}
+			});
+			return deferred.promise();
+		},
+		
+		/**
+		 * Function: getTagsLike
+		 * 
+		 * Queries tag names that are similar to a search term.
+		 * 
+		 * Parameters:
+		 *   term - String.
+		 *   
+		 * Returns:
+		 *   jQuery Deferred. Success callback is invoked with an array of 
+		 *   Tag JSON objects. Failure callback is invoked with an error string.
+		 */
+		getTagsLike: function(term) {
+			var deferred = $.Deferred();
+			$.ajax(this.getTagsEndpoint, {
+				type: "GET",
+				data: { q: term },
+				dataType: "json",
+				success: function(tags) {
+					deferred.resolve(tags);
+				},
+				error: function(jqXHR) {
+					deferred.reject(jqXHR.responseText);
+				}
+			});
+			return deferred.promise();
+		},
+		
 		/**
 		 * Function: search
 		 * 
