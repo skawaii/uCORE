@@ -181,9 +181,11 @@ class LinkTest(TestCase):
     self.link2 = Link.objects.create(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=self.poc)
     self.link2.tags.add(Tag.objects.get(name='HotButton'))
  
-  def test_get_link(self):
+  def test_get_existing_link(self):
     response = self.client.get('/link/', { 'url': 'www.yahoo.com' })
     self.assertEquals(200, response.status_code)
+
+  def test_get_unknown_link(self):
     response = self.client.get('/link/', { 'url': 'www.google.com' })
     self.assertEquals(404, response.status_code)
 
@@ -192,6 +194,8 @@ class LinkTest(TestCase):
     response = self.client.post('/link/', { 'name': 'newlink', 'desc': 'new description', 'url': 'www.theserverside.com', 'tags': 'HotButton, Informational', 'firstname': 'Harry', 'lastname': 'Barney', 'phone': '4443332222', 'email': 'no.one@nodomain.com'})
     self.assertEquals(200, response.status_code)
     self.assertEquals(numLinks+1, len(Link.objects.all()))
+    resultingLink = Link.objects.filter(url='www.theserverside.com')
+    self.assertEquals(len(resultingLink),  1)
 
 
 class LoginTest(TestCase):
