@@ -165,6 +165,34 @@ class LinkLibraryTest(TestCase):
     user = CoreUser.objects.get(username='testuser')
     self.assertEqual(0, user.libraries.count())
 
+class LinkTest(TestCase):
+
+  def setUp(self):
+    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
+        phone_number='9221112222')
+    self.user.set_password('2pass')
+    self.user.save()
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    Tag.objects.create(name='WarmButton', type='P')
+    self.poc = POC.objects.create(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
+
+    self.link1 = Link.objects.create(name='yahoo', desc='search site', url='www.yahoo.com', poc=self.poc)
+    self.link1.tags.add(Tag.objects.get(name='HotButton'))
+    self.link2 = Link.objects.create(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=self.poc)
+    self.link2.tags.add(Tag.objects.get(name='HotButton'))
+ 
+  def test_get_link(self):
+    response = self.client.get('/link/', { 'url': 'www.yahoo.com' })
+    self.assertEquals(200, response.status_code)
+    response = self.client.get('/link/', { 'url': 'www.google.com' })
+    self.assertEquals(404, response.status_code)
+
+  def test_post_link(self):
+    numLinks = len(Link.objects.all())
+    response = self.client.post('/link/', { 'name': 'newlink', 'desc': 'new description', 'url': 'www.theserverside.com', 'tags': 'HotButton, Informational', 'firstname': 'Harry', 'lastname': 'Barney', 'phone': '4443332222', 'email': 'no.one@nodomain.com'})
+    self.assertEquals(200, response.status_code)
+    self.assertEquals(numLinks+1, len(Link.objects.all()))
+
 
 class LoginTest(TestCase):
   def setUp(self):
@@ -197,7 +225,7 @@ class LogoutTest(TestCase):
 
 
 class TrophyTest(TestCase):
-  def   setUp(self):
+  def   setUp(self): 
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
     self.user.set_password('2pass')
