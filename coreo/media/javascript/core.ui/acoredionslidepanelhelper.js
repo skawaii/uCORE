@@ -15,7 +15,7 @@ if (!window.core.ui)
 	window.core.ui = {};
 
 (function($, ns) {
-	var CreateLibraryCallback = function(slidePanelEl, libraryService, linkService, geoDataRetriever) {
+	var CreateLibraryCallback = function(slidePanelEl, libraryService, linkService, geoDataRetriever, searchService) {
 		var panelId, form, deferred;
 		panelId = "create-library";
 		
@@ -27,7 +27,37 @@ if (!window.core.ui)
 				.append($("<label>", { "for": "description", text: "Description" }))
 				.append($("<textarea>", { name: "description"  }))
 				.append($("<label>", { "for": "tags", text: "Tags" }))
-				.append($("<input>", { type: "text", name: "tags"  }))
+				.append($("<input>", { type: "text", name: "tags"  })
+						.autocomplete({
+							html: false,
+							focus: function() { return false; },
+							select: function(event, ui) {
+								var terms = this.value.split(/,\s*/);
+								// remove the current input
+								terms.pop();
+								// add the selected item
+								terms.push(ui.item.value);
+								// add placeholder  to get the comma-and-space at the end
+								terms.push("");
+								this.value = terms.join(", ");
+								return false;
+							},
+							source: function(request, response) {
+								console.log("search for tags");
+								searchService.getTagsLike(request.term)
+									.then(function(tags) {
+											var i, values = [];
+											for (i = 0; i < tags.length; i++) {
+												values.push(tags[i].fields.name);
+											}
+											response.call(response, values);
+										},
+										function(error) {
+											console.log("Error gettings tags from server: " + error);
+											response.call([]);
+										});
+							}
+						}))
 				.append($("<div>", { "class": "buttons" })
 					.append($("<button>", { "class": "ui-priority-secondary", text: "Cancel"}).button()
 								.click(function() {
@@ -162,9 +192,9 @@ if (!window.core.ui)
 			 *   Function.
 			 */
 			getCreateLibraryCallback: function(libraryService, linkService, 
-					geoDataRetriever) {
+					geoDataRetriever, searchService) {
 				return new CreateLibraryCallback(slidePanelEl, 
-						libraryService, linkService, geoDataRetriever);
+						libraryService, linkService, geoDataRetriever, searchService);
 			}
 		};
 	};

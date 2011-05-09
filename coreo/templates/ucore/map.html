@@ -202,7 +202,7 @@
 
 			var spHelper = new core.ui.AcoredionSlidePanelHelper("#results");
 			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, 
-					spHelper.getCreateLibraryCallback(libraryService, linkService, geodataRetriever),
+					spHelper.getCreateLibraryCallback(libraryService, linkService, geodataRetriever, searchService),
 					userService, linkService, libraryService);
 
 			var geController = null;

@@ -530,6 +530,7 @@ def get_tags(request):
     parameter submitted.
   """
   term = request.GET['term']
+  print "Getting tags like %s" % term
   if ',' in term:
     termList = term.split(',')
     length_of_list = len(termList)
