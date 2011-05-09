@@ -420,6 +420,15 @@ if (!window.core.ui)
 						}
 					}
 				}
+			})
+			.bind("move_node.jstree", function(e, data) {
+				var linkLibraryGeoData, linkGeoData;
+				linkLibraryGeoData = getGeoDataFromTreeNode(data.args[0].r.closest("li"));
+				linkGeoData = getGeoDataFromTreeNode(data.args[0].o.closest("li"));
+				if (_this.onAppend) {
+					_this.onAppend.call(_this.onAppend, linkLibraryGeoData, 
+							linkGeoData, data.args[0].cp);
+				}				
 			});
 		},
 		
