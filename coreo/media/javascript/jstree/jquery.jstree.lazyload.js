@@ -49,6 +49,9 @@
 				var dataCallback = function(data) {
 					var childNode = $("<li>");
 					if (data) {
+						if (data["class"]) {
+							childNode.addClass(data["class"]);
+						}
 						if (data.attr) {
 							childNode.attr(data.attr);
 						}

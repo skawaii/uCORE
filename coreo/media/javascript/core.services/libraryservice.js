@@ -185,6 +185,31 @@ if (!window.core.services)
 			},
 			
 			/**
+			 * Function: addLink
+			 * 
+			 * Adds a link to a library.
+			 * 
+			 * Parameters:
+			 *   libraryId - String. LinkLibrary ID.
+			 *   linkId - String. Link ID.
+			 *   index - Integer. Position where link will be inserted.
+			 * 
+			 * Returns:
+			 *   jQuery Deferred. Success callback is invoked with the new 
+			 *   LinkLibrary. Failure callback is invoked with an error 
+			 *   message.
+			 */
+			addLink: function(libraryId, linkId, index) {
+				var deferred = $.Deferred();
+				// TODO: update library
+				// Create a command function to accept a command to update 
+				// the library after its updated state is retrieved from 
+				// the server
+				console.log("Adding link " + linkId + " to library " + libraryId + " at " + index);
+				return deferred.promise();
+			},
+			
+			/**
 			 * Function: removeLink
 			 * 
 			 * Removes a link from a library.

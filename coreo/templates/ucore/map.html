@@ -93,6 +93,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.bettercheckbox.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.hoverbuttons.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.crr.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.pickydnd.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmlfeaturetype.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/uri.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/idsequence.js"></script>
@@ -192,7 +193,7 @@
 				})
 				.hide();
 
-			var searchService = new core.services.SearchService("/search/links", "/search/libraries", "/get-tags", "/keywords");
+			var searchService = new core.services.SearchService("/search/links", "/search/libraries", "/get-tags", "/keywords/");
 			var resultFilter = new core.ui.SlidePanelResultFilter("#results", "search-results");
 			var searchStrategy = new core.services.SearchStrategy(
 					searchService, resultFilter, geodataRetriever, linkService);
@@ -254,7 +255,7 @@
 	            		alert("Error creating library: " + errorThrown);
 	            	});
            	*/
-           	
+
            	// load user's libraries
            	userService.getCurrentUser().then(
            		function(currentUser) {

@@ -14,6 +14,7 @@
  *   - core.geo.GeoDataStore
  *   - core.util.Assert
  *   - core.geo.KmlFeatureType
+ *   - core.util.GeoDataVisitor
  */
 
 if (!window.core)
@@ -26,8 +27,11 @@ if (!window.core.ui)
 	var Assert = core.util.Assert;
 	var KmlFeatureType = core.geo.KmlFeatureType;
 	if (!KmlFeatureType)
-		throw ("Dependency not found: core.geo.KmlFeatureType");
-	
+		throw "Dependency not found: core.geo.KmlFeatureType";
+	var GeoDataVisitor = core.util.GeoDataVisitor;
+	if (!GeoDataVisitor)
+		throw "Dependency not found: core.util.GeoDataVisitor";
+
 	/**
 	 * Constructor: GeoDataTree
 	 * 
@@ -54,6 +58,7 @@ if (!window.core.ui)
 	 */
 	GeoDataTree.GEODATA_ATTR = "core-geodata-id";
 	GeoDataTree.KML_TYPE_ATTR = "core-kml-type";
+	GeoDataTree.CORE_NODE_TYPE_ATTR = "core-node-type";
 	GeoDataTree.prototype = {
 		
 		/**
@@ -184,6 +189,17 @@ if (!window.core.ui)
 			treeNode.attr = {};
 			treeNode.attr[GeoDataTree.GEODATA_ATTR] = geodata.id;
 			treeNode.attr[GeoDataTree.KML_TYPE_ATTR] = geodata.getKmlFeatureType();
+			new GeoDataVisitor({
+				link: function() {
+					treeNode["class"] = "jstree-draggable";
+					treeNode.attr[GeoDataTree.CORE_NODE_TYPE_ATTR] = "Link";
+				},
+				linkLibrary: function() {
+					treeNode["class"] = "jstree-drop";
+					treeNode.attr[GeoDataTree.CORE_NODE_TYPE_ATTR] = "LinkLibrary";					
+				}
+			}).visit(geodata);
+			
 			if (geodata.hasChildren()) {
 				treeNode.state = "closed";
 			}
@@ -331,45 +347,6 @@ if (!window.core.ui)
 					getHoverButtons: function(node) {
 						var kmlType = node.attr(GeoDataTree.KML_TYPE_ATTR);
 						var buttons = [];
-//						if (kmlType === KmlFeatureType.FOLDER 
-//								|| kmlType === KmlFeatureType.DOCUMENT) {
-//							buttons.push({ 
-//					        	icon: "ui-icon-plusthick", 
-//					        	tooltip: "Add folder", 
-//					        	action: function() {
-//					        		// TODO: Create geodata, then create tree node from it
-//					        		var newNode = {
-//					        			attr: {},
-//					        			state: "closed",
-//					        			data: [
-//					        			       {
-//					        			    	   title: $("<span>")
-//							    						.append($("<ins>").addClass(KmlFeatureType.FOLDER).html("&#160;"))
-//							    						.append($("<span>").text("New Folder")),
-//							    					icon: KmlFeatureType.FOLDER
-//					        			       }
-//					        			]
-//					        		};
-//					        		newNode.attr[GeoDataTree.KML_TYPE_ATTR] = KmlFeatureType.FOLDER;
-////					    			var title = $("<span>")
-////					    						.append($("<ins>").addClass(KmlFeatureType.FOLDER).html("&#160;"))
-////					    						.append($("<span>").text("New Folder"));
-////					    			if (this.appendHoverActions && typeof this.appendHoverActions === "function") {
-////					    				var hoverActions = $("<div>").addClass("geodatatree-hoveractions");
-////					    				this.appendHoverActions.call(this.appendHoverActions, hoverActions, geodata);
-////					    				title.append(hoverActions);
-////					    			}
-////					    			newNode.data
-////					    			newNode.title = title;
-////					    			newNode.attr = {};
-//					    			// TODO
-//					    			// treeNode.attr[GeoDataTree.GEODATA_ATTR] = geodata.id;
-//					    			//newNode.attr[GeoDataTree.KML_TYPE_ATTR] = KmlFeatureType.FOLDER;
-//					    			//newNode.state = "closed";
-//					        		$(_this.el).jstree("create", node, "first", newNode); 
-//					        	} 
-//					        });
-//						}
 						if (_this.showEditButton) {
 							buttons.push({ 
 					        	icon: "ui-icon-pencil", 
@@ -393,26 +370,65 @@ if (!window.core.ui)
 					}
 				},
 				dnd: {
-					drop_target: ".jstree li[" + GeoDataTree.KML_TYPE_ATTR + "='" + KmlFeatureType.FOLDER + "'],"
-								+ ".jstree li[" + GeoDataTree.KML_TYPE_ATTR + "='" + KmlFeatureType.DOCUMENT + "']",
-					drop_check: function(data) {
-						console.log("drop_check");
-						var dragged = data.o;
-						var dropTarget = data.r;
-						var geodata = getGeoDataFromTreeNode(dropTarget);
-						return (geodata.getKmlFeatureType() === KmlFeatureType.DOCUMENT
-								|| geodata.getKmlFeatureType() === KmlFeatureType.FOLDER);
-					},
-					drag_check: function(data) {
-						console.log("drag_check");
-						return {
-							before: false,
-							after: false,
-							inside: false
-						};
+					drop_target: false,
+					drag_target: false
+				},
+				crrm: {
+					move: {
+						always_copy: "multitree",
+						check_move: function(m) {
+							var hovered, dragged, valid;
+							hovered = m.r.closest("li");
+							dragged = m.o.closest("li");
+							valid = (dragged.is("[" + GeoDataTree.CORE_NODE_TYPE_ATTR + "='Link']")
+									&& ((hovered.is("[" + GeoDataTree.CORE_NODE_TYPE_ATTR + "='LinkLibrary']")
+											&& (m.p === "inside" || m.p === "first" || m.p === "last"))
+										|| (hovered.is("[" + GeoDataTree.CORE_NODE_TYPE_ATTR + "='Link']")
+											&& (m.p == "before" || m.p === "after"))));
+							return valid;
+						}
 					}
 				},
-				plugins: ["ui", "themes", "lazyload", "bettercheckbox", "hoverbuttons", "crr"]
+				plugins: ["ui", "themes", "lazyload", "bettercheckbox", "crrm", "dnd", "hoverbuttons"]
+			})
+			.bind("before.jstree", function (e, data) { 
+				var nms = [], res = true, p, t;
+				if(data.func == "move_node") {
+					// check uniqueness
+					var check_unique = function (nms, p) {
+						var cnms = [];
+						p.find("> a > span > span").each(function () { cnms.push($(this).text().replace(/^\s+/g,"")); });
+						if(!cnms.length || !nms.length) { return true; }
+						cnms = cnms.sort().join(",,").replace(/(,|^)([^,]+)(,,\2)+(,|$)/g,"$1$2$4").replace(/,,+/g,",").replace(/,$/,"").split(",");
+						if((cnms.length + nms.length) != cnms.concat(nms).sort().join(",,").replace(/(,|^)([^,]+)(,,\2)+(,|$)/g,"$1$2$4").replace(/,,+/g,",").replace(/,$/,"").split(",").length) {
+							return false;
+						}
+						return true;
+					};
+					if(data.args[4] === true) {
+						if(data.args[0].o && data.args[0].o.length) {
+							var nms = [], res;
+							data.args[0].o.find("> a > span > span").each(
+									function () {
+										nms.push($(this).text().replace(/^\s+/g,""));
+									}
+								);
+							if (!check_unique(nms, data.args[0].np.find("> ul > li").not(data.args[0].o))) {
+								e.stopPropagation();
+								return false;
+							}
+						}
+					}
+				}
+			})
+			.bind("move_node.jstree", function(e, data) {
+				var linkLibraryGeoData, linkGeoData;
+				linkLibraryGeoData = getGeoDataFromTreeNode(data.args[0].r.closest("li"));
+				linkGeoData = getGeoDataFromTreeNode(data.args[0].o.closest("li"));
+				if (_this.onAppend) {
+					_this.onAppend.call(_this.onAppend, linkLibraryGeoData, 
+							linkGeoData, data.args[0].cp);
+				}				
 			});
 		},
 		

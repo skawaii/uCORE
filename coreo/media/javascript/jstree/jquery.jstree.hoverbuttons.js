@@ -39,7 +39,7 @@
 						this._prepare_hoverbuttons();
 					}, this))
 				.delegate("li", "mouseenter", function(e) {
-					e.stopImmediatePropagation();
+					// e.stopImmediatePropagation();
 					if (!$(e.target).is("ul")) {
 						container.find("div.jstree-hoverbuttons").hide();
 						$(e.target).closest("li:has(> div.jstree-hoverbuttons)")

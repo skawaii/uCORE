@@ -254,6 +254,27 @@ if (!window.core.ui)
 					this.eventChannel.publish(
 							new FeatureInfoEvent(Acoredion.EVENT_PUBLISHER_NAME, geodata));
 				}, this);
+				tree.onAppend = $.proxy(function(linkLibraryGeoData, linkGeoData, position) {
+					// if this library is owned by the current user, update it
+					var geoDataCreatorId = this._getGeoDataCreatorId(linkLibraryGeoData);
+					if (geoDataCreatorId) {
+						this.userService.getCurrentUser().then(
+								$.proxy(function(currentUser) {
+									if (currentUser && !!currentUser.pk 
+											&& currentUser.pk === geoDataCreatorId) {
+										// update the library
+										this.libraryService.addLink(linkLibraryGeoData.getLinkLibrary().pk,
+												linkGeoData.getCoreLink().pk, position)
+											.then(function(linkLibrary) {
+													// TODO: Update tree with current state of library													
+												},
+												function(error) {
+													console.log("Error adding link to library: " + error);
+												});
+									}
+								}, this));
+					}
+				}, this);
 				tree.onRemove = $.proxy(function(geodata) {
 					var treeEl, _this;
 					_this = this;
