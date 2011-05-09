@@ -63,9 +63,10 @@ if (!window.core.services)
 				var deferred = $.Deferred(), endpoint;
 				endpoint = cfg.getByIdEndpoint;
 				$.ajax(cfg.getByIdEndpoint 
-						+ (cfg.getByIdEndpoint.charAt(cfg.getByIdEndpoint.length) != '/' ? '/' : '')
+						+ (cfg.getByIdEndpoint.charAt(cfg.getByIdEndpoint.length-1) != '/' ? '/' : '')
 						+ id, {
 							type: "GET",
+							dataType: "json",
 							success: function(linkLibrary, textStatus, jqXHR) {
 								deferred.resolve(linkLibrary);
 							},
@@ -174,7 +175,6 @@ if (!window.core.services)
 					},
 					dataType: "json",
 					success: function(linkLibrary, textStatus, jqXHR) {
-						console.log(linkLibrary);
 						deferred.resolve(linkLibrary);
 					},
 					error: function(jqXHR, textStatus, errorThrown) {
@@ -195,12 +195,12 @@ if (!window.core.services)
 							updates = {
 								id: linkLibrary.pk,
 								name: linkLibrary.fields.name,
-								desc: linkLibrary.fields.desc,
+								description: linkLibrary.fields.desc,
 								tags: linkLibrary.fields.tags,
 								links: linkIds
 							};
 							updates = updateFn.call(updateFn, updates);
-							_this.update(updatedLibrary)
+							_this.update(updates)
 								.then(function(updatedLibrary) {
 										deferred.resolve(updatedLibrary);
 									},
@@ -259,14 +259,15 @@ if (!window.core.services)
 			 */
 			removeLink: function(libraryId, linkId) {
 				return this.retrieveAndUpdate(libraryId, function(library) {
-					var i, linkIds, oldLinkId;
+					var i, linkIds = [], oldLinkId;
 					if (library.links) {
 						for (i = 0; i < library.links.length; i++) {
-							oldLinkId = linkLibrary.fields.links[i].pk;
+							oldLinkId = library.links[i];
 							if (oldLinkId !== linkId) {
 								linkIds.push(oldLinkId);
 							}
 						}
+						library.links = linkIds;
 					}
 					return library;
 				});

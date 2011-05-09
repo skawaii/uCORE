@@ -266,7 +266,11 @@ if (!window.core.ui)
 										this.libraryService.addLink(linkLibraryGeoData.getLinkLibrary().pk,
 												linkGeoData.getCoreLink().pk, position)
 											.then(function(linkLibrary) {
-													// TODO: Update tree with current state of library													
+													// TODO: Update tree with current state of library
+													console.log("Added Link " + linkGeoData.getCoreLink().pk
+															+ " to LinkLibrary " + linkLibraryGeoData.getLinkLibrary().pk
+															+ " at position " + position);
+													console.log(linkLibrary);
 												},
 												function(error) {
 													console.log("Error adding link to library: " + error);
@@ -284,7 +288,7 @@ if (!window.core.ui)
 								//  remove link from the library
 								new GeoDataVisitor({
 									linkLibrary: function(linkLibraryGeoData) {
-										this.libraryService.removeLink(
+										_this.libraryService.removeLink(
 												linkLibraryGeoData.getLinkLibrary().pk,
 												linkGeoData.getCoreLink().pk);
 									}
