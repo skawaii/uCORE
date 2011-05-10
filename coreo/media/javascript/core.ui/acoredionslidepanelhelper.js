@@ -16,7 +16,7 @@ if (!window.core.ui)
 
 (function($, ns) {
 	var CreateLibraryCallback = function(slidePanelEl, libraryService, linkService, geoDataRetriever) {
-		var panelId, deferred, form;
+		var panelId, form, deferred;
 		panelId = "create-library";
 		
 		buildForm = function() {

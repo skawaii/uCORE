@@ -39,7 +39,7 @@
 						this._prepare_hoverbuttons();
 					}, this))
 				.delegate("li", "mouseenter", function(e) {
-					e.stopImmediatePropagation();
+					// e.stopImmediatePropagation();
 					if (!$(e.target).is("ul")) {
 						container.find("div.jstree-hoverbuttons").hide();
 						$(e.target).closest("li:has(> div.jstree-hoverbuttons)")
@@ -83,8 +83,9 @@
 											.append($("<span>").addClass("ui-icon")
 													.addClass(button.icon).html("&#160;"))
 											.click(function(e) {
-												var node = $(e.target).closest("li:has(> div.jstree-hoverbuttons)");
+												e.preventDefault();
 												e.stopPropagation();
+												var node = $(e.target).closest("li:has(> div.jstree-hoverbuttons)");
 												button.action.call(button.action, node);
 											})
 											.hover(function() {

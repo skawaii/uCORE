@@ -100,6 +100,32 @@ class LinkLibraryTest(TestCase):
     self.assertEqual(0, library.links.count(), "library links field is empty")
     
     # print 'Passed the create link library test.'
+  def test_update_library(self):
+
+    links = "1, 2"
+    tags = "HotButton,WarmButton"
+    response = self.client.post('/create-library/', {'name': 'test library', 'desc': 'test description', 'links': links, 'tags': tags })
+    self.assertEquals(response.status_code, 200)
+    self.assertEquals(LinkLibrary.objects.count(), 1)
+    user = CoreUser.objects.get(username='testuser')
+    self.assertEquals(1, user.libraries.count())
+
+    # Now check the update ability....
+    links = "1, 3"
+    
+    self.link3 = Link.objects.create(name='CNN news', desc='news site', url='www.cnn.com', poc=self.poc)
+    self.link3.tags.add(Tag.objects.get(name='HotButton'))
+    response = self.client.post('/update-library/', { 'id': '1', 'name': 'modified name', 'desc': 'modified description', 'links': links, 'tags': tags })
+    self.assertEquals(response.status_code, 200)
+    self.assertEquals(LinkLibrary.objects.count(), 1)
+    library = LinkLibrary.objects.get(pk=1)
+    self.assertEquals('modified name',  library.name)
+    self.assertEquals('modified description', library.desc)
+    self.assertEquals(2,  library.links.count())
+    self.assertIsNotNone(library.links.get(pk=3))
+    #
+    #  self.assertContains(1, library.links.all())
+
 
   def test_add_single(self):
     creator = CoreUser.objects.create(sid='me', username='meme', first_name='me', last_name='me', email='me@me.com', phone_number='1234567890')
@@ -139,6 +165,38 @@ class LinkLibraryTest(TestCase):
     user = CoreUser.objects.get(username='testuser')
     self.assertEqual(0, user.libraries.count())
 
+class LinkTest(TestCase):
+
+  def setUp(self):
+    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
+        phone_number='9221112222')
+    self.user.set_password('2pass')
+    self.user.save()
+    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    Tag.objects.create(name='WarmButton', type='P')
+    self.poc = POC.objects.create(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
+
+    self.link1 = Link.objects.create(name='yahoo', desc='search site', url='www.yahoo.com', poc=self.poc)
+    self.link1.tags.add(Tag.objects.get(name='HotButton'))
+    self.link2 = Link.objects.create(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=self.poc)
+    self.link2.tags.add(Tag.objects.get(name='HotButton'))
+ 
+  def test_get_existing_link(self):
+    response = self.client.get('/link/', { 'url': 'www.yahoo.com' })
+    self.assertEquals(200, response.status_code)
+
+  def test_get_unknown_link(self):
+    response = self.client.get('/link/', { 'url': 'www.google.com' })
+    self.assertEquals(404, response.status_code)
+
+  def test_post_link(self):
+    numLinks = len(Link.objects.all())
+    response = self.client.post('/link/', { 'name': 'newlink', 'desc': 'new description', 'url': 'www.theserverside.com', 'tags': 'HotButton, Informational', 'firstname': 'Harry', 'lastname': 'Barney', 'phone': '4443332222', 'email': 'no.one@nodomain.com'})
+    self.assertEquals(200, response.status_code)
+    self.assertEquals(numLinks+1, len(Link.objects.all()))
+    resultingLink = Link.objects.filter(url='www.theserverside.com')
+    self.assertEquals(len(resultingLink),  1)
+
 
 class LoginTest(TestCase):
   def setUp(self):
@@ -171,7 +229,7 @@ class LogoutTest(TestCase):
 
 
 class TrophyTest(TestCase):
-  def   setUp(self):
+  def   setUp(self): 
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
     self.user.set_password('2pass')
@@ -327,7 +385,7 @@ class ProfileTest(TestCase):
     self.assertEquals(user.first_name, 'Bill')
     self.assertEquals(user.last_name, 'Somebody')
     self.assertEquals(user.email, 'pcol@anywhere.com')
-    self.assertEquals(user.phone_number, long('9998887777'))
+    self.assertEquals(user.phone_number, '9998887777')
     # print 'Passed the UpdateProfile test.'
 
 
