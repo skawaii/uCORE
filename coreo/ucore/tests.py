@@ -192,6 +192,7 @@ class LinkTest(TestCase):
   def test_post_link(self):
     numLinks = len(Link.objects.all())
     response = self.client.post('/link/', { 'name': 'newlink', 'desc': 'new description', 'url': 'www.theserverside.com', 'tags': 'HotButton, Informational', 'firstname': 'Harry', 'lastname': 'Barney', 'phone': '4443332222', 'email': 'no.one@nodomain.com'})
+    # was 200 now make it 404
     self.assertEquals(200, response.status_code)
     self.assertEquals(numLinks+1, len(Link.objects.all()))
     resultingLink = Link.objects.filter(url='www.theserverside.com')
@@ -373,8 +374,7 @@ class ProfileTest(TestCase):
     response = self.client.get('/user-profile/')
     self.assertEquals(response.status_code, 200)
 
-    response = self.client.post('/update-user/', { 'sid' : 'anything', 'first_name' : 'Bill', 'last_name' : 'Somebody',
-      'phone_number': '9998887777', 'email': 'pcol@anywhere.com'})
+    response = self.client.post('/update-user/', { 'sid' : 'anything', 'first_name' : 'Bill', 'last_name' : 'Somebody', 'phone_number': '9998887777', 'email': 'pcol@anywhere.com', 'skin': 'Default', 'wants_emails': 'True'})
     self.assertEquals(response.status_code, 302)
     self.assertRedirects(response, '/user-profile/?saved=True', status_code=302, target_status_code=200)
 
