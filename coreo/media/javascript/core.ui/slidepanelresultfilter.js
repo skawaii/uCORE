@@ -132,7 +132,6 @@ if (!window.core.ui)
 		end: function() {
 			var titleEl;
 			titleEl =  $(this.element).slidepanel("getTitleById", this.panelId);
-			console.log(titleEl.size());
 			titleEl.find(".search-results-loading").hide();
 		},
 

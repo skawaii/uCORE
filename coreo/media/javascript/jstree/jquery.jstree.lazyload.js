@@ -16,7 +16,6 @@
 		},
 		_fn : {
 			load_node : function (obj, s_call, e_call) {
-				console.log("load_node");
 				var _this = this;
 				var s = this._get_settings().lazyload;
 				var parentNode = this._get_node(obj);
