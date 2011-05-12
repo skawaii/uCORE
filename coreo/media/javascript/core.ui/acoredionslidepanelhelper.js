@@ -276,7 +276,7 @@ if (!window.core.ui)
 										// only update the name, description, and tags
 										libraryService.retrieveAndUpdate(id, function(library) {
 											library.name = name;
-											library.desc = description;
+											library.description = description;
 											library.tags = tags;
 											return library;
 										}).then(function(linkLibrary) {
