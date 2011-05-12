@@ -205,7 +205,6 @@ def links(request):
     if 'url' in request.GET:
       url = request.GET['url'].strip()
       retrievedLink = Link.objects.filter(url__icontains=url)
-      print retrievedLink
       if len(retrievedLink) > 0:
         return HttpResponse(serializers.serialize('json', retrievedLink, indent=4, relations=('poc','tags',)))
       else:
@@ -312,7 +311,8 @@ def create_user(request):
   # create the user in the DB
   try:
     user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number)
-  except IntegrityError:
+  except IntegrityError as e:
+    print e
     return render_to_response('register.html',
         {'sid': sid,
          'error_message': 'The username/sid %s is not available. Please try again' % username
