@@ -165,7 +165,7 @@ def update_library(request):
     if 'tags' in request.POST:
       tags = request.POST['tags'].strip()
       tags = tags.split(',')
-      library.tags.all().delete()
+      library.tags.clear()
       for t in tags:
         t = t.strip()
         if len(t) > 0:
@@ -205,7 +205,6 @@ def links(request):
     if 'url' in request.GET:
       url = request.GET['url'].strip()
       retrievedLink = Link.objects.filter(url__icontains=url)
-      print retrievedLink
       if len(retrievedLink) > 0:
         return HttpResponse(serializers.serialize('json', retrievedLink, indent=4, relations=('poc','tags',)))
       else:
@@ -245,6 +244,7 @@ def links(request):
     #  return HttpResponse(link[0].pk)
     # return HttpResponse(serializers.serialize('json', link, indent=2, relations=('poc','tags',)))
     return HttpResponse(serializers.serialize('json', Link.objects.filter(url=url), indent=4, relations=('poc', 'tags',)))
+
    
 
 @require_http_methods(["POST"])
@@ -312,7 +312,8 @@ def create_user(request):
   # create the user in the DB
   try:
     user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number)
-  except IntegrityError:
+  except IntegrityError as e:
+    print e
     return render_to_response('register.html',
         {'sid': sid,
          'error_message': 'The username/sid %s is not available. Please try again' % username
@@ -889,8 +890,7 @@ def update_user(request):
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user.username)
     saved_status = request.GET['saved'].strip() if 'saved' in request.GET else ''
-
-    return render_to_response('userprofile.html', {'user': user, 'saved' : saved_status}, context_instance=RequestContext(request))
+    return render_to_response('userprofile.html', {'user': user, 'saved': saved_status, 'settings': user.settings, 'skin_list': Skin.objects.all() }, context_instance=RequestContext(request))
   else:
     user = CoreUser.objects.filter(username=request.user.username)
     first_name = request.POST['first_name'].strip()
@@ -898,7 +898,9 @@ def update_user(request):
     email = request.POST['email'].strip()
     phone_number = request.POST['phone_number'].strip()
     sid = request.POST['sid'].strip()
-
+    wants_emails = True if 'wants_emails' in request.POST else False
+    skin = Skin.objects.get(name=request.POST['skin'].strip())
+    
     try:
       if (len(phone_number) != 10):
         prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
@@ -909,7 +911,7 @@ def update_user(request):
 
     if not (first_name and last_name and email and phone_number):
     # redisplay the registration page
-      return render_to_response('userprofile.html', {'user': user, 'saved': 'False'}, context_instance=RequestContext(request))
+      return render_to_response('userprofile.html', {'user': user, 'saved': 'False', 'settings': user.settings, 'skin_list': Skin.objects.all() }, context_instance=RequestContext(request))
 
     # update the user to the DB
     user = CoreUser.objects.get(sid=sid)
@@ -917,6 +919,9 @@ def update_user(request):
     user.last_name = last_name
     user.email = email
     user.phone_number = phone_number
+    user.settings.wants_emails = wants_emails
+    user.settings.skin = skin
+    user.settings.save()
     user.save()
 
     # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
@@ -974,7 +979,7 @@ def user_profile(request):
     # Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  return render_to_response('userprofile.html', {'user': user, 'saved': saved_status}, context_instance=RequestContext(request))
+  return render_to_response('userprofile.html', {'user': user, 'saved': saved_status, 'settings': user.settings, 'skin_list': Skin.objects.all()}, context_instance=RequestContext(request))
 
 
 # XXX where is this used.?
