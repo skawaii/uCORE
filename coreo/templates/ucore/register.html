@@ -1,10 +1,18 @@
-{% extends "base.html" %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>uCORE - Register</title>
 
-{% block importjs %}
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+ 
+        <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-1.4.3.min.js"></script>
+        <script src="{{ MEDIA_URL }}javascript/slickgrid/lib/jquery-ui-1.8.5.custom.min.js"></script>
         <script src="{{ MEDIA_URL }}javascript/formvalid.js"></script>
-{% endblock %}
 
-{% block importcss %}
         <style type="text/css">
             table {
               width: 700px;
@@ -19,9 +27,14 @@
               padding-bottom:10px;
             } 
         </style>
-{% endblock %}
+    </head>
 
-{% block morebody %}
+    <body id="signup_page">
+        <div id="geheader">
+            <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" /></a>
+            <div id="user-info"><a href="/login/">Sign In</a> | <a href="/future-feature/">Help</a> | <a href="/future-feature/">About</a></div>
+        </div>
+
         <div class="main_div">
             <div id="core_signup_div" class="center_div">
               <div><h1 style="padding-left:120px"> Sign Up </h1></div>
@@ -100,5 +113,6 @@
                       </table>
                   </FORM>
             </div> <!-- End center_div -->
-          </div> <!-- End main_div -->
-          {% endblock %}
+        </div> <!-- End main_div -->
+    </body>
+</html>

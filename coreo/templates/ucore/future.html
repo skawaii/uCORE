@@ -1,12 +1,10 @@
 {% extends "base.html" %}
 
-{% block importcss %}
+{% block head %}
     <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
-    {% endblock %}
 
-    {% block importjs %}    
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.min.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
 
@@ -15,8 +13,6 @@
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.js"></script>
 
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
-  {% endblock %}
-  {% block script %}
     <script type="text/javascript">
       google.load("earth", "1");
 
