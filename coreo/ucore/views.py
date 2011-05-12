@@ -242,8 +242,9 @@ def links(request):
     link.save()
     # Then return the primary key of the create link in the response
     #  return HttpResponse(link[0].pk)
-    return HttpResponse(serializers.serialize('json', link, indent=2, relations=('poc','tags',)))
-    # return HttpResponse(serializers.serialize('json', Link.objects.filter(url=url), indent=4, relations=('poc', 'tags',)))
+    # return HttpResponse(serializers.serialize('json', link, indent=2, relations=('poc','tags',)))
+    return HttpResponse(serializers.serialize('json', Link.objects.filter(url=url), indent=4, relations=('poc', 'tags',)))
+
    
 
 @require_http_methods(["POST"])
