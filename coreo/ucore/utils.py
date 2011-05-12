@@ -26,7 +26,15 @@ def get_coreuser_json(coreuser):
   json = serializers.serialize('json', coreuser,
                                extras=('username','first_name','last_name','email'),
                                relations={'settings':{'relations':('skin',)}, 
-                                          'libraries':{'relations':('links','creator',)}})
+                                          'libraries':{
+                                            'relations': {
+                                              'creator': None,
+                                              'tags': None,
+                                              'links': {
+                                                          'relations': ('poc', 'tags', )
+                                                        }
+                                             }
+                                          }})
   return unwrap_json_array(json)
   
 # Serializes a single LinkLibrary instance
@@ -42,6 +50,13 @@ def get_linklibrary_json(library):
                                           'tags':None, 
                                           'links':{'relations':('poc','tags',)}})
   return unwrap_json_array(json)
+
+def get_searchresults_json(results):
+  from django.core import serializers
+  return serializers.serialize('json', results,
+                               relations={'creator':None,
+                                          'tags':None, 
+                                          'links':{'relations':('poc','tags',)}})
 
 def unwrap_json_array(json):
   json = json.strip()

@@ -120,7 +120,7 @@ if (!window.core.services)
 						var i;
 						var id = linkOrLibrary.pk;
 						CallbackUtils.invokeOptionalCallback(callback, "resultBegin", 
-								[id, linkOrLibrary.fields.name, linkOrLibrary.fields.creator]);
+								[id, linkOrLibrary.fields.name, linkOrLibrary.fields.creator.pk]);
 						if (linkOrLibrary.model === "ucore.linklibrary") {
 							var linkLibraryGeoData = new LinkLibraryGeoData(null, 
 									linkOrLibrary, this.linkService, 
