@@ -122,7 +122,7 @@ def create_library(request):
     user.libraries.add(library)
 
     if utils.accepts_json(request):
-      jsonContent = json.dumps(utils.django_to_dict(library))
+      jsonContent = utils.get_linklibrary_json(library)
       return HttpResponse(content=jsonContent, content_type=utils.JSON_CONTENT_TYPE)
 
     return HttpResponse(str(library.pk))
@@ -182,7 +182,7 @@ def update_library(request):
 
     #  user.libraries.add(library)
     if utils.accepts_json(request):
-      jsonContent = json.dumps(utils.django_to_dict(library))
+      jsonContent = utils.get_linklibrary_json(library)
       return HttpResponse(content=jsonContent, content_type=utils.JSON_CONTENT_TYPE)
     return HttpResponse(str(library.pk))
 
@@ -531,6 +531,7 @@ def get_tags(request):
     parameter submitted.
   """
   term = request.GET['term']
+  print "Getting tags like %s" % term
   if ',' in term:
     termList = term.split(',')
     length_of_list = len(termList)
@@ -811,7 +812,7 @@ def search(request, models):
 
   results = utils.search_ucore(models, terms)
 
-  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
+  return HttpResponse(utils.get_searchresults_json(results))
 
 @require_http_methods(['GET'])
 @login_required

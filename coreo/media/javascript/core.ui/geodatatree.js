@@ -210,6 +210,12 @@ if (!window.core.ui)
 			return treeNode;
 		},
 
+		rename: function(geoDataId, newName) {
+			var treeNode = this._findNodeByGeoDataId(geoDataId);
+			treeNode.find("> a:eq(1) > span > span")
+				.html(newName);
+		},
+
 		/**
 		 * Function: _getGeoDataId
 		 * 
@@ -484,6 +490,8 @@ if (!window.core.ui)
 			var newGeoData = GeoDataStore.getById(geoDataId);
 			var nodeToRefresh = this._findNodeByGeoDataId(geoDataId);
 			this.el.jstree("refresh", nodeToRefresh);
+			console.log(nodeToRefresh);
+			console.log("Refreshed " + nodeToRefresh);
 		}
 
 	};

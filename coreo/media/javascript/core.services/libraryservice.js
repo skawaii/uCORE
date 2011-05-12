@@ -63,9 +63,10 @@ if (!window.core.services)
 				var deferred = $.Deferred(), endpoint;
 				endpoint = cfg.getByIdEndpoint;
 				$.ajax(cfg.getByIdEndpoint 
-						+ !cfg.getByIdEndpoint.endsWith('/') ? '/' : ''
+						+ (cfg.getByIdEndpoint.charAt(cfg.getByIdEndpoint.length-1) != '/' ? '/' : '')
 						+ id, {
 							type: "GET",
+							dataType: "json",
 							success: function(linkLibrary, textStatus, jqXHR) {
 								deferred.resolve(linkLibrary);
 							},
@@ -174,13 +175,44 @@ if (!window.core.services)
 					},
 					dataType: "json",
 					success: function(linkLibrary, textStatus, jqXHR) {
-						console.log(linkLibrary);
 						deferred.resolve(linkLibrary);
 					},
 					error: function(jqXHR, textStatus, errorThrown) {
 						deferred.reject(jqXHR.responseText);
 					}
 				});
+				return deferred.promise();
+			},
+			
+			retrieveAndUpdate: function(libraryId, updateFn) {
+				var deferred = $.Deferred();
+				_this.getById(libraryId)
+					.then(function(linkLibrary) {
+							var i, linkIds = [], updates;
+							for (i = 0; linkLibrary.fields.links && i < linkLibrary.fields.links.length; i++) {
+								linkIds.push(linkLibrary.fields.links[i].pk);
+							}
+							updates = {
+								id: linkLibrary.pk,
+								name: linkLibrary.fields.name,
+								description: linkLibrary.fields.desc,
+								tags: linkLibrary.fields.tags,
+								links: linkIds
+							};
+							updates = updateFn.call(updateFn, updates);
+							_this.update(updates)
+								.then(function(updatedLibrary) {
+										deferred.resolve(updatedLibrary);
+									},
+									function(error) {
+										deferred.reject("Error updating LinkLibrary: " 
+												+ error);
+									});
+						},
+						function(error) {
+							deferred.reject("Couldn't retrieve LinkLibrary " 
+									+ libraryId + ": " + error);
+						});
 				return deferred.promise();
 			},
 			
@@ -200,13 +232,15 @@ if (!window.core.services)
 			 *   message.
 			 */
 			addLink: function(libraryId, linkId, index) {
-				var deferred = $.Deferred();
-				// TODO: update library
-				// Create a command function to accept a command to update 
-				// the library after its updated state is retrieved from 
-				// the server
-				console.log("Adding link " + linkId + " to library " + libraryId + " at " + index);
-				return deferred.promise();
+				return this.retrieveAndUpdate(libraryId, function(library) {
+					if (library.links && library.links.length > 0) {
+						library.links.splice(index, 0, linkId);
+					}
+					else {
+						library.links = [linkId];
+					}
+					return library;
+				});
 			},
 			
 			/**
@@ -224,39 +258,19 @@ if (!window.core.services)
 			 *   string.
 			 */
 			removeLink: function(libraryId, linkId) {
-				var deferred = $.Deferred();
-				_this.getById(libraryId)
-					.then(function(linkLibrary) {
-							var i, oldLink, newLinks = [];
-							if (linkLibrary.fields.links) {
-								for (i = 0; i < linkLibrary.fields.links.length; i++) {
-									oldLink = linkLibrary.fields.links[i];
-									if (oldLink.pk !== linkId) {
-										newLinks.push(oldLink);
-									}
-								}
+				return this.retrieveAndUpdate(libraryId, function(library) {
+					var i, linkIds = [], oldLinkId;
+					if (library.links) {
+						for (i = 0; i < library.links.length; i++) {
+							oldLinkId = library.links[i];
+							if (oldLinkId !== linkId) {
+								linkIds.push(oldLinkId);
 							}
-							var newLibraryValues = {
-								id: linkLibrary.pk,
-								name: linkLibrary.fields.name,
-								desc: linkLibrary.fields.desc,
-								tags: linkLibrary.fields.tags,
-								links: newLinks
-							};
-							_this.update(newLibraryValues)
-								.then(function(updatedLibrary) {
-										deferred.resolve(updatedLibrary);
-									},
-									function(error) {
-										deferred.reject("Error updating LinkLibrary: " 
-												+ error);
-									});
-						},
-						function(error) {
-							deferred.reject("Couldn't retrieve LinkLibrary " 
-									+ libraryId + ": " + error);
-						});
-				return deferred.promise();
+						}
+						library.links = linkIds;
+					}
+					return library;
+				});
 			},
 		};
 		return _this;

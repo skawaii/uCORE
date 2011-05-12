@@ -111,7 +111,7 @@ if (!window.core.services)
 			var deferred = $.Deferred();
 			$.ajax(this.getTagsEndpoint, {
 				type: "GET",
-				data: { q: term },
+				data: { "term": term },
 				dataType: "json",
 				success: function(tags) {
 					deferred.resolve(tags);

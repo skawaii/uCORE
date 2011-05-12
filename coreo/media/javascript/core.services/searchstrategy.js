@@ -99,15 +99,15 @@ if (!window.core.services)
 			if (text.match('^http')) {
 				CallbackUtils.invokeOptionalCallback(callback, "resultBegin", 
 						[text, text, null]);
-				this.geoDataRetriever.fetch(text, {
-					success: function(geodata) {
+				this.geoDataRetriever.fetch(text)
+					.then(function(geodata) {
 						CallbackUtils.invokeCallback(callback, geodata, "resultSuccess");
 						CallbackUtils.invokeOptionalCallback(callback, "complete");
 					},
-					error: function(errorThrown) {
-						CallbackUtils.invokeOptionalCallback(callback, "resultError", errorThrown);
-					}
-				});
+					function(errorThrown) {
+						CallbackUtils.invokeOptionalCallback(callback, "resultError", 
+								[text, errorThrown]);
+					});
 			}
 			else {
 				// get Links and LinkLibraries matching the search term, 
@@ -119,8 +119,9 @@ if (!window.core.services)
 					result: function(linkOrLibrary) {
 						var i;
 						var id = linkOrLibrary.pk;
+						var creatorId = linkOrLibrary.fields.creator ? linkOrLibrary.fields.creator.pk : null;
 						CallbackUtils.invokeOptionalCallback(callback, "resultBegin", 
-								[id, linkOrLibrary.fields.name, linkOrLibrary.fields.creator]);
+								[id, linkOrLibrary.fields.name, creatorId]);
 						if (linkOrLibrary.model === "ucore.linklibrary") {
 							var linkLibraryGeoData = new LinkLibraryGeoData(null, 
 									linkOrLibrary, this.linkService, 

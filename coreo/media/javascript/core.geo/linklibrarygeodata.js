@@ -32,9 +32,9 @@ if (!window.core.geo)
 		var _super, _this, linkGeoDatas, lazyLoadLinks, linkIds;
 		_super = new core.geo.GeoData(geoDataId);
 		linkIds = [];
-		if (linkLibrary && linkLibrary.links) {
-			$.each(linkLibrary.links, function(index, value) {
-				linkIds.push(value[0]);
+		if (linkLibrary && linkLibrary.fields.links) {
+			$.each(linkLibrary.fields.links, function(index, link) {
+				linkIds.push(link.pk);
 			});
 		}
 		lazyLoadLinks = function(onLink, onError, onComplete) {
@@ -62,7 +62,7 @@ if (!window.core.geo)
 								linkGeoData = new core.geo.LinkGeoData(null, link, _this, geoDataRetriever);
 								linkGeoDatas.push(linkGeoData);
 								if (onLink)
-									lastCbReturn = onLink.call(linkGeoData);
+									lastCbReturn = onLink.call(onLink, linkGeoData);
 								if ((linksRemaining == 0 || lastCbReturn === false) && onComplete)
 									onComplete.call(onComplete);
 							},

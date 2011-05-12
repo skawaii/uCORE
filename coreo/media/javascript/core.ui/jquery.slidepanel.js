@@ -283,7 +283,6 @@
 			if (!$(this.element).is(":visible")) {
 				// no need to animate if the elements isn't shown
 				animDuration = 0;
-				console.log("not animating");
 			}
 			titleReel.animate({ "left": newLeftVal }, {
 				duration: animDuration,
