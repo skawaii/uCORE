@@ -165,7 +165,7 @@ def update_library(request):
     if 'tags' in request.POST:
       tags = request.POST['tags'].strip()
       tags = tags.split(',')
-      library.tags.all().delete()
+      library.tags.clear()
       for t in tags:
         t = t.strip()
         if len(t) > 0:
