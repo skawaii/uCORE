@@ -160,22 +160,26 @@
 			$( "#tabs" ).tabs();		
 
 			var userService = new core.services.UserService({
-				currentUserEndpoint: "/current-user/",
+				currentUserEndpoint: "{% url coreo.ucore.views.get_current_user %}",
 				currentUser: {% user_json user %}
 			});
+			var libraryByIdEndpoint = "{% url get-library-by-id libraryId='9999' %}";
+			libraryByIdEndpoint = libraryByIdEndpoint.substring(0, libraryByIdEndpoint.lastIndexOf('9999'));
 			var libraryService = new core.services.LibraryService({
-				createLibraryEndpoint: "/create-library/",
-				deleteEndpoint: "/delete-libraries/",
-				getByIdEndpoint: "/libraries/",
-				updateEndpoint: "/update-library/"
+				createLibraryEndpoint: "{% url coreo.ucore.views.create_library %}",
+				deleteEndpoint: "{% url coreo.ucore.views.delete_libraries %}",
+				getByIdEndpoint: libraryByIdEndpoint,
+				updateEndpoint: "{% url coreo.ucore.views.update_library %}"
 			});
+			var linkByIdEndpoint = "{% url coreo.ucore.views.get_link '9999' %}";
+			linkByIdEndpoint = linkByIdEndpoint.substring(0, linkByIdEndpoint.lastIndexOf("9999"));
 			var linkService = new core.services.LinkService({
-				getByIdEndpoint: "/links/",
-				getByUrlEndpoint: "/links",
-				createEndpoint: "/links",
-				deleteEndpoint: "/delete-link/"
+				getByIdEndpoint: linkByIdEndpoint,
+				getByUrlEndpoint: "{% url links %}",
+				createEndpoint: "{% url coreo.ucore.views.links %}",
+				deleteEndpoint: "{% url coreo.ucore.views.delete_link %}"
 			});
-			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
+			var kmlJsonProxyService = new core.services.KmlJsonProxyService("{% url coreo.ucore.views.kmlproxy %}")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
 			var eventChannel = new core.events.EventChannel();
 			var currentBbox = null;
@@ -195,7 +199,9 @@
 				})
 				.hide();
 
-			var searchService = new core.services.SearchService("/search/links", "/search/libraries", "/get-tags", "/keywords/");
+			var searchService = new core.services.SearchService(
+					"{% url search-links %}", "{% url search-libraries %}",
+					"{% url get-tags %}", "{% url get-keywords %}");
 			var resultFilter = new core.ui.SlidePanelResultFilter("#results", "search-results");
 			var searchStrategy = new core.services.SearchStrategy(
 					searchService, resultFilter, geodataRetriever, linkService);
