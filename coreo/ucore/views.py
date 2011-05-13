@@ -789,7 +789,7 @@ def register(request, sid):
 
 @require_http_methods(['GET'])
 @login_required
-def search(request, models):
+def search(request=None, models=('Link', 'LinkLibrary')):
   """
   Search the databases for ``Links`` or ``LinkLibraries`` whose metadata matches the search terms. The
   metadata searched is the name, description, and tag names associated with the ``Link`` or ``LinkLibrary``.

@@ -99,7 +99,6 @@ if (!window.core.geo)
 				}, this));
 				this.eventChannel.subscribe(ViewChangedEvent.type, $.proxy(function(viewChangedEvent) {
 					if (viewChangedEvent && viewChangedEvent.bounds) {
-						console.log("Updated bbox and altitude");
 						this._bbox = viewChangedEvent.bounds;
 						this._altitude = viewChangedEvent.altitude;
 						this.execute();
