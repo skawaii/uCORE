@@ -1,0 +1,69 @@
+This is the directory structure I used. I ended up adding a couple extra directories due to the default openssl settings. You can either do that as issues arise (openssl will pretty clearly tell you what it was expecting), specify your own settings file as an argument, or someone with permissions could go ahead and modify the base settings file.
+
+/CA/
+/server/
+/server/certificates/
+/server/keys/
+/server/requests/
+/user/
+/user/certificates/
+/user/keys/
+/user/requests/
+
+****************
+These are the steps I used to create the CA, though this may no longer be particularly relevant as it is the server cert that got installed by WebFaction so that's what I was using to sign user certs. Don't know if that worked or not because all that info apparently gets gobbled up before the request gets proxied to our server.
+
+=====Create CA key=====
+
+>openssl genrsa -out /CA/coreCA.KEY
+
+=====Create Certificate Request=====
+
+>openssl req -new -key /CA/coreCA.KEY -out /CA/coreCA.CSR
+
+=====Self-sign certificate=====
+
+>openssl x509 -req -days 365 -in /CA/coreCA.CSR \
+-out /CA/coreCA.CRT -signkey /CA/coreCA.key
+
+***************
+Creating the server cert is similar except we sign it with the CA
+
+=====Create Server Key=====
+
+>openssl genrsa -des3 -out /server/keys/coreWEB.KEY
+
+=====Create Server Certificate Request=====
+
+>openssl req -new -key /server/keys/coreWEB.KEY -out /server/requests/coreWEB.CSR
+
+IMPORTANT NOTE: During the creation process you will be asked several questions, e.g. the "Common Name" (=CN). As the CN has no default value in openssl.cnf you MUST enter the complete webserver's name (FQDN=Fully Qualified Domain Name), e.g. www.layeredintel.com!!! This string will be later compared by apache to the config directive "ServerName". If these strings are not identical, the webserver will not be able to start up!
+
+=====Sign the Server Key=====
+>openssl ca -in /server/requests/coreWEB.CSR -cert /CA/coreCA.CRT -keyfile \
+/CA/coreCA.KEY -out /server/certificates/coreWEB.CRT
+
+
+*****************
+Creating user certs is a similar process, though obviously you'll be using different information.
+Be sure to supply a Common Name!(just the person's name instead of a domain)
+
+=====Create Client Key=====
+
+>openssl genrsa -des3 -out /user/keys/core.key 1024
+
+=====Create CLient Certificate Request=====
+
+>openssl req -new -key /user/keys/core.KEY -out /user/requests/core.CSR
+
+=====Sign User Certificate=====
+
+>openssl ca -in /user/requests/core.CSR -cert /CA/coreCA.CRT -keyfile \
+/CA/coreCA.KEY -out /user/certificates/core.CRT
+
+=====Convert User Cert for Browser Import=====
+(this is for firefox)
+>openssl pkcs12 -export -clcerts -in /user/certificates/core.CRT -inkey /user/keys/core.KEY -out core.P12
+
+**************
+The above is adapted from this guide (http://www.garex.net/apache/) to my actual usage. It also contains instructions for cert conversion and installation for IE - which I didn't try - but nothing for Safari.
