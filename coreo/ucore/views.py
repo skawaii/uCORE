@@ -301,6 +301,22 @@ def create_user(request):
       phone_number = result.group(1) + result.group(2) + result.group(3)
   except Exception, e:
     logging.error('Exception parsing phone number: %s' % e.message)
+  try:
+    if len(password) < 8:
+      return render_to_response('register.html',
+          {'sid': sid, 'username': username, 'first_name': first_name,
+           'last_name': last_name, 'email': email, 'phone_number': phone_number, 'error_message': 'Password must be 8 characters or greater and contain at least one number or one special character.'
+        }, context_instance=RequestContext(request))
+    rule2 = re.compile(r"\d+")
+    rule3 = re.compile(r"(`+)|(~+)|(!+)|(@+)|(#+)|(\$+)|(%+)|(\^+)|(&+)|(\*+)|(\(+)|(\)+)|(-+)|(_+)|(\++)|(=+)|({+)|(\[+)|(}+)|(\]+)|(\\+)|(\|+)|(\:+)|(\;+)|('+)|(\"+)|(\<+)|(\>+)|(,+)|(\.+)|(\?+)|(\/+)")
+
+    if rule2.search(password) is None and rule3.search(password) is None:
+      return render_to_response('register.html',
+          {'sid':sid, 'username': username, 'first_name': first_name,
+            'last_name': last_name, 'email': email, 'phone_number': phone_number, 'error_message': 'Password must contain one number or one special character.' }, context_instance=RequestContext(request))
+  except Exception, e:
+    logging.error('Password doesn\'t match rules applied')
+    print e
 
   if not (sid and username and first_name and last_name and password and email and phone_number):
     # redisplay the registration page
@@ -646,8 +662,6 @@ def manage_libraries2(request):
     libform = LibraryForm(request.POST, instance=user)
     libform.save()
     return HttpResponseRedirect('/manage-libraries/?saved=True')
-
-
 
 
 @require_http_methods(['GET', 'POST'])
@@ -1024,7 +1038,13 @@ def kmlproxy(request):
       try:
         zipFile = zipfile.ZipFile(kmzBuffer, 'r')
         # KMZ spec says zip will contain exactly one file, named doc.kml
-        kmlTxt = zipFile.read('doc.kml')
+        for name in zipFile.namelist():
+          if name.find('.kml') != -1:
+            print 'found one: %s ' % name
+            kmlTxt = zipFile.read(name)
+            break
+          else:
+            print 'no kml found in the kmz file.'
       finally:
         kmzBuffer.close()
 
@@ -1127,3 +1147,13 @@ def get_current_user(request):
   currentUser = CoreUser.objects.select_related().get(username=request.user.username)
   return HttpResponse(content_type=utils.JSON_CONTENT_TYPE, 
                           content=utils.get_coreuser_json(currentUser))
+
+
+def check_password_rules(pword):
+  if len(pword) < 8:
+    return False 
+  rule2 = re.compile(r"\d+")
+  rule3 = re.compile(r"(`+)|(~+)|(!+)|(@+)|(#+)|(\$+)|(%+)|(\^+)|(&+)|(\*+)|(\(+)|(\)+)|(-+)|(_+)|(\++)|(=+)|({+)|(\[+)|(}+)|(\]+)|(\\+)|(\|+)|(\:+)|(\;+)|('+)|(\"+)|(\<+)|(\>+)|(,+)|(\.+)|(\?+)|(\/+)")
+  if rule2.search(pword) is None and rule3.search(pword) is None:
+      return False
+  return True
