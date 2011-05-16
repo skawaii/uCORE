@@ -165,46 +165,6 @@ class LinkLibraryTest(TestCase):
     user = CoreUser.objects.get(username='testuser')
     self.assertEqual(0, user.libraries.count())
 
-class LinkTest(TestCase):
-
-  def setUp(self):
-    self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
-        phone_number='9221112222')
-    self.user.set_password('2pass')
-    self.user.save()
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
-    Tag.objects.create(name='WarmButton', type='P')
-    self.poc = POC.objects.create(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
-
-    self.link1 = Link.objects.create(name='yahoo', desc='search site', url='www.yahoo.com', poc=self.poc)
-    self.link1.tags.add(Tag.objects.get(name='HotButton'))
-    self.link2 = Link.objects.create(name='lifehacker', desc='fun site', url='www.lifehacker.com', poc=self.poc)
-    self.link2.tags.add(Tag.objects.get(name='HotButton'))
- 
-  def test_get_existing_link(self):
-    response = self.client.get('/links/', { 'url': 'www.yahoo.com' })
-    self.assertEquals(200, response.status_code)
-
-  def test_get_unknown_link(self):
-    response = self.client.get('/links/', { 'url': 'www.google.com' })
-    self.assertEquals(404, response.status_code)
-
-  def test_post_link(self):
-    numLinks = len(Link.objects.all())
-    response = self.client.post('/links/', { 'name': 'newlink', 'desc': 'new description', 'url': 'www.theserverside.com', 'tags': 'HotButton, Informational', 'firstname': 'Harry', 'lastname': 'Barney', 'phone': '4443332222', 'email': 'no.one@nodomain.com'})
-    self.assertEquals(200, response.status_code)
-    self.assertEquals(numLinks+1, len(Link.objects.all()))
-    resultingLink = Link.objects.filter(url='www.theserverside.com')
-    self.assertEquals(len(resultingLink),  1)
-
-class RegisterTest(TestCase):
- 
-  def testRegister(self):
-    response = self.client.post('/create-user/', { 'username': 'joe', 'sid': 'joe','first_name': 'Joseph', 'last_name': 'Jenkins', 'phone_number': '3332221111', 'email': 'prcoleman2@gmail.com', 'password': 'happy' })
-    self.assertTrue(200, response.status_code)
-    users_created = CoreUser.objects.filter(username='joe', email='prcoleman2@gmail.com')
-    self.assertEquals(len(users_created), 1)
-
 
 class LoginTest(TestCase):
   def setUp(self):
@@ -222,7 +182,7 @@ class LoginTest(TestCase):
 
 
 class LogoutTest(TestCase):
-  def setUp(self): 
+  def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
     self.user.set_password('2pass')
@@ -237,7 +197,7 @@ class LogoutTest(TestCase):
 
 
 class TrophyTest(TestCase):
-  def setUp(self): 
+  def   setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
     self.user.set_password('2pass')
@@ -381,7 +341,7 @@ class ProfileTest(TestCase):
     response = self.client.get('/user-profile/')
     self.assertEquals(response.status_code, 200)
 
-    response = self.client.post('/update-user/', { 'sid' : 'anything', 'first_name' : 'Bill', 'last_name' : 'Somebody', 'phone_number': '9998887777', 'email': 'pcol@anywhere.com', 'skin': 'Default', 'wants_emails': 'True'})
+    response = self.client.post('/update-user/', { 'sid' : 'anything', 'first_name' : 'Bill', 'last_name' : 'Somebody', 'phone_number': '9998887777', 'email': 'pcol@anywhere.com', 'skin': 'Default'})
     self.assertEquals(response.status_code, 302)
     self.assertRedirects(response, '/user-profile/?saved=True', status_code=302, target_status_code=200)
 
