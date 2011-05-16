@@ -15,10 +15,10 @@ class LinkLibraryTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
     Tag.objects.create(name='WarmButton', type='P')
     self.poc = POC.objects.create(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
@@ -170,9 +170,9 @@ class LinkTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
     Tag.objects.create(name='WarmButton', type='P')
     self.poc = POC.objects.create(first_name='Jerry', last_name='Smith', phone_number='4443332222', email='prcoleman2@gmail.com')
 
@@ -200,7 +200,7 @@ class LinkTest(TestCase):
 class RegisterTest(TestCase):
  
   def testRegister(self):
-    response = self.client.post('/create-user/', { 'username': 'joe', 'sid': 'joe','first_name': 'Joseph', 'last_name': 'Jenkins', 'phone_number': '3332221111', 'email': 'prcoleman2@gmail.com', 'password': 'happy' })
+    response = self.client.post('/create-user/', { 'username': 'joe', 'sid': 'joe','first_name': 'Joseph', 'last_name': 'Jenkins', 'phone_number': '3332221111', 'email': 'prcoleman2@gmail.com', 'password': '2password' })
     self.assertTrue(200, response.status_code)
     users_created = CoreUser.objects.filter(username='joe', email='prcoleman2@gmail.com')
     self.assertEquals(len(users_created), 1)
@@ -210,11 +210,11 @@ class LoginTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
   def test_login(self):
-    self.client.post('/login/', {'username': 'testuser', 'password': '2pass'})
+    self.client.post('/login/', {'username': 'testuser', 'password': '2password'})
 
     self.assertTrue(self.client.session.has_key('_auth_user_id'))
 
@@ -225,10 +225,10 @@ class LogoutTest(TestCase):
   def setUp(self): 
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_logout(self):
     self.client.get('/logout/')
@@ -240,7 +240,7 @@ class TrophyTest(TestCase):
   def setUp(self): 
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
     # clear out the auto-generated trophy cases and notifications
@@ -248,8 +248,8 @@ class TrophyTest(TestCase):
     Notification.objects.all().delete()
     mail.outbox = []
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_trophypage(self):
     response = self.client.get('/trophyroom/')
@@ -280,7 +280,7 @@ class TrophyTest(TestCase):
 
   def test_registration_trophy_earned(self):
     self.client.post('/create-user/', {'sid': 'something', 'username': 'bubba', 'first_name': 'Bubba', 'last_name': 'Smith',
-      'password': 'somethinghere', 'email':'prcoleman2@gmail.com', 'phone_number':'(555)555-4444'})
+      'password': '2password', 'email':'prcoleman2@gmail.com', 'phone_number':'(555)555-4444'})
 
     self.assertEquals(TrophyCase.objects.all().count(), 1)
 
@@ -296,10 +296,10 @@ class CsvTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_get_csv(self):
     response = self.client.get('/export-csv/')
@@ -313,10 +313,10 @@ class KmzTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_get_kmz(self):
     response = self.client.get('/export-kmz/')
@@ -346,36 +346,36 @@ class PasswordTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_view_password(self):
     response = self.client.get('/update-password/')
     self.assertEquals(response.status_code, 200)
     
   def test_update_password(self):
-    response = self.client.post('/update-password/', {'old' : '2pass', 'password' : 'newpass'})
+    response = self.client.post('/update-password/', {'old' : '2password', 'password' : '3password'})
     self.assertRedirects(response, '/update-password/?saved=True')
-    self.assertTrue(self.client.login(username='testuser', password='newpass'))
+    self.assertTrue(self.client.login(username='testuser', password='3password'))
 
   def test_wrong_current_password(self):
-    response = self.client.post('/update-password/', {'old' : 'nothing', 'password' : 'anything'})
+    response = self.client.post('/update-password/', {'old' : 'nothing', 'password' : 'anything5'})
     self.assertContains(response, 'Please try again.', count=1)
 
   def test_same_passwords(self):
-    response = self.client.post('/update-password/', {'old' : '2pass', 'password' : '2pass'})
+    response = self.client.post('/update-password/', {'old' : '2password', 'password' : '2password'})
     self.assertContains(response, 'Please try again.', count=1)
 
 class ProfileTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_profile_update(self):
     response = self.client.get('/user-profile/')
@@ -400,10 +400,10 @@ class SearchTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
     # create a POC
     self.poc = POC.objects.create(first_name='Bob', last_name='Dole', phone_number='1234567890', email='bob@dole.net')
@@ -599,10 +599,10 @@ class ShapefileTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_get_shapefile(self):
     response = self.client.get('/export-shp/')
@@ -641,7 +641,7 @@ class NotificationTest(TestCase):
   def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
     # delete the auto-generated notification resulting from saving a new user and add a know notification
@@ -649,7 +649,7 @@ class NotificationTest(TestCase):
     mail.outbox = [] # empty the outbox
     Notification.objects.create(user=self.user, type='TR', message='You won a new registration trophy')
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_get_notification(self):
     response = self.client.get('/notifications/')
@@ -679,7 +679,7 @@ class RateTest(TestCase):
     # this could be in a fixture
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
     self.poc = POC.objects.create(first_name='homer', last_name='simpson', phone_number='1234567890', email='homer@simpsons.com')
@@ -696,7 +696,7 @@ class RateTest(TestCase):
     self.link_library.tags.add(self.link_library_tags[1])
     self.link_library.links.add(self.link)
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_view_link_rating(self):
     rating_fk = RatingFK.objects.create(user=self.user, link=self.link)
@@ -765,10 +765,10 @@ class SettingsTest(TestCase):
   def setUp(self): 
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
-    self.user.set_password('2pass')
+    self.user.set_password('2password')
     self.user.save()
 
-    self.assertTrue(self.client.login(username='testuser', password='2pass'))
+    self.assertTrue(self.client.login(username='testuser', password='2password'))
 
   def test_settings_created(self):
     self.assertTrue(self.user.settings.wants_emails)
