@@ -302,18 +302,12 @@ def create_user(request):
   except Exception, e:
     logging.error('Exception parsing phone number: %s' % e.message)
   try:
-    if len(password) < 8:
+    if check_password_rules(password) is False:
       return render_to_response('register.html',
           {'sid': sid, 'username': username, 'first_name': first_name,
-           'last_name': last_name, 'email': email, 'phone_number': phone_number, 'error_message': 'Password must be 8 characters or greater and contain at least one number or one special character.'
+           'last_name': last_name, 'email': email, 'phone_number': phone_number, 'error_message': 'Your password must be 8 or more characters and contain at least 1 number or at least 1 special character.'
         }, context_instance=RequestContext(request))
-    rule2 = re.compile(r"\d+")
-    rule3 = re.compile(r"(`+)|(~+)|(!+)|(@+)|(#+)|(\$+)|(%+)|(\^+)|(&+)|(\*+)|(\(+)|(\)+)|(-+)|(_+)|(\++)|(=+)|({+)|(\[+)|(}+)|(\]+)|(\\+)|(\|+)|(\:+)|(\;+)|('+)|(\"+)|(\<+)|(\>+)|(,+)|(\.+)|(\?+)|(\/+)")
 
-    if rule2.search(password) is None and rule3.search(password) is None:
-      return render_to_response('register.html',
-          {'sid':sid, 'username': username, 'first_name': first_name,
-            'last_name': last_name, 'email': email, 'phone_number': phone_number, 'error_message': 'Password must contain one number or one special character.' }, context_instance=RequestContext(request))
   except Exception, e:
     logging.error('Password doesn\'t match rules applied')
     print e
@@ -955,17 +949,16 @@ def update_password(request):
     new_password = request.POST['password'].strip()
 
     if (old_password == new_password):
-      return render_to_response('password.html', {'error_message': 'Your new password must be different from your current password. Please try again.'},
-          context_instance=RequestContext(request))
-
+      return render_to_response('password.html', {'error_message': 'Your new password must be different from your current password. Please try again.'}, context_instance=RequestContext(request))
+    if check_password_rules(new_password) is False:
+      return render_to_response('password.html', {'error_message': 'Your new password must be 8 or more characters and contain at least 1 number or at least 1 special character.'}, context_instance=RequestContext(request))
+      
     if user.check_password(old_password):
       user.set_password(new_password)
       user.save()
-
       return HttpResponseRedirect('/update-password/?saved=True')
     else:
-      return render_to_response('password.html', {'error_message': 'Invalid password. Please try again.'},
-           context_instance=RequestContext(request))
+      return render_to_response('password.html', {'error_message': 'Invalid password. Please try again.'}, context_instance=RequestContext(request))
        
 
 @require_http_methods(['GET', 'POST'])

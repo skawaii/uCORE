@@ -221,13 +221,6 @@ class SearchLog(models.Model):
     return '%s %s' % (self.user.username, self.search_terms)
 
 
-class LibraryForm(ModelForm):
-  class Meta:
-    model = CoreUser
-    fields = ('libraries')
-
-
-
 ### Signal Registration ###
 from django.db.models.signals import post_delete, post_save
 from coreo.ucore import signals
