@@ -7,6 +7,7 @@ import csv, datetime, json, logging, os, re, time, urllib2, zipfile, pickle
 from cStringIO import StringIO
 from httplib import HTTPResponse, HTTPConnection
 from urlparse import urlparse
+from django.http import Http404
 import xml.dom.expatbuilder
 from xml.dom.minidom import parse, parseString
 from xml.parsers import expat
@@ -55,7 +56,8 @@ def check_username(request):
   username = request.GET['username'].strip()
   return HttpResponse(json.dumps(CoreUser.objects.filter(username=username).exists()))
 
-
+@require_http_methods(['POST', 'GET'])
+@login_required
 def create_library(request):
   """
   This view when called will create a link library. It won't work properly unless you are
@@ -78,16 +80,23 @@ def create_library(request):
     existing webapp.
   """
   user = CoreUser.objects.get(username=request.user)
-
   if not user:
     logging.error('No user retrieved by the username of %s' % request.user)
-    return HttpResponse('No user identified in request.')
+    return HttpResponseBadRequest('No user identified in request.')
 
   if request.method == 'POST':
-    links = request.POST['links'].strip()
+    links = ''
+    if 'links' in request.POST:
+      links = request.POST['links'].strip()
+    if 'name' not in request.POST:
+      return HttpResponseBadRequest('name is a required parameter')
     name = request.POST['name'].strip()
-    desc = request.POST['desc'].strip()
-    tags = request.POST['tags'].strip()
+    desc = ''
+    if 'desc' in request.POST:
+      desc = request.POST['desc'].strip()
+    tags = ''
+    if 'tags' in request.POST:
+      tags = request.POST['tags'].strip()
     # if tags[-1] == ',':
     #  length_of_tags = len(tags)
     #  tags = tags[0:length_of_tags-1]
@@ -97,20 +106,85 @@ def create_library(request):
     library.save()
 
     for t in tags:
-      retrievedtag = Tag.objects.get_or_create(name=t)
-      library.tags.add(retrievedtag[0])
+      t = t.strip()
+      if len(t) > 0:
+        retrievedtag = Tag.objects.get_or_create(name=t)
+        library.tags.add(retrievedtag[0])
 
     for link_object in linkArray:
-      link = Link.objects.get(pk=int(link_object))
-      library.links.add(link)
-
+      link_object = link_object.strip()
+      if link_object.isdigit():
+        link = Link.objects.get(pk=int(link_object))
+        library.links.add(link)
+  
     library.save()
-    user.libraries.add(library)    
-    return HttpResponse("Success")
+
+    user.libraries.add(library)
+
+    if utils.accepts_json(request):
+      jsonContent = utils.get_linklibrary_json(library)
+      return HttpResponse(content=jsonContent, content_type=utils.JSON_CONTENT_TYPE)
+
+    return HttpResponse(str(library.pk))
   else:
     allLinks = Link.objects.all()
     allTags = Tag.objects.all()
     return render_to_response('createlib.html', { 'allLinks' : allLinks, 'allTags': allTags }, context_instance=RequestContext(request))
+
+
+
+@require_http_methods(['POST'])
+@login_required
+def update_library(request):
+  user = CoreUser.objects.get(username=request.user)
+  if 'id' not in request.POST:
+    raise HttpResponseBadRequest('id is a required parameter')
+  else:
+    id = request.POST['id'].strip()
+    library = LinkLibrary.objects.get(pk=id)
+    if not library:
+      raise Http404
+    links = ''
+    if 'links' in request.POST:
+      links = request.POST['links'].strip()
+      linkArray = links.split(',')
+      library.links.clear()
+      for link_object in linkArray:
+        link_object = link_object.strip()
+        if link_object.isdigit():
+          link = Link.objects.get(pk=int(link_object))
+          library.links.add(link)
+    if 'name' not in request.POST:
+      return HttpResponseBadRequest('name is a required parameter')
+    name = request.POST['name'].strip()
+    library.name = name
+    if 'desc' in request.POST:
+      desc = request.POST['desc'].strip()
+      library.desc = desc
+    tags = ''
+    if 'tags' in request.POST:
+      tags = request.POST['tags'].strip()
+      tags = tags.split(',')
+      library.tags.clear()
+      for t in tags:
+        t = t.strip()
+        if len(t) > 0:
+          retrievedtag = Tag.objects.get_or_create(name=t)
+          library.tags.add(retrievedtag[0])
+    # if tags[-1] == ',':
+    #  length_of_tags = len(tags)
+    #  tags = tags[0:length_of_tags-1]
+  
+    library.save()
+    
+    # The below line shouldn't be needed because the library should
+    # stay in the profile of the user even if it was updated.
+
+    #  user.libraries.add(library)
+    if utils.accepts_json(request):
+      jsonContent = utils.get_linklibrary_json(library)
+      return HttpResponse(content=jsonContent, content_type=utils.JSON_CONTENT_TYPE)
+    return HttpResponse(str(library.pk))
 
 
 @require_http_methods(["GET"])
@@ -123,6 +197,63 @@ def get_libraries(request):
     return render_to_response('login.html', context_instance=RequestContext(request))
   return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
   # return HttpResponse(serializers.serialize('json', results, indent=4, relations=('links',)))
+
+
+@require_http_methods(["GET", "POST"])
+def links(request):
+  if request.method == 'GET':
+    if 'url' in request.GET:
+      url = request.GET['url'].strip()
+      retrievedLink = Link.objects.filter(url__icontains=url)
+      if len(retrievedLink) > 0:
+        return HttpResponse(serializers.serialize('json', retrievedLink, indent=4, relations=('poc','tags',)))
+      else:
+        raise Http404 
+    total_links = Link.objects.all()  
+    return HttpResponse(serializers.serialize('json', total_links, indent=4, relations=('poc','tags',)))
+  # For the POST stuff the rest of the code is written.
+  else:
+    linkname = request.POST['name'].strip()
+    linkdesc = request.POST['desc'].strip()
+    url = request.POST['url'].strip()
+    # The below variable will be an array of all tags that came in
+    # as comma-delimited.
+    tags = request.POST['tags'].strip().split(',')
+    firstname = request.POST['firstname'].strip()
+    lastname = request.POST['lastname'].strip()
+    phone = request.POST['phone'].strip()
+    email = request.POST['email'].strip()
+    # Create the POC with the info
+    # provided if he/she is not there already.
+    # add first_name, and last_name to get_or_create
+    poc = POC.objects.get_or_create(email=email, phone_number=phone)
+    poc[0].first_name = firstname
+    poc[0].last_name = lastname
+    poc[0].save()
+    # The below code will update or create depending on if the 
+    # link already exists (determined by url which must be unique).
+    link = Link.objects.create(url=url, name=linkname, desc=linkdesc, poc=poc[0])
+    # Iterate through the tags and create a tag if it isn't already
+    # in the tag table.
+    for t in tags:
+      tag = Tag.objects.get_or_create(name=t)
+      link.tags.add(tag[0])
+    # Finally save the link
+    link.save()
+    # Then return the primary key of the create link in the response
+    #  return HttpResponse(link[0].pk)
+    # return HttpResponse(serializers.serialize('json', link, indent=2, relations=('poc','tags',)))
+    return HttpResponse(serializers.serialize('json', Link.objects.filter(url=url), indent=4, relations=('poc', 'tags',)))
+
+   
+
+@require_http_methods(["POST"])
+@login_required
+def delete_link(request):
+  link = request.POST['id'].strip()
+  link2delete = Link.objects.get(pk=link)
+  Link.objects.remove(link2delete)
+  return HttpResponse("Link removed")
 
 
 @require_http_methods(["POST"])
@@ -170,6 +301,16 @@ def create_user(request):
       phone_number = result.group(1) + result.group(2) + result.group(3)
   except Exception, e:
     logging.error('Exception parsing phone number: %s' % e.message)
+  try:
+    if check_password_rules(password) is False:
+      return render_to_response('register.html',
+          {'sid': sid, 'username': username, 'first_name': first_name,
+           'last_name': last_name, 'email': email, 'phone_number': phone_number, 'error_message': 'Your password must be 8 or more characters and contain at least 1 number or at least 1 special character.'
+        }, context_instance=RequestContext(request))
+
+  except Exception, e:
+    logging.error('Password doesn\'t match rules applied')
+    print e
 
   if not (sid and username and first_name and last_name and password and email and phone_number):
     # redisplay the registration page
@@ -181,7 +322,8 @@ def create_user(request):
   # create the user in the DB
   try:
     user = CoreUser.objects.create(sid=sid, username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number)
-  except IntegrityError:
+  except IntegrityError as e:
+    print e
     return render_to_response('register.html',
         {'sid': sid,
          'error_message': 'The username/sid %s is not available. Please try again' % username
@@ -307,7 +449,16 @@ def get_kmz(request):
 
   return response
 
-
+@require_http_methods('GET')
+@login_required
+def get_library_by_id(request, libraryId):
+  library = None
+  try:
+    library = LinkLibrary.objects.get(id=libraryId)
+  except LinkLibrary.DoesNotExist, LinkLibrary.MultipleObjectsReturned:
+    raise Http404
+  return HttpResponse(utils.get_linklibrary_json(library))
+  
 @require_http_methods(['GET'])
 @login_required
 def get_library(request, username, lib_name):
@@ -329,6 +480,14 @@ def get_library(request, username, lib_name):
 
   return HttpResponse(uri)
 
+@require_http_methods('GET')
+@login_required
+def get_link(request, linkId):
+  if linkId and linkId.isdigit():
+    link = Link.objects.get(pk=int(linkId))
+    if link:
+      return HttpResponse(json.dumps(utils.django_to_dict(link)))
+  return HttpResponseNotFound('Link %s doesn\'t exist' % linkId)
 
 @require_http_methods(['GET'])
 @login_required
@@ -381,13 +540,15 @@ def get_tags(request):
     This view returns a list of all the public tags that match the
     parameter submitted.
   """
+  term = request.GET['term']
+  print "Getting tags like %s" % term
   if ',' in term:
     termList = term.split(',')
     length_of_list = len(termList)
     term = termList[length_of_list-1].strip()
     # print 'term is- %s -here' % term
 
-  results = Tag.objects.filter(name__contains=term, type='P')
+  results = Tag.objects.filter(name__icontains=term, type='P')
 
   return HttpResponse(serializers.serialize('json', results))
 
@@ -495,8 +656,6 @@ def manage_libraries2(request):
     libform = LibraryForm(request.POST, instance=user)
     libform.save()
     return HttpResponseRedirect('/manage-libraries/?saved=True')
-
-
 
 
 @require_http_methods(['GET', 'POST'])
@@ -638,7 +797,7 @@ def register(request, sid):
 
 @require_http_methods(['GET'])
 @login_required
-def search(request, models):
+def search(request=None, models=('Link', 'LinkLibrary')):
   """
   Search the databases for ``Links`` or ``LinkLibraries`` whose metadata matches the search terms. The
   metadata searched is the name, description, and tag names associated with the ``Link`` or ``LinkLibrary``.
@@ -661,9 +820,17 @@ def search(request, models):
 
   results = utils.search_ucore(models, terms)
 
-  return HttpResponse(serializers.serialize('json', results, use_natural_keys=True))
+  return HttpResponse(utils.get_searchresults_json(results))
 
-
+@require_http_methods(['GET'])
+@login_required
+def get_keywords(request):
+  if not request.GET['q']:
+    return HttpResponse(serializers.serialize('json', ''))
+  term = request.GET['q']
+  results = utils.get_keywords(term)
+  return HttpResponse(json.dumps(results))
+  
 @require_http_methods(['GET'])
 @login_required
 def search_mongo(request):
@@ -731,8 +898,7 @@ def update_user(request):
   if request.method == 'GET':
     user = CoreUser.objects.get(username=request.user.username)
     saved_status = request.GET['saved'].strip() if 'saved' in request.GET else ''
-
-    return render_to_response('userprofile.html', {'user': user, 'saved' : saved_status}, context_instance=RequestContext(request))
+    return render_to_response('userprofile.html', {'user': user, 'saved': saved_status, 'settings': user.settings, 'skin_list': Skin.objects.all() }, context_instance=RequestContext(request))
   else:
     user = CoreUser.objects.filter(username=request.user.username)
     first_name = request.POST['first_name'].strip()
@@ -740,7 +906,9 @@ def update_user(request):
     email = request.POST['email'].strip()
     phone_number = request.POST['phone_number'].strip()
     sid = request.POST['sid'].strip()
-
+    wants_emails = True if 'wants_emails' in request.POST else False
+    skin = Skin.objects.get(name=request.POST['skin'].strip())
+    
     try:
       if (len(phone_number) != 10):
         prog = re.compile(r"\((\d{3})\)(\d{3})-(\d{4})")
@@ -751,7 +919,7 @@ def update_user(request):
 
     if not (first_name and last_name and email and phone_number):
     # redisplay the registration page
-      return render_to_response('userprofile.html', {'user': user, 'saved': 'False'}, context_instance=RequestContext(request))
+      return render_to_response('userprofile.html', {'user': user, 'saved': 'False', 'settings': user.settings, 'skin_list': Skin.objects.all() }, context_instance=RequestContext(request))
 
     # update the user to the DB
     user = CoreUser.objects.get(sid=sid)
@@ -759,6 +927,9 @@ def update_user(request):
     user.last_name = last_name
     user.email = email
     user.phone_number = phone_number
+    user.settings.wants_emails = wants_emails
+    user.settings.skin = skin
+    user.settings.save()
     user.save()
 
     # return an HttpResponseRedirect so that the data can't be POST'd twice if the user hits the back button
@@ -778,17 +949,16 @@ def update_password(request):
     new_password = request.POST['password'].strip()
 
     if (old_password == new_password):
-      return render_to_response('password.html', {'error_message': 'Your new password must be different from your current password. Please try again.'},
-          context_instance=RequestContext(request))
-
+      return render_to_response('password.html', {'error_message': 'Your new password must be different from your current password. Please try again.'}, context_instance=RequestContext(request))
+    if check_password_rules(new_password) is False:
+      return render_to_response('password.html', {'error_message': 'Your new password must be 8 or more characters and contain at least 1 number or at least 1 special character.'}, context_instance=RequestContext(request))
+      
     if user.check_password(old_password):
       user.set_password(new_password)
       user.save()
-
       return HttpResponseRedirect('/update-password/?saved=True')
     else:
-      return render_to_response('password.html', {'error_message': 'Invalid password. Please try again.'},
-           context_instance=RequestContext(request))
+      return render_to_response('password.html', {'error_message': 'Invalid password. Please try again.'}, context_instance=RequestContext(request))
        
 
 @require_http_methods(['GET', 'POST'])
@@ -814,7 +984,7 @@ def user_profile(request):
     # Still, better safe than sorry.
     return render_to_response('login.html', context_instance=RequestContext(request))
 
-  return render_to_response('userprofile.html', {'user': user, 'saved': saved_status}, context_instance=RequestContext(request))
+  return render_to_response('userprofile.html', {'user': user, 'saved': saved_status, 'settings': user.settings, 'skin_list': Skin.objects.all()}, context_instance=RequestContext(request))
 
 
 # XXX where is this used.?
@@ -859,7 +1029,13 @@ def kmlproxy(request):
       try:
         zipFile = zipfile.ZipFile(kmzBuffer, 'r')
         # KMZ spec says zip will contain exactly one file, named doc.kml
-        kmlTxt = zipFile.read('doc.kml')
+        for name in zipFile.namelist():
+          if name.find('.kml') != -1:
+            print 'found one: %s ' % name
+            kmlTxt = zipFile.read(name)
+            break
+          else:
+            print 'no kml found in the kmz file.'
       finally:
         kmzBuffer.close()
 
@@ -907,3 +1083,68 @@ def kmlproxy(request):
         kmlDom.unlink()
   finally:
       if conn: conn.close()
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def kml2json(request):
+    if request.method == 'GET':
+      return render_to_response('kml2json.html', context_instance=RequestContext(request))
+    
+    # else request.method == 'POST', perform the conversion
+    kmlDom = None
+    asAttach = False
+    if request.FILES != None and 'file' in request.FILES:
+      print "Processing file"
+      asAttach = True
+      kmlFile = request.FILES['file']
+      try:
+        kmlDom = parse(kmlFile)
+      except ExpatError, e:
+        print 'ERROR: failed to parse KML - %s' % e
+        return HttpResponseBadRequest('Invalid KML. Could not parse XML - %s' % e)
+    else:
+      kmlTxt = request.raw_post_data
+      try:
+        kmlDom = parseString(kmlTxt)
+      except ExpatError, e:
+        print 'ERROR: failed to parse KML - %s' % e
+        return HttpResponseBadRequest('Invalid KML. Could not parse XML - %s' % e)
+    
+    # Parse KML into a dictionary and then serialize the dictionary to JSON
+    try:
+      kmlParser = KmlParser()
+      dict = None
+      try:
+          dict = kmlParser.kml_to_dict(node = kmlDom.documentElement, baseUrl = '/')
+      except ValueError, e:
+          print 'ERROR: failed to serialize KML document to dictionary - %s' % e
+          return HttpResponseBadRequest('Invalid KML. KML could not be converted to JSON - %s' % e)
+      jsonTxt = None
+      try:
+          jsonTxt = json.dumps(dict, indent = 2)
+      except ValueError, e:
+          print 'ERROR: Failed to serialize dictionary to JSON - %s' % e
+          return HttpResponseServerError('Couldn\'t serialize KML to JSON - %s' % e)
+      response = HttpResponse(content = jsonTxt, content_type = 'application/json')
+      if asAttach:
+        response['Content-Disposition'] = 'attachment; filename=json.txt'
+      return response
+    finally:
+        kmlDom.unlink()
+
+@require_http_methods('GET')
+@login_required
+def get_current_user(request):
+  currentUser = CoreUser.objects.select_related().get(username=request.user.username)
+  return HttpResponse(content_type=utils.JSON_CONTENT_TYPE, 
+                          content=utils.get_coreuser_json(currentUser))
+
+
+def check_password_rules(pword):
+  if len(pword) < 8:
+    return False 
+  rule2 = re.compile(r"\d+")
+  rule3 = re.compile(r"(`+)|(~+)|(!+)|(@+)|(#+)|(\$+)|(%+)|(\^+)|(&+)|(\*+)|(\(+)|(\)+)|(-+)|(_+)|(\++)|(=+)|({+)|(\[+)|(}+)|(\]+)|(\\+)|(\|+)|(\:+)|(\;+)|('+)|(\"+)|(\<+)|(\>+)|(,+)|(\.+)|(\?+)|(\/+)")
+  if rule2.search(pword) is None and rule3.search(pword) is None:
+      return False
+  return True

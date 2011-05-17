@@ -4,6 +4,7 @@
  * Dependencies:
  *   - jQuery
  *   - core.util.URI
+ *   - core.util.Iterate
  */
 
 if (!window.core)
@@ -15,7 +16,10 @@ if (!window.core.gearth)
 	var URI = core.util.URI;
 	if (!URI)
 		throw "Dependency not found: core.util.URI";
-	
+	var Iterate = core.util.Iterate;
+	if (!Iterate)
+		throw "Dependency not found: core.util.Iterate";
+
 	/**
 	 * Constructor: KmlObjectCreator
 	 * 
@@ -75,7 +79,8 @@ if (!window.core.gearth)
 					altitudeMode = this.ge.ALTITUDE_ABSOLUTE;
 					break;
 				default:
-					throw "Unknown altitude mode: " + str;
+					console.log("WARNING: Unknown altitude mode - " + str);
+					// throw "Unknown altitude mode: " + str;
 				}
 			}
 			return altitudeMode;
@@ -205,7 +210,7 @@ if (!window.core.gearth)
 			var kmlLookAt = null;
 			if (kmlJson) {
 				var id = kmlJson.id ? kmlJson.id : "";
-				kmlLookAt = this.ge.createKmlLookAt(id);
+				kmlLookAt = this.ge.createLookAt(id);
 				if (kmlJson.latitude) {
 					var lat = parseFloat(kmlJson.latitude);
 					if (!isNaN(lat))
@@ -236,7 +241,7 @@ if (!window.core.gearth)
 					if (!isNaN(alt))
 						kmlLookAt.setAltitude(alt);
 				}
-				var altitudeMode = getKmlAltitudeModeEnum(kmlJson.altitudeMode);
+				var altitudeMode = this.getKmlAltitudeModeEnum(kmlJson.altitudeMode);
 				kmlLookAt.setAltitudeMode(altitudeMode);
 				this._appendKmlAbstractView(kmlLookAt, kmlJson);
 			}
@@ -412,6 +417,24 @@ if (!window.core.gearth)
 			return kmlFeature;
 		},
 
+		_appendKmlOverlay: function(kmlOverlay, kmlJson) {
+			if (kmlOverlay) {
+				if ("drawOrder" in kmlJson) {
+					var drawOrder = window.parseInt(kmlJson.drawOrder);
+					kmlOverlay.setDrawOrder(drawOrder);					
+				}
+				if (kmlJson.color) {
+					kmlOverlay.getColor().set(kmlJson.color);
+				}
+				if (kmlJson.icon) {
+					// TODO
+					//kmlOverlay.setIcon(icon);					
+				}
+				this._appendKmlFeature(kmlOverlay, kmlJson);
+			}
+			return kmlOverlay;
+		},
+
 		createKmlPlacemark: function(kmlJson, geoDataId) {
 			var kmlPlacemark = null;
 			if (kmlJson) {
@@ -426,6 +449,35 @@ if (!window.core.gearth)
 				this._appendKmlFeature(kmlPlacemark, kmlJson);
 			}
 			return kmlPlacemark;
+		},
+
+		createKmlScreenOverlay: function(kmlJson, geoDataId) {
+			var kmlScreenOverlay = null;
+			if (kmlJson) {
+				var id = kmlJson.id ? kmlJson.id + "" : "";
+				var kmlScreenOverlay = this.ge.createScreenOverlay(id);
+				if ("rotation" in kmlJson) {
+					var rotation = window.parseFloat(kmlJson.rotation);
+					kmlScreenOverlay.setRotation(rotation);
+				}
+				
+				// TODO
+				if (kmlJson.screenXY) {
+					
+				}
+				if (kmlJson.overlayXY) {
+					
+				}
+				if (kmlJson.rotationXY) {
+					
+				}
+				if (kmlJson.size) {
+					
+				}
+
+				this._appendKmlOverlay(kmlScreenOverlay, kmlJson);
+			}
+			return kmlScreenOverlay;
 		},
 
 		createKmlDocument: function(kmlJson, geoDataId) {
@@ -451,34 +503,43 @@ if (!window.core.gearth)
 		},
 		
 		_createChildren: function(geodata, kmlContainer, callback) {
-			var childGeoDatas = [];
-			geodata.iterateChildren($.proxy(function(childGeoData) {
-				childGeoDatas.push(childGeoData);
-			}, this));
-			while (childGeoDatas.length > 0) {
-				var totalToAppend = childGeoDatas.length;
-				var appended = 0;
-				var childGeoData = childGeoDatas.shift();
-				this.createFromGeoData(childGeoData, $.proxy(function(childKmlObject) {
-					var appendChild = $.proxy(function() {
-						kmlContainer.getFeatures().appendChild(childKmlObject);
-						appended++;
-						if (totalToAppend == appended) {
-							callback.call(callback, kmlContainer);
-						}
-					});
+			var styleUrl, localStyleUrl, absoluteUrl, timer;
+			var cb = callback;
+			var waiting = 0;
+			
+			// TODO: Work children off of a queue, instead of in "parallel"
+			/*
+			var queue = [];
+			var queueTimer = null;
+			var executeQueue = function() {
+				
+			};
+			var queueChild = function(child) {
+				
+			};
+			*/
+
+			var appendChild = function(childKmlObject) {
+				waiting--;
+				if (childKmlObject) {
+					kmlContainer.getFeatures().appendChild(childKmlObject);
+				}
+			};
+
+			var childKmlObjectCreated = function(childKmlObject) {
+				if (childKmlObject) {
 					// check the styleUrl
-					var styleUrl = childKmlObject.getStyleUrl();
+					styleUrl = childKmlObject.getStyleUrl();
 					if (styleUrl && styleUrl.charAt(0) !== '#') {
 						// styleUrl refers to an external document, which isn't supported 
 						// in the GE API except for within NetworkLinks
 						// Fix the styleUrl so it refers to a style in this document
-						var localStyleUrl = "#" + styleUrl.replace(/\W/g, "_");
+						localStyleUrl = "#" + styleUrl.replace(/\W/g, "_");
 						if (!kmlContainer.getElementByUrl(localStyleUrl)) {
 							console.log("Loading remote document with style...");
 							// load the style document
 							childGeoData.getEnclosingKmlUrl($.proxy(function(url) {
-								var absoluteUrl = new URI(url).resolve(new URI(childKmlObject.styleUrl)).toString();
+								absoluteUrl = new URI(url).resolve(new URI(childKmlObject.styleUrl)).toString();
 								this.kmlJsonProxyService.getKmlJson(absoluteUrl, $.proxy(function(kmlJson) {
 									this.createFromKmlJson(kmlJson, $.proxy(function(kmlObject) {
 										if (kmlObject && kmlObject.getElementsByType) {
@@ -508,7 +569,7 @@ if (!window.core.gearth)
 											}
 										}
 										childKmlObject.setStyleUrl(localStyleUrl);
-										appendChild();
+										appendChild(childKmlObject);
 									}, this));
 								}, this));
 							}, this));
@@ -516,18 +577,128 @@ if (!window.core.gearth)
 						else {
 							// style has already been loaded
 							console.log("style already loaded: " + styleUrl);
-							appendChild();
+							appendChild(childKmlObject);
 						}
 					}
 					else {
 						// this is a local style URL (ID)
+						appendChild(childKmlObject);
+					}
+				}
+				else {
+					// kmlObject wasn't created
+					appendChild(childKmlObject);
+				}
+			};
+			var handleGeoDataChild = $.proxy(function(childGeoData) {
+				waiting++;
+				this.createFromGeoData(childGeoData, childKmlObjectCreated);
+			}, this);
+			var checkFinished = function() {
+				if (waiting === 0) {
+					cb.call(cb, kmlContainer);
+					window.clearInterval(timer);
+				}
+			};
+			var waitForKmlObjects = $.proxy(function() {
+				// All children have been iterated. Wait for all to be 
+				// converted to KmlObjects.
+				if (timer) {
+					throw "TIMER SHOULD BE UNDEFINED";
+				}
+				timer = window.setInterval(checkFinished, 200);
+			}, this);
+			geodata.iterateChildren(handleGeoDataChild, waitForKmlObjects);
+			/*
+	
+			var cb = callback;
+			var totalToAppend = childGeoDatas.length;
+			var appended = 0;
+			var handleGeoData = $.proxy(function(childGeoData, index) {
+				this.createFromGeoData(childGeoData, function(childKmlObject) {
+					var appendChild = $.proxy(function() {
+						if (childKmlObject) {
+							kmlContainer.getFeatures().appendChild(childKmlObject);
+						}
+						appended++;
+						if (totalToAppend == appended) {
+							console.log("finished");
+							cb.call(cb, kmlContainer);
+						}
+					});
+					if (childKmlObject) {
+						// check the styleUrl
+						var styleUrl = childKmlObject.getStyleUrl();
+						if (styleUrl && styleUrl.charAt(0) !== '#') {
+							// styleUrl refers to an external document, which isn't supported 
+							// in the GE API except for within NetworkLinks
+							// Fix the styleUrl so it refers to a style in this document
+							var localStyleUrl = "#" + styleUrl.replace(/\W/g, "_");
+							if (!kmlContainer.getElementByUrl(localStyleUrl)) {
+								console.log("Loading remote document with style...");
+								// load the style document
+								childGeoData.getEnclosingKmlUrl($.proxy(function(url) {
+									var absoluteUrl = new URI(url).resolve(new URI(childKmlObject.styleUrl)).toString();
+									this.kmlJsonProxyService.getKmlJson(absoluteUrl, $.proxy(function(kmlJson) {
+										this.createFromKmlJson(kmlJson, $.proxy(function(kmlObject) {
+											if (kmlObject && kmlObject.getElementsByType) {
+												var styleObjects = kmlObject.getElementsByType("KmlStyle");
+												for (var i = 0; i < styleObjects.getLength(); i++) {
+													var originalStyle = styleObjects.item(i);
+													var styleWithId = this.ge.createStyle(localStyleUrl);
+													var substyle = originalStyle.getIconStyle();
+													if (substyle)
+														styleWithId.setIconStyle(substyle);
+													substyle = originalStyle.getLabelStyle();
+													if (substyle)
+														styleWithId.setLabelStyle(substyle);
+													substyle = originalStyle.getLineStyle();
+													if (substyle)
+														styleWithId.setLineStyle(substyle);
+													substyle = originalStyle.getListStyle();
+													if (substyle)
+														styleWithId.setListStyle(substyle);
+													substyle = originalStyle.getPolyStyle();
+													if (substyle)
+														styleWithId.setPolyStyle(substyle);
+													substyle = originalStyle.getBalloonStyle();
+													if (substyle)
+														styleWithId.setBalloonStyle(substyle);
+													kmlContainer.getFeatures().appendChild(styleWithId);
+												}
+											}
+											childKmlObject.setStyleUrl(localStyleUrl);
+											appendChild();
+										}, this));
+									}, this));
+								}, this));
+							}
+							else {
+								// style has already been loaded
+								console.log("style already loaded: " + styleUrl);
+								appendChild();
+							}
+						}
+						else {
+							// this is a local style URL (ID)
+							appendChild();
+						}
+					}
+					else {
+						// kmlObject wasn't created
 						appendChild();
 					}
-				}));
-			}
+				});
+			}, this);
+			
+			Iterate.iterate(childGeoDatas, {
+				onItem: handleGeoData
+			});
+			*/
 		},
 		
 		_createChildrenFromKmlJson: function(kmlContainer, callback) {
+			var cb = callback;
 			if (kmlContainer && kmlContainer.children) {
 				var totalToAppend = kmlContainer.children.length;
 				var appended = 0;
@@ -537,7 +708,7 @@ if (!window.core.gearth)
 						kmlContainer.getFeatures().appendChild(childKmlObject);
 						appended++;
 						if (appended === totalToAppend) {
-							callback.call(callback, kmlContainer);
+							cb.call(cb, kmlContainer);
 						}
 					}, this));
 				}
@@ -545,17 +716,19 @@ if (!window.core.gearth)
 		},
 
 		createFromKmlJson: function(kmlJson, callback) {
+			console.log("createFromKmlJson()");
 			var kmlObject = null;
+			var cb = callback;
 			if (kmlJson && kmlJson.type) {
 				switch (kmlJson.type) {
 				case "Placemark":
 					kmlObject = this.createKmlPlacemark(kmlJson);
-					callback.call(callback, kmlObject);
+					cb.call(cb, kmlObject);
 					break;
 				case "Document":
 					kmlObject = this.createKmlDocument(kmlJson);
 					this._createChildrenFromKmlJson(kmlObject, function(kmlDocument) {
-						callback.call(callback, kmlDocument);
+						cb.call(cb, kmlDocument);
 					});
 					break;
 				case "NetworkLink":
@@ -564,22 +737,22 @@ if (!window.core.gearth)
 					// object instead of a NetworkLink object
 					kmlObject = this.createKmlFolder(kmlJson);
 					this._createChildrenFromKmlJson(kmlObject, function(kmlFolder) {
-						callback.call(callback, kmlFolder);
+						cb.call(cb, kmlFolder);
 					});
 					break;
 				case "Folder":
 					kmlObject = this.createKmlFolder(kmlJson);
 					this._createChildrenFromKmlJson(kmlObject, function(kmlFolder) {
-						callback.call(callback, kmlFolder);
+						cb.call(cb, kmlFolder);
 					});
 					break;
 				default:
-					callback.call(callback, null);
+					cb.call(cb, null);
 					console.log("Unhandled KML object: " + kmlJson.type);
 				}
 			}
 		},
-		
+	
 		/**
 		 * Function: createFromGeoData
 		 * 
@@ -591,18 +764,19 @@ if (!window.core.gearth)
 		 */
 		createFromGeoData: function(geodata, callback) {
 			var geoDataId = geodata.id;
+			var onComplete = callback;
 			geodata.getKmlJson($.proxy(function(kmlJson) {
 				var kmlObject = null;
 				if (kmlJson && kmlJson.type) {
 					switch (kmlJson.type) {
 					case "Placemark":
 						kmlObject = this.createKmlPlacemark(kmlJson, geoDataId);
-						callback.call(callback, kmlObject);
+						onComplete.call(onComplete, kmlObject);
 						break;
 					case "Document":
 						kmlObject = this.createKmlDocument(kmlJson, geoDataId);
 						this._createChildren(geodata, kmlObject, function(kmlDocument) {
-							callback.call(callback, kmlDocument);
+							onComplete.call(onComplete, kmlDocument);
 						});
 						break;
 					case "NetworkLink":
@@ -611,18 +785,22 @@ if (!window.core.gearth)
 						// object instead of a NetworkLink object
 						kmlObject = this.createKmlFolder(kmlJson, geoDataId);
 						this._createChildren(geodata, kmlObject, function(kmlFolder) {
-							callback.call(callback, kmlFolder);
+							onComplete.call(onComplete, kmlFolder);
 						});
 						break;
 					case "Folder":
 						kmlObject = this.createKmlFolder(kmlJson, geoDataId);
 						this._createChildren(geodata, kmlObject, function(kmlFolder) {
-							callback.call(callback, kmlFolder);
+							onComplete.call(onComplete, kmlFolder);
 						});
 						break;
+					case "ScreenOverlay":
+						kmlObject = this.createKmlScreenOverlay(kmlJson, geoDataId);
+						onComplete.call(onComplete, kmlObject);
+						break;
 					default:
-						callback.call(callback, null);
 						console.log("Unhandled KML object: " + kmlJson.type);
+						onComplete.call(onComplete, null);
 					}
 				}
 			}, this));

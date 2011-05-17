@@ -1,0 +1,34 @@
+<html>
+  <body>
+    <form action="/link/" method="post">
+     {% csrf_token %}
+    <table>
+      <tr>
+        <td>Link Name:</td><td><input name="name" id="name"/></td>
+      </tr>
+      <tr>
+        <td>Description: </td><td><input name="desc" id="desc"/></td>
+      </tr>
+      <tr>
+        <td>Url: </td><td><input name="url" id="url"/></td>
+      </tr>
+      <tr>
+        <td>Tags: </td><td><input name="tags" id="tags"/></td>
+      </tr>
+      <tr>
+        <td>Firstname: </td><td><input name="firstname" id="firstname"/></td>
+      </tr>
+      <tr>
+        <td>Lastname: </td><td><input name="lastname" id="lastname"/></td>
+      </tr>
+      <tr>
+        <td>Phone Number: </td><td><input name="phone" id="phone"/></td>
+      </tr>
+      <tr>
+        <td>Email: </td><td><input name="email" id="email"/></td>
+      </tr>
+    </table>
+   <input type="submit" value="Submit the Form"></input>
+  </form>
+  </body>
+</html>

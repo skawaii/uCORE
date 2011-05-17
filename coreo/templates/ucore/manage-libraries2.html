@@ -1,19 +1,10 @@
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head> 
-    <title>uCORE</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-      
+{% extends "base.html" %}
+{% block head %}      
     <!-- CSS -->
    <link rel="stylesheet" href="{{ MEDIA_URL }}css/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
-
-    <!-- Javascript -->
+    <!-- Java script -->
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/geo/geo-0.2.pack.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
@@ -67,15 +58,9 @@
         $.post("../delete-libraries/", { library_id: selected },
             function() { window.location.reload(); } );
       }
-   </script>
-</head>
-  <body>
-    <div id='geheader'>
-      <img id="core-logo"  height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
-      <div id="user-info">
-        <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/map/">Back to Visualizer</a> | <a href="/manage-libraries/">Manage Your Libraries</a> | <a href="/future-feature/">Help</a> | <a href="/logout/">Sign Out</a>
-      </div>
-    </div>
+    </script>
+    {% endblock %}
+    {% block morebody %}
     <br/>
     <br/>
     <div style="text-align:center">
@@ -108,5 +93,5 @@
           <br/>
           <a href="../create-library/"><button>Create New Library (from scratch)</button></a>
           <br/>
-     </div>
-</html>
+        </div>
+        {% endblock %}

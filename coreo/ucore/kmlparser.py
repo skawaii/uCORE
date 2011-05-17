@@ -4,7 +4,7 @@ class KmlParser:
     GEX_NAMESPACE_URI = 'http://www.google.com/kml/ext/2.2'
 
     KML_NAMESPACES = ['http://www.opengis.net/kml/2.2', 'http://earth.google.com/kml/2.1', 
-                      'http://earth.google.com/kml/2.0']
+                      'http://earth.google.com/kml/2.0', 'http://earth.google.com/kml/2.2']
     
     KML_CONTAINER_NAMES = ['Folder', 'Document']
 

@@ -5,7 +5,65 @@ from django.db.models import Q
 
 from coreo.ucore.models import *
 
+JSON_CONTENT_TYPE = 'application/json'
 
+def http_accepts(request, content_type):
+  accepts = []
+  if ('HTTP_ACCEPT' in request.META):
+    accepts = [a.split(';')[0] for a in request.META['HTTP_ACCEPT'].split(',')]
+  return content_type in accepts;
+
+def accepts_json(request):
+  return http_accepts(request, JSON_CONTENT_TYPE)
+
+def get_coreuser_json(coreuser):
+  from django.core import serializers
+  if not coreuser:
+    return 'null'
+  if isinstance(coreuser, list):
+    coreuser = coreuser[0]
+  coreuser = [coreuser];
+  json = serializers.serialize('json', coreuser,
+                               extras=('username','first_name','last_name','email'),
+                               relations={'settings':{'relations':('skin',)}, 
+                                          'libraries':{
+                                            'relations': {
+                                              'creator': None,
+                                              'tags': None,
+                                              'links': {
+                                                          'relations': ('poc', 'tags', )
+                                                        }
+                                             }
+                                          }})
+  return unwrap_json_array(json)
+  
+# Serializes a single LinkLibrary instance
+def get_linklibrary_json(library):
+  from django.core import serializers
+  if not library:
+    return 'null'
+  if isinstance(library, list):
+    library = library[0]
+  library = [library];
+  json = serializers.serialize('json', library,
+                               relations={'creator':None,
+                                          'tags':None, 
+                                          'links':{'relations':('poc','tags',)}})
+  return unwrap_json_array(json)
+
+def get_searchresults_json(results):
+  from django.core import serializers
+  return serializers.serialize('json', results,
+                               relations={'creator':None,
+                                          'tags':None, 
+                                          'links':{'relations':('poc','tags',)}})
+
+def unwrap_json_array(json):
+  json = json.strip()
+  if json.startswith('['):
+    json = json[1:-1]
+  return json
+  
 def insert_links_from_csv(csv_file):
   link_file = csv.reader(csv_file)
 
@@ -112,6 +170,29 @@ def search_ucore(models, terms):
 
   return results
 
+def get_keywords(term):
+  from django.db import connection, transaction
+  cursor = connection.cursor()
+  query = """
+  select distinct ktype, kval, pri
+  from (
+    select 1 as pri, 'Tag' as ktype, ucore_tag.name as kval from ucore_tag where ucore_tag.type = 'P' and lower(ucore_tag.name) like lower(%s)
+    union
+    select 3 as pri, 'Link Name' as ktype, ucore_link.name as kval from ucore_link where lower(ucore_link.name) like lower(%s)
+    union
+    select 4 as pri, 'Link URL' as ktype, ucore_link.url as kval from ucore_link where lower(ucore_link.url) like lower(%s)
+    union
+    select 6 as pri, 'Link Description' as ktype, ucore_link.desc as kval from ucore_link where lower(ucore_link.desc) like lower(%s)
+    union
+    select 2 as pri, 'Library Name' as ktype, ucore_linklibrary.name as kval from ucore_linklibrary where lower(ucore_linklibrary.name) like lower(%s)
+    union
+    select 5 as pri, 'Library Description' as ktype, ucore_linklibrary.desc as kval from ucore_linklibrary where lower(ucore_linklibrary.desc) like lower(%s)
+  )
+  order by pri
+  """
+
+  cursor.execute(query, ['%' + term + '%' for i in range(6)])
+  return [dict(zip(('type', 'value'), row)) for row in cursor.fetchmany(size=20)]
 
 def django_to_dict(instance):
   """

@@ -12,6 +12,8 @@
  * Dependencies:
  *   - jQuery
  *   - core.util.CallbackUtils
+ *   - core.geo.LinkGeoData
+ *   - core.geo.LinkLibraryGeoData
  */
 
 if (!window.core)
@@ -21,7 +23,9 @@ if (!window.core.services)
 
 (function($, ns) {
 	var CallbackUtils = core.util.CallbackUtils;
-
+	var LinkGeoData = core.geo.LinkGeoData;
+	var LinkLibraryGeoData = core.geo.LinkLibraryGeoData;
+	
 	/**
 	 * Constructor: SearchStrategy
 	 * 
@@ -32,12 +36,20 @@ if (!window.core.services)
 	 *   searchResultFilter - <SearchResultFilter>. Required.
 	 *   geoDataRetriever - <GeoDataRetriever>. Required. 
 	 */
-	var SearchStrategy = function(searchService, searchResultFilter, geoDataRetriever) {
+	var SearchStrategy = function(searchService, searchResultFilter, geoDataRetriever, linkService) {
 		this.searchService = searchService;
 		this.searchResultFilter = searchResultFilter;
 		this.geoDataRetriever = geoDataRetriever;
+		this.linkService = linkService;
 	};
 	SearchStrategy.prototype = {
+		/**
+		 * Property: linkService
+		 * 
+		 * <LinkService>.
+		 */
+		linkService: null,
+		
 		/**
 		 * Property: searchService
 		 * 
@@ -85,15 +97,17 @@ if (!window.core.services)
 		 */
 		search: function(text, callback) {
 			if (text.match('^http')) {
-				this.geoDataRetriever.fetch(text, {
-					success: function(geodata) {
-						CallbackUtils.invokeCallback(callback, geodata, "result");
+				CallbackUtils.invokeOptionalCallback(callback, "resultBegin", 
+						[text, text, null]);
+				this.geoDataRetriever.fetch(text)
+					.then(function(geodata) {
+						CallbackUtils.invokeCallback(callback, geodata, "resultSuccess");
 						CallbackUtils.invokeOptionalCallback(callback, "complete");
 					},
-					error: function(errorThrown) {
-						CallbackUtils.invokeOptionalCallback(callback, "error", errorThrown);
-					}
-				});
+					function(errorThrown) {
+						CallbackUtils.invokeOptionalCallback(callback, "resultError", 
+								[text, errorThrown]);
+					});
 			}
 			else {
 				// get Links and LinkLibraries matching the search term, 
@@ -103,19 +117,28 @@ if (!window.core.services)
 				var self = this;
 				var geoDataBuilder = {
 					result: function(linkOrLibrary) {
+						var i;
 						var id = linkOrLibrary.pk;
-						CallbackUtils.invokeOptionalCallback(callback, "resultBegin", [id, linkOrLibrary.fields.name]);
-						// build geodata
-						var kmlUrl = linkOrLibrary.fields.url;
-						// need to prevent complete from being called
-						this.geoDataRetriever.fetch(kmlUrl, {
-							success: function(geodata) {
-								CallbackUtils.invokeCallback(callback, [id, geodata], "resultSuccess");
-							},
-							error: function(errorThrown) {
-								CallbackUtils.invokeOptionalCallback(callback, "resultError", [id, errorThrown]);
-							}
-						});
+						var creatorId = linkOrLibrary.fields.creator ? linkOrLibrary.fields.creator.pk : null;
+						CallbackUtils.invokeOptionalCallback(callback, "resultBegin", 
+								[id, linkOrLibrary.fields.name, creatorId]);
+						if (linkOrLibrary.model === "ucore.linklibrary") {
+							var linkLibraryGeoData = new LinkLibraryGeoData(null, 
+									linkOrLibrary, this.linkService, 
+									this.geoDataRetriever);
+							CallbackUtils.invokeCallback(callback, 
+									[id, linkLibraryGeoData], "resultSuccess");
+						}
+						else if (linkOrLibrary.model === "ucore.link") {
+							var linkGeoData = new LinkGeoData(null, 
+									linkOrLibrary, null, this.geoDataRetriever);
+							CallbackUtils.invokeCallback(callback, 
+									[id, linkGeoData], "resultSuccess");
+						}
+						else {
+							CallbackUtils.invokeOptionalCallback(callback, "resultError", 
+									[id, "Unknown result model - " + linkOrLibrary.model]);
+						}
 					},
 					complete: function() {
 						CallbackUtils.invokeOptionalCallback(callback, "complete", []);

@@ -52,7 +52,7 @@ if (!window.core.geo)
 		 *         
 		 */
 		findByKmlFeatureType: function(kmlFeatureType, callback) {},
-		
+
 		/**
 		 * Function: getKmlFeatureType
 		 * 
@@ -95,41 +95,31 @@ if (!window.core.geo)
 		 *  <GeoData>. Parent node.
 		 */
 		getParent: function() {},
-		
+
 		/**
 		 * Function: iterateChildren
 		 * 
 		 * Iterates over the child <GeoData> nodes of this <GeoData> node.
 		 * 
 		 * Parameters:
-		 *   callback - Function. Function invoked for each child <GeoData> 
+		 *   onChild(geodata) - Function. Function invoked for each child <GeoData> 
 		 *         node. A single parameter is passed to the function - a 
 		 *         <GeoData> instance that is the current child node.
+		 *   onComplete() - Function. Function invoked after all children 
+		 *         have been processed.
 		 */
-		iterateChildren: function(callback) {},
-		
-		/**
-		 * Function: getChildById
-		 * 
-		 * Retrieves a child <GeoData> node by its ID.
-		 * 
-		 * Parameters:
-		 *   id - String. ID of the child node.
-		 *   
-		 * Returns:
-		 *   <GeoData>. The child node, or null if it doesn't exist.
-		 */
-		getChildById: function(id) {},
+		iterateChildren: function(onChild, onComplete, onError) {},
 		
 		/**
 		 * Function: getKmlString
 		 * 
 		 * Generates a textual KML representation of this object.
 		 * 
-		 * Returns:
-		 *   String. KML text.
+		 * Parameters:
+		 *   onComplete(kmlString): Function.
+		 *   onError(errorString): function.
 		 */
-		getKmlString: function() {},
+		getKmlString: function(onComplete, onError) {},
 		
 		/**
 		 * Function: getKmlJson
@@ -240,11 +230,11 @@ if (!window.core.geo)
 		 *          object creation. Invoked with one parameter - the 
 		 *          javascript object.
 		 */
-		getKmlJson: function(callback) {},
+		getKmlJson: function(onComplete, onError) {},
 
-		removeAllChildren: function() {},
+		removeAllChildren: function(onComplete, onError) {},
 
-		addChild: function(geodata) {},
+		addChild: function(geodata, onComplete, onError) {},
 		
 		/**
 		 * Function: getEnclosingKmlUrl
