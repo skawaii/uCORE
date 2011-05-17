@@ -39,7 +39,7 @@
             <div id="core_signup_div" class="center_div">
               <div><h1 style="padding-left:120px"> Sign Up </h1></div>
               <br/><br/>
-              <div>{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
+              <div style="color:red;font-weight:bold;font-size:14pt;width:450px;">{% if error_message %}<p><strong>*** {{ error_message }} ***</strong></p>{% endif %}</div>
               <FORM action="/create-user/" method="post" id="frmPhone">
                   <div>{% csrf_token %}</div>
                   <input name="sid" type="hidden"/>
@@ -49,7 +49,7 @@
                             <label>Username</label>
                           </th>
                           <td>
-                            <input name="username" type="text" onblur="check_username()"/></td>
+                            <input name="username" type="text" onblur="check_username()" value="{{ username }}"/></td>
                           <td>
                             <div id="userOutput" style="padding-left:10px"></div></td>
                         </tr>
@@ -57,14 +57,14 @@
                           <th>
                             <label>First Name</label></th>
                           <td>
-                            <input name="first_name" type="text"/></td>
+                            <input name="first_name" type="text" value="{{first_name }}"/></td>
                           <td></td>
                         </tr>
                         <tr>
                           <th>
                             <label>Last Name</label></th>
                           <td>
-                            <input name="last_name" type="text"/>
+                            <input name="last_name" type="text" value="{{ last_name }}"/>
                           </td>
                           <td></td>
                         </tr>
@@ -72,7 +72,7 @@
                           <th>
                             <label>Phone</label></th>
                           <td>
-                            <input name="phone_number" type="text"/>
+                            <input name="phone_number" type="text" value="{{phone_number }}"/>
                           </td>
                           <td></td>
                         </tr>
@@ -80,7 +80,7 @@
                           <th>  
                             <label>Email</label></th>
                           <td>
-                            <input name="email" type="text"/></td>
+                            <input name="email" type="text" value="{{ email }}"/></td>
                           <td>
                           </td>
                         </tr>

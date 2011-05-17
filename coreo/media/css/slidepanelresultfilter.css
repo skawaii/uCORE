@@ -1,0 +1,39 @@
+.ui-slidepanelresultfilter .search-results-loading {
+	display: inline-block;
+	margin-left: 8px;
+	background-image:url("../javascript/jstree/themes/apple/throbber.gif") !important;
+	background-repeat:no-repeat !important;
+	background-position: 0 0 !important;
+	height: 16px !important;
+	width: 16px !important;
+	vertical-align: middle;
+	margin-top: -4px;
+}
+
+.ui-slidepanelresultfilter > p {
+	margin-top: 0.1em;
+	margin-bottom: 0.1em;
+	font-size: 0.9em;
+}
+
+.ui-slidepanelresultfilter > .search-results > .result {
+	margin-top: 1em;
+	padding-left: 0.1em;
+	padding-right: 0.1em;
+}
+
+.ui-slidepanelresultfilter > .search-results > .result:hover {
+	cursor: pointer;
+}
+
+.ui-slidepanelresultfilter > .search-results > .result > h4 {
+	margin-top: 0.1em;
+	margin-bottom: 0.1em;
+}
+
+.ui-slidepanelresultfilter > .search-results > .result > .footer {
+	font-weight: normal;
+	font-style: italic;
+	font-size: 0.9em;
+	color: #555;
+}

@@ -1,16 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>uCORE</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-      
-    <!-- CSS -->
-   <link rel="stylesheet" href="{{ MEDIA_URL }}css/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ MEDIA_URL }}css/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}javascript/kmltree-0.9.3/kmltree.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
 
     <!-- Javascript -->
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/geo/geo-0.2.pack.js"></script>
@@ -34,6 +27,7 @@
     <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.grid.js"></script>
     <script src="{{ MEDIA_URL }}javascript/slickgrid/slick.dataview.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.js"></script>
+   
     <style type="text/css">
        tr {
          text-align:left;
@@ -89,25 +83,27 @@
 
          }
          $.post("../create-library/", { links: selected.toString(), name: name, desc: desc, tags: selectedTags.toString() }, function(data) {
-             if (data == 'Success')
-             {
                document.getElementById('result').innerHTML = "Your library was saved.";
-               }
-               else
-               {
-                 alert('result was : ' + data);
-               } });
+               
+         });
+      }
+ 
+      function addTag()
+      {
+       var newTag = document.getElementById('newTag').value;
+       var multipleTags = document.getElementById('tags');
+       if (newTag != '')
+       {
+        //  multipleTags.options[multipleTags.length] = new Option(multipleTags.options[0].value, multipleTags.options[0].value);
+        //  multipleTags.options[0] = new Option(newTag, newTag);
+         $("#tags").prepend($("<option>", { selected: "true", name: newTag, text: newTag })); 
+       $('#newTag').val('');
+       }
       }
 
-     </script> 
-  </head>
-  <body>
-    <div id='geheader'>
-      <img id="core-logo"  height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
-      <div id="user-info">
-        <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/map/">Back to Visualizer</a> | <a href="/future-feature/">Help</a> | <a href="/logout/">Sign Out</a>
-      </div>
-    </div>
+    </script> 
+    {% endblock %}
+    {% block morebody %}
     <br/>
     <br/>
     <div style="text-align:center">
@@ -128,7 +124,7 @@
             <option value="{{ t.name }}">{{ t.name }}</option>
             {% endfor %}
         </select></tr>
-        <tr><td>Create A New Tag Here: </td><td><input id="newTag" name="newTag" style="width:80px"/></td>
+        <tr><td>Create A New Tag Here: </td><td><input id="newTag" name="newTag" style="width:80px"/><button onclick="addTag()">Add Tag</button></td>
       </tr>
       <tr><td>&nbsp;</td>
         <td><h3 style="color:black;"><div id="result"></div></h3></td>
@@ -136,6 +132,5 @@
      </table>
      <!-- <input type="submit" value="Submit" onclick="create_library(); return false;"/> -->
      <button onclick="create_library(); return false;">Submit</button><button onclick="window.location.href='../manage-libraries/'">Back to Manage Libraries</button>
-</div>
-  </body>
-</html>
+   </div>
+   {% endblock %}

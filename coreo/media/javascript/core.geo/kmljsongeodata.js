@@ -8,6 +8,7 @@
  *   - core.geo.KmlFeatureType
  *   - core.geo.GeoDataStore
  *   - core.util.URI
+ *   - core.util.Iterate
  */
 
 if (!window.core)
@@ -31,6 +32,9 @@ if (!window.core.geo)
 	var URI = core.util.URI;
 	if (!URI)
 		throw "Dependency not found: core.util.URI";
+	var Iterate = core.util.Iterate;
+	if (!Iterate)
+		throw "Dependency not found: core.util.Iterate";
 
 	var getKmlFeatureTypeFromJson = function(kmlJsonType) {
 		if (kmlJsonType) {
@@ -193,7 +197,7 @@ if (!window.core.geo)
 		getParent: function() {
 			return this.parentGeoData;
 		},
-		
+
 		/**
 		 * Function: iterateChildren
 		 * 
@@ -204,17 +208,30 @@ if (!window.core.geo)
 		 *         node. A single parameter is passed to the function - a 
 		 *         <GeoData> instance that is the current child node.
 		 */
-		iterateChildren: function(callback) {
+		iterateChildren: function(onChild, onComplete) {
 			if (this.kmlJsonObj && "children" in this.kmlJsonObj) {
-				for (var i = 0; i < this.kmlJsonObj.children.length; i++) {
-					var child = this.kmlJsonObj.children[i];
+				var onChildCb = onChild;
+				var childHandler = $.proxy(function(child, index) {
 					var kmlJsonChild = KmlJsonGeoData.fromKmlJson(child, this.kmlRoot, this);
 					GeoDataStore.persist(kmlJsonChild);
-					if (CallbackUtils.invokeCallback(callback, kmlJsonChild) === false) {
+					if (onChildCb.call(onChildCb, kmlJsonChild) === false) {
 						// stop iterating
 						return false;
 					}
-				}
+				}, this);
+				var onCompleteCb = onComplete
+				Iterate.iterate(this.kmlJsonObj.children, {
+					onItem: childHandler,
+					"onComplete": function() {
+						if (onCompleteCb && typeof onCompleteCb === "function") {
+							onCompleteCb.call(onCompleteCb);
+						}
+					} 
+				});
+			}
+			else {
+				if (onComplete)
+					onComplete.call(onComplete);
 			}
 		},
 		

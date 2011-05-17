@@ -1,0 +1,22 @@
+/*
+.geodatatree-hoveractions {
+	display: none;
+	margin-left: 1em;
+}
+*/
+
+.jstree-hovered .jstree-hoverbuttons {
+	display: block;
+	clear: none;
+	float: right;
+}
+
+.jstree-hoverbuttons {
+	display: none;
+	float: right;
+	z-index: 1000;
+}
+
+.jstree .jstree-hoverbuttons > a {
+	margin-right: .4em;
+}

@@ -1,20 +1,7 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>uCORE - Rate a Link</title>
-    </head>
+{% extends "base.html" %}
 
-    <!-- CSS -->
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
-    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
-
-    <body>
-        <div id="geheader">
-            <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" /></a>
-            <div id="user-info"><a href="/map/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="/future-feature/">Help</a> | <a href="/future-feature/">About</a> | <a href="/logout/">Sign Out</a></div>
-        </div>
-        <div id="userprofile_div">
+{% block morebody %}
+<div id="userprofile_div">
             {% if link %}
             <form action="/rate/link/{{ link.id }}/" method=post>
             {% else %}{% if link_library %}
@@ -42,6 +29,5 @@
                     </li>
                 </ol>
             </form>
-        </div> <!-- End user_profile_div -->
-    </body>
-</html>
+          </div> <!-- End user_profile_div -->
+     {% endblock %}

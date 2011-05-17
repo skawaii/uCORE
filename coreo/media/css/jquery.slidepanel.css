@@ -1,0 +1,29 @@
+.ui-slidepanel {
+	float:left;
+}
+
+.ui-slidepanel > .ui-widget-header {
+	padding: 0.2em;
+	width: 100%;
+	height: 1.3em;
+}
+
+.ui-slidepanel > .ui-widget-header > .title-lens {
+	float: left;
+}
+
+.ui-slidepanel > .ui-widget-header .controls {
+	display: block;
+	overflow: hidden;
+	float: right;
+	width: 4em;
+}
+
+.ui-slidepanel > .ui-widget-header .controls a {
+	float: left;
+	margin-right: 0.2em;
+}
+
+.ui-slidepanel > .ui-widget-content {
+	padding: 0.7em;
+}
