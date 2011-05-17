@@ -222,7 +222,7 @@ class LoginTest(TestCase):
 
 
 class LogoutTest(TestCase):
-  def setUp(self): 
+  def setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
     self.user.set_password('2password')
@@ -237,7 +237,7 @@ class LogoutTest(TestCase):
 
 
 class TrophyTest(TestCase):
-  def setUp(self): 
+  def   setUp(self):
     self.user = CoreUser(sid='anything', username='testuser', first_name='Joe', last_name='Anybody', email='prcoleman2@gmail.com',
         phone_number='9221112222')
     self.user.set_password('2password')
@@ -381,7 +381,7 @@ class ProfileTest(TestCase):
     response = self.client.get('/user-profile/')
     self.assertEquals(response.status_code, 200)
 
-    response = self.client.post('/update-user/', { 'sid' : 'anything', 'first_name' : 'Bill', 'last_name' : 'Somebody', 'phone_number': '9998887777', 'email': 'pcol@anywhere.com', 'skin': 'Default', 'wants_emails': 'True'})
+    response = self.client.post('/update-user/', { 'sid' : 'anything', 'first_name' : 'Bill', 'last_name' : 'Somebody', 'phone_number': '9998887777', 'email': 'pcol@anywhere.com', 'skin': 'Default'})
     self.assertEquals(response.status_code, 302)
     self.assertRedirects(response, '/user-profile/?saved=True', status_code=302, target_status_code=200)
 
