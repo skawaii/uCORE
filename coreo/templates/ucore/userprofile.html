@@ -1,10 +1,7 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>uCORE - Profile</title>
+{% extends "base.html" %}
+{% block head %}
 
-        <style type="text/css">
+    <style type="text/css">
           
       table {
         width: 700px;
@@ -30,28 +27,11 @@
 
       }
       </style>
-
-      <!--
-      td {
-        width: 250px;
-        padding-bottom:10px;
-      } 
-
-      label {
-        padding-right: 50px;
-      } 
-
-    </style> -->
-
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
     <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
-    </head>
-    <!-- CSS -->
-    <body>
-        <div id="geheader">
-            <a href="/"><img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" /></a>
-            <div id="user-info"><a href="/map/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="/manage-libraries/">Manage Your Libraries</a> | <a href="/future-feature/">Help</a> | <a href="/future-feature/">About</a> | <a href="/logout/">Sign Out</a></div>
-        </div>
+    {% endblock %}
+    {% block morebody %}
+
         <div class="main_div">
            <div class="center_div">
             <form action="/update-user/" method="POST">
@@ -93,6 +73,22 @@
                       </td>
                     </tr>
                     <tr>
+          <td><label for="id_wants_emails" class="vCheckboxLabel">Email Notifications (trophies, etc.)?</label></td>
+          <td>
+            <input type="checkbox" style="align-text:left" name="wants_emails" id="id_wants_emails" {% if settings.wants_emails %}checked="checked"{% endif %} />
+          </td> 
+        </tr>
+        <tr>
+          <td><label for="id_skin">Skin:</label></td>
+          <td>
+            <select name="skin" id="id_skin">
+              {% for i in skin_list %}
+              <option value="{{ i.name }}" {% ifequal i.name settings.skin.name %}selected="selected"{% endifequal %}>{{ i.name }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          </tr>
+                    <tr>
                       <td>
                       </td>
                       <td><a href="/update-password/">Click here to change your password</a></td>
@@ -107,5 +103,4 @@
             <h3 style="padding-left:50px;color:black;">{% if saved %}    Your profile changes have been saved.    {% endif %}</h3>
         </div> <!-- end of center_div -->
       </div> <!-- end of main_div -->
-    </body>
-</html>
+      {% endblock %}

@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>uCORE</title>
+ 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  	
+	<!-- CSS -->
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
+
+	<!-- Javascript -->
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.min.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+
+	<style type="text/css">
+		#kmlContainer {
+			display:block;
+			clear:left;
+			float:left;
+			padding: 2em;
+			width:45em;
+		}
+		#kmlContainer textarea {
+			width:100%;
+			height:70em;
+		}
+		#buttonContainer {
+			margin-top: 10em;
+			display:block;
+			clear:none;
+			float:left;
+		}
+		#jsonContainer {
+			float:left;
+			display:block;
+			clear:right;
+			padding: 2em;
+			width:45em;
+		}
+		#jsonContainer textarea {
+			width: 100%;
+			height: 70em;
+		}
+	</style>
+
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$("#dialog").dialog({ title: "Error", width: 600, modal: true});
+			$("#dialog").dialog("close");
+			var convert = function() {
+				$("#dialog").dialog("close");
+				if ($.trim($("#kmlFileForm input").val()).length > 0) {
+					$("#kmlFileForm").submit();
+				}
+				else {
+					var kmlTxt = $("#kmlContainer textarea").val();
+					$.ajax({
+						url: "{% url coreo.ucore.views.kml2json %}",
+						type: "POST",
+						data: kmlTxt,
+						success: function(data, textStatus, jqXHR) {
+							var json = jqXHR.responseText;
+							$("#json textarea").val(json);
+						},
+						error: function(jqXHR, textStatus, errorThrown) {
+							var error = jqXHR.responseText;
+							$("#dialog").html(error);
+							$("#dialog").dialog("open");
+						}
+					});
+				}
+			};
+			$("#buttonContainer button").button().click(convert);
+		});
+	</script>
+</head>
+<body>
+<div id="kmlContainer">
+	<p>KML Input:</p>
+	<form id="kmlFileForm" name="kmlFileForm" method="post" 
+		action="{% url coreo.ucore.views.kml2json %}" 
+		enctype="multipart/form-data" target="_blank">
+		<input type="file" name="file" id="file" />
+		{% csrf_token %}
+	</form>
+	<p>-- or --</p>
+	<textarea></textarea>
+</div>
+<div id="buttonContainer">
+	<button>Convert --></button>
+</div>
+<div id="jsonContainer">
+	<p>JSON Output:</p>
+	<textarea></textarea>
+</div>
+<div id="dialog"></div>
+</body>
+</html>
+

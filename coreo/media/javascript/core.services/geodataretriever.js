@@ -31,9 +31,12 @@ if (!window.core.services)
 		 * Parameters:
 		 *   url - String. Required. Endpoint where GeoData exists. URL may 
 		 *         contain request parameters.
-		 *   callback - Object or Function. Invoked with the retrieved GeoData.
+		 * 
+		 * Returns:
+		 *   jQuery Deferred. Invoked with the GeoData instance upon 
+		 *   successful retrieval.
 		 */
-		fetch: function(url, callback) {
+		fetch: function(url) {
 			throw "Not implemented";
 		}
 	};

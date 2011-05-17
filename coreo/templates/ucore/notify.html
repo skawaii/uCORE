@@ -1,19 +1,8 @@
+{% extends "base.html" %}
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>uCORE - Notification Page</title>
-  </head>
-
-  <!-- CSS --> 
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
-  
-  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.4.4.js"></script>
-  <script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+{% block head %}  
  <script type="text/javascript">
-     $(window).load(function() {
+     $(window ).load(function() {
           setInterval("test();", 10000);
         });
      
@@ -33,18 +22,11 @@
      }
 
   </script>
+  {% endblock %}
 
-  <body>
-    <div id="geheader">
-      <a href="/">
-        <img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
-    </a>
-
-    <div id="user-info"><a href="/ge/"><span id="signuptext">Back to the Visualizer</span></a> | <a href="/future-feature/">Help</a> | <a href="/future-feature/">About</a> | <a href="/logout/">Sign Out</a> </div>
-  </div>
+  {% block morebody %}
   <br/><br/><br/>
   <h1>Welcome to the notification page!</h1><br/>
   <h4>The purpose of this page is to show via AJAX when you have new notifications</h4><br/><br/>
   <div id="msgpart"></div>
-</body>
-</html>
+  {% endblock %}

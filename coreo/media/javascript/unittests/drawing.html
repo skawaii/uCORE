@@ -1,0 +1,258 @@
+<html>
+<head>
+<title>Drawing Demo</title>
+<link rel="stylesheet" type="text/css" href="../../css/ui-lightness/jquery-ui-1.8.6.custom.css" />
+<style type="text/css">
+.drawing-widget {
+	width: 660px;
+	height: 400px;
+	float: left;
+}
+
+.drawing-widget .toolbar {
+	float: left;
+	width: 150px;
+	height: 100%;
+}
+
+.drawing-widget .toolbar > div {
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	width: 48px;
+	height: 48px;
+	padding: 2px;
+	background-position: 2 2;
+	background-repeat: no-repeat;
+}
+
+.drawing-widget .toolbar > div:hover {
+	background-color: #ccc;
+	cursor: hand;
+}
+
+.drawing-widget .toolbar .loadimage {
+	background-image: url(picture.png);
+}
+
+.drawing-widget .toolbar .arrow {
+	background-image: url(arrow.png);
+}
+
+.drawing-widget .toolbar .textbox {
+	background-image: url(text.png);
+}
+
+.drawing-widget .toolbar .rectangle {
+	background-image: url(square-icon.png);
+}
+
+.drawing-widget .canvas {
+	float: left;
+	position: relative;
+	margin-left: 10px;
+	width: 490px;
+	height: 100%;
+	border: 5px dashed #ccc;
+}
+
+.drawing-widget .canvas .background-image {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+}
+
+.drawing-widget .canvas .overlay {
+	position: absolute;
+	margin: 2px;
+}
+
+.drawing-widget .canvas .overlay:hover {
+	cursor: pointer;
+	margin: 0;
+	border: 2px dashed yellow;
+}
+
+.drawing-widget .canvas .active-overlay {
+	margin: 0;
+	border: 2px solid yellow;
+}
+
+.drawing-widget .canvas .active-overlay:hover {
+	border: 2px solid yellow;
+	cursor: move;
+}
+
+#size {
+	margin-left: 20px;
+	float: right;
+}
+
+#coords {
+	margin-left: 20px;
+	float: right;
+}
+
+#messages {
+	float: left;
+	margin-left: 100px;
+	width: 300px;
+	height: 400px;
+	overflow: auto;
+}
+
+#messages p {
+	margin-bottom: 30px;
+}
+
+</style>
+<script type="text/javascript" src="../jQuery/jquery-1.5.min.js"></script>
+<script type="text/javascript" src="../jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		var bgImage = "exploited_image.jpg",
+			numOverlays = 0,
+			canvas = $(".drawing-widget .canvas"),
+			activateOverlay;
+
+		activateOverlay = function(el) {
+			var overlay;
+			canvas.find(".overlay")
+				.removeClass("active-overlay")
+				.resizable("destroy");
+			$("#coords").text("");
+			$("#size").text("");
+			overlay = $(el).closest(".overlay");
+			if (overlay.size() > 0) {
+				$("#coords").text("Top: " + overlay.position().top + ", Left: " + overlay.position().left);
+				$("#size").text("Width: " + overlay.width() + ", Height: " + overlay.height());
+				overlay.addClass("active-overlay")
+					.resizable({
+						containment: "parent",
+						start: function(event, ui) {
+							$("#size").text("Width: " + ui.size.width + ", Height: " + ui.size.height);
+						},
+						stop: function(event, ui) {
+							$("#messages").append($("<p>").text("Send update to server: Resized " + $(event.target) 
+									+ " to width=" + ui.position.width + ", height=" + ui.position.height + "."));
+						},
+						resize: function(event, ui) {
+							$("#size").text("Width: " + ui.size.width + ", Height: " + ui.size.height);
+						}
+					});
+			}
+			
+		};
+
+		canvas.click(function(e) {
+			activateOverlay($(e.target));
+		});
+		
+		makeOverlay = function(el, width, height) {
+			var overlay;
+			overlay = $("<div>", {
+						"class": "overlay",
+						css: {
+							"width": width,
+							"height": height,
+							"z-index": ++numOverlays + 1
+						}
+				})
+				.append(el)
+				.draggable({
+					containment: "parent",
+					start: function(event, ui) {
+						activateOverlay($(event.target));
+					},
+					drag: function(event, ui) {
+						$("#coords").text("Top: " + ui.position.top + ", Left: " + ui.position.left);
+					},
+					stop: function(event, ui) {
+						$("#messages").append($("<p>").text("Send update to server: Moved " + $(event.target) 
+								+ " to top=" + ui.position.top + ", left=" + ui.position.left + "."));
+					}
+				})
+				.position({
+					my: "center center",
+					at: "center center",
+					of: canvas
+				})
+				.appendTo(canvas);
+			return overlay;
+		};
+		
+		$(".drawing-widget .toolbar .loadimage").click(function() {
+			var dialog;
+			dialog = $("<div>")
+				.append($("<p>", { text: "Just click OK. The file input is for show." }))
+				.append($("<input>", { "type": "file", "name": "backgroundImg" }))
+				.append($("<button>", { text: "OK", "class": "ui-priority-primary", css: { "float": "right"} })
+						.button()
+						.click(function() {
+							var img;
+							img = canvas.find(".background-image");
+							if (img.size() == 0) {
+								// append image - hasn't been loaded yet
+								img = $("<img>", { "class": "background-image" })
+									.appendTo(canvas);
+							}
+							img.attr("src", bgImage);
+							img.width(canvas.width());
+							img.height(canvas.height());
+							dialog.dialog("close");
+							dialog.remove();
+						}));
+			$(document).append(dialog);
+			dialog.dialog({
+				width: 350,
+				modal: true
+			});
+		});
+		
+		$(".drawing-widget .toolbar .arrow").click(function() {
+			var overlay = makeOverlay($("<img>", { 
+									"src": "arrow-red.png", 
+									css: { "height": "100%", "width": "100%" } }),
+									50, 30);
+			activateOverlay(overlay);
+		});
+		
+		$(".drawing-widget .toolbar .rectangle").click(function() {
+			var overlay = makeOverlay($("<img>", { 
+										"src": "square.png", 
+										css: { "height": "100%", "width": "100%" } }),
+										50, 50);
+			activateOverlay(overlay);
+		});
+		
+		$(".drawing-widget .toolbar .textbox").click(function() {
+			var overlay = makeOverlay(
+					$("<div>", { css: {padding: "10px" } })
+						.append(
+							$("<textarea>", { 
+								css: { border: "0", "height": "100%", "width": "100%" } })),
+										100, 100);
+			activateOverlay(overlay);
+		});
+	});
+</script>
+</head>
+<body>
+<div class="drawing-widget">
+	<div class="toolbar">
+		<div class="loadimage" title="Change background image"></div>
+		<div class="arrow" title="Draw arrow"></div>
+		<div class="textbox" title="Add text"></div>
+		<div class="rectangle" title="Draw rectangle"></div>
+	</div>
+	<div class="canvas"></div>
+	<div id="size"></div>
+	<div id="coords"></div>
+</div>
+<div id="messages"></div>
+</body>
+</html>

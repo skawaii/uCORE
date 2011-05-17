@@ -49,6 +49,9 @@
 				var dataCallback = function(data) {
 					var childNode = $("<li>");
 					if (data) {
+						if (data["class"]) {
+							childNode.addClass(data["class"]);
+						}
 						if (data.attr) {
 							childNode.attr(data.attr);
 						}
@@ -104,8 +107,9 @@
 				}
 			},
 			_is_loaded: function(obj) {
-				return obj == -1 || !obj || obj.is(".jstree-open, .jstree-leaf") 
+				var loaded = obj == -1 || !obj || obj.is(".jstree-open, .jstree-leaf") 
 					|| obj.children("ul").children("li").size() > 0;
+				return loaded;
 			}
 		}
 	});

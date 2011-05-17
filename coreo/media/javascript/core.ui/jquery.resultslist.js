@@ -8,7 +8,9 @@
 		},
 
 		_init: function() {
-			this.element.addClass("ui-widget ui-resultslist");
+			this.element.addClass("ui-widget ui-resultslist")
+//			this.element.append($("<div>").addClass("ui-widget-shadow")
+//					.css({"margin-top": "-10px", "margin-left": "10px"}));
 			
 			var closeLink = $("<a>").attr("href", "#").append($("<span>")
 					.addClass("ui-icon ui-icon-closethick"));
@@ -18,7 +20,7 @@
 
 			var title = $("<span>").html(this.options.title);
 			
-			var titlebar = $("<div>").addClass("ui-widget-header")
+			var titlebar = $("<div>").addClass("ui-widget-header ui-corner-tr")
 				.append(title)
 				.append($("<span>").addClass("ui-resultslist-loading").css("display", "none").html("&#160;"))
 				.append(closeLink);
@@ -27,7 +29,7 @@
 
 			var contentHeight = this.element.innerHeight() - titlebar.outerHeight();
 			
-			var content = $("<div>").addClass("ui-widget-content").height(contentHeight);
+			var content = $("<div>").addClass("ui-widget-content ui-corner-br").height(contentHeight);
 			this.element.append(content);
 			
 			var self = this;
@@ -65,7 +67,8 @@
 		addResult: function(id, title, description, footer, data) {
 			var resultContainer = $("<div>").addClass("ui-resultslist-result")
 				.attr("resultid", id);
-			resultContainer.append($("<h4>").addClass("ui-resultslist-result-title").html(title));
+			resultContainer.append($("<h4>").addClass("ui-resultslist-result-title")
+					.append($("<a>").attr("href", "#").html(title)));
 			resultContainer.append($("<div>").addClass("ui-resultslist-result-desc").html(description));
 			resultContainer.append($("<div>").addClass("ui-resultslist-result-footer").html(footer));
 			resultContainer.data("resultslist", data);

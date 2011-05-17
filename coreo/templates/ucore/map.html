@@ -1,3 +1,4 @@
+{% load core_extras %}
 <html>
 <head>
 	<title>uCORE</title>
@@ -5,12 +6,16 @@
 
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/corefoundation.css" />
+	<!--
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/themes/ui-darkness/jquery-ui-1.8.12.custom.css" />
+	-->
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/ui-lightness/jquery-ui-1.8.6.custom.css" />
-	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.resultslist.css" />
+	
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/jquery.slidepanel.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/slidepanelresultfilter.css" />
 
-
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/acoredion.css" />
-
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/acoredion.css" />
+	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/geodatatree.css" />
 
 	<link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/core.css" />
 
@@ -73,17 +78,22 @@
 		}
 
 	</style>
-	
 
 	<!-- Javascript -->
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-1.5.min.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery-ui-1.8.6.custom.min.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jQuery/jquery.ui.autocomplete.html.js"></script>
 	<script src="http://www.google.com/jsapi?key=ABQIAAAAtuDq1IioWnrYLMDZJXDaeBSs94HHVqefOIHFZCoxD0-RfMeDlhRP3tXSgs9jF0UIVUjkN3EP0hxagA"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/google/extensions-0.2.1.pack.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jquerytools/tooltip/tooltip.min.js"></script>
 	
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/iterate.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.lazyload.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.bettercheckbox.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.hoverbuttons.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.crr.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/jstree/jquery.jstree.pickydnd.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmlfeaturetype.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/uri.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/idsequence.js"></script>
@@ -94,8 +104,11 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/namespacecontext.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/xmlutils.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/kmlutils.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.util/geodatavisitor.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodatastore.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/geodata.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/linkgeodata.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/linklibrarygeodata.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkgeodata.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmlnodegeodata.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/kmljsongeodata.js"></script>
@@ -110,6 +123,7 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/viewchangedevent.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/featureinfoevent.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/eventchannel.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.events/geodataunloadedevent.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/geodatatree.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredion.js"></script>
@@ -121,12 +135,17 @@
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/kmljsonproxyservice.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/kmljsongeodataretriever.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/searchstrategy.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/libraryservice.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/linkservice.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.services/userservice.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.geo/networklinkqueue.js"></script>
 	
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.slidepanel.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.resultslist.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.emptytext.js"></script>
-	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredionresultfilter.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/slidepanelresultfilter.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/jquery.gearth.js"></script>
+	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.ui/acoredionslidepanelhelper.js"></script>
 	
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/kmlobjectcreator.js"></script>
 	<script type="text/javascript" src="{{ MEDIA_URL }}javascript/core.gearth/kmlobjectstore.js"></script>
@@ -134,13 +153,33 @@
 
 
 	<script type="text/javascript">
-	google.load("maps", "2");
+		google.load("maps", "2");
 		google.load("earth", "1");
 
 		$(document).ready(function() {
-			$( "#tabs" ).tabs();			
+			$( "#tabs" ).tabs();		
 
-			var kmlJsonProxyService = new core.services.KmlJsonProxyService("/kmlproxy")
+			var userService = new core.services.UserService({
+				currentUserEndpoint: "{% url coreo.ucore.views.get_current_user %}",
+				currentUser: {% user_json user %}
+			});
+			var libraryByIdEndpoint = "{% url get-library-by-id libraryId='9999' %}";
+			libraryByIdEndpoint = libraryByIdEndpoint.substring(0, libraryByIdEndpoint.lastIndexOf('9999'));
+			var libraryService = new core.services.LibraryService({
+				createLibraryEndpoint: "{% url coreo.ucore.views.create_library %}",
+				deleteEndpoint: "{% url coreo.ucore.views.delete_libraries %}",
+				getByIdEndpoint: libraryByIdEndpoint,
+				updateEndpoint: "{% url coreo.ucore.views.update_library %}"
+			});
+			var linkByIdEndpoint = "{% url coreo.ucore.views.get_link '9999' %}";
+			linkByIdEndpoint = linkByIdEndpoint.substring(0, linkByIdEndpoint.lastIndexOf("9999"));
+			var linkService = new core.services.LinkService({
+				getByIdEndpoint: linkByIdEndpoint,
+				getByUrlEndpoint: "{% url links %}",
+				createEndpoint: "{% url coreo.ucore.views.links %}",
+				deleteEndpoint: "{% url coreo.ucore.views.delete_link %}"
+			});
+			var kmlJsonProxyService = new core.services.KmlJsonProxyService("{% url coreo.ucore.views.kmlproxy %}")
 			var geodataRetriever = new core.services.KmlJsonGeoDataRetriever(kmlJsonProxyService);
 			var eventChannel = new core.events.EventChannel();
 			var currentBbox = null;
@@ -148,20 +187,58 @@
 			var networkLinkQueue = new core.geo.NetworkLinkQueue(geodataRetriever, 
 					eventChannel, currentBbox, currentAltitude);
 
-			var searchService = new core.services.SearchService("/search/links", "/search/libraries");
-			var resultFilter = new core.ui.AcoredionResultFilter("#results");
-			var searchStrategy = new core.services.SearchStrategy(searchService, resultFilter, geodataRetriever);
-			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue);
+			$("#results").slidepanel()
+				.bind("removepanel", function() {
+					var size;
+					size = $("#results").slidepanel("size");
+					if (size == 0)
+						$("#results").slidepanel("close");
+				})
+				.bind("close", function() {
+					$(this).hide("slide");
+				})
+				.hide();
+
+			var searchService = new core.services.SearchService(
+					"{% url search-links %}", "{% url search-libraries %}",
+					"{% url get-tags %}", "{% url get-keywords %}");
+			var resultFilter = new core.ui.SlidePanelResultFilter("#results", "search-results");
+			var searchStrategy = new core.services.SearchStrategy(
+					searchService, resultFilter, geodataRetriever, linkService);
+
+			var spHelper = new core.ui.AcoredionSlidePanelHelper("#results");
+			var acoredion = new core.ui.Acoredion("#acoredion", searchStrategy, eventChannel, networkLinkQueue, 
+					spHelper.getCreateLibraryCallback(libraryService, linkService, geodataRetriever, searchService),
+					spHelper.getEditLibraryCallback(libraryService, linkService, geodataRetriever, searchService),
+					userService, linkService, libraryService);
 
 			var geController = null;
 			$("#tabs-earth").gearth().bind("earthloaded", function(event, ge) {
 				geController = new core.gearth.GeController(ge, eventChannel);
 			});
-			
+
 			// Create a new map
             var gmaps = new google.maps.Map2(document.getElementById("maps-container"));
             gmaps.setCenter(new google.maps.LatLng(37.4419, -122.1419), 13);
 
+            /*
+            $.ajax({
+            	url: "{{ MEDIA_URL }}kml/top_eleven.js",
+            	type: "GET",
+            	dataType: "json",
+            	success: function(data, textStatus, jqXHR) {
+            		var kmlRoot = data;
+            		var firstChild = kmlRoot.children[0];
+            		var geodata = core.geo.KmlJsonGeoData.fromKmlJson(firstChild, kmlRoot);
+            		geodata = core.geo.GeoDataStore.persist(geodata);
+            		eventChannel.publish(new core.events.GeoDataLoadedEvent("map page", geodata));
+            	},
+            	error: function(jqXHR, textStatus, errorThrown) {
+            		alert("Couldn't load Top Eleven: " + errorThrown);
+            	}
+            });
+            */
+			
             // Create the maps controller
 	    // Uncomment this!
 	    // var gmapsController = new core.gmaps.GmapsController(gmaps, eventChannel);
@@ -176,6 +253,36 @@
 
                 }
             });
+      
+            /*
+            libraryService.createLibrary("new library", "just a test", [], ["foo", "bar"])
+            	.then(function(newLibrary) {
+	            		console.log("SUCCESS!");
+	            		console.log(newLibrary);
+	            	},
+	            	function(errorThrown) {
+	            		alert("Error creating library: " + errorThrown);
+	            	});
+           	*/
+
+           	// load user's libraries
+           	userService.getCurrentUser().then(
+           		function(currentUser) {
+           			var i, linkLibraryGeoData;
+           			for (i = 0; currentUser && currentUser.fields
+           					&& currentUser.fields.libraries 
+           					&& i < currentUser.fields.libraries.length; i++) {
+						linkLibraryGeoData = new core.geo.LinkLibraryGeoData(null, 
+								currentUser.fields.libraries[i], linkService, 
+								geodataRetriever);
+						acoredion.addGeoData(linkLibraryGeoData);
+           			}
+           		},
+           		function(error) {
+           			console.log("Couldn't load user's libraries. Error " 
+           					+ "retrieving current user: " + error);
+           		}
+           	);
 		});
 	 
 	</script>
@@ -184,13 +291,12 @@
 <div id='geheader'>
 	<img id="core-logo" height="28px" width="100px" align="bottom" src="{{ MEDIA_URL }}images/corelogobluecog2-100x28.png" alt="C()RE" />
 	<div id="user-info">
-    <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/manage-libraries/">Manage Your Libraries</a> | <a href="../settings/">Settings</a> | <a href="/future-feature/">Help</a> | <a href="/logout/">Sign Out</a>
+    <a href="/userprofile/"><span id="signuptext">{{ user.first_name }}</span></a> | <a href="/manage-libraries/">Libraries</a> | <a href="/future-feature/">Help</a> | <a href="/logout/">Sign Out</a>
 	</div>
 </div>
 
 <div id="acoredion"></div>
 <div id="maps-section">
-
 	<div id="tabs">
 		<ul>
 			<li><a href="#tabs-earth">Earth</a></li>
